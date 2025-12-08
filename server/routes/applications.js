@@ -105,20 +105,20 @@ router.post('/', async (req, res) => {
         draft_schedule, draft_date, risk_score
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
-        $9, $10, $11, $12, $60, $13, $14, $15, $16,
-        $17, $18, $19, $20, $21, $22, $23,
-        $24, $25, $26, $27,
-        $28, $29, $30, $31,
-        $32, $33, $34,
-        $35, $36, $37,
-        $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50,
-        $51, $52, $53, $54, $55, $56,
-        $57, $58, $59
+        $9, $10, $11, $12, $13, $14, $15, $16, $17,
+        $18, $19, $20, $21, $22, $23, $24,
+        $25, $26, $27, $28,
+        $29, $30, $31, $32,
+        $33, $34, $35,
+        $36, $37, $38,
+        $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51,
+        $52, $53, $54, $55, $56, $57,
+        $58, $59, $60
       ) RETURNING *
     `, [
-      data.id, data.status || 'Pending', data.date || new Date().toISOString().split('T')[0],
+      data.id, data.status || 'Submitted', data.date || new Date().toISOString().split('T')[0],
       data.carrier, data.planType, data.monthlyPremium || data.premium, data.faceAmount, data.willingToAccept || false,
-      data.firstName, data.middleName, data.lastName, data.address, data.city, data.state, data.zip, data.stateOfBirth,
+      data.firstName, data.middleName, data.lastName, data.address, data.phone, data.city, data.state, data.zip, data.stateOfBirth,
       data.dob || null, data.age || null, data.ssn, data.gender, data.height, data.weight, data.tobacco,
       data.ownerName, data.ownerRel, data.ownerSsn, data.ownerAddress,
       data.primaryBenName, data.primaryBenRel, data.contingentBenName, data.contingentBenRel,
@@ -126,8 +126,7 @@ router.post('/', async (req, res) => {
       data.hasExisting, data.willReplace, data.physicianName,
       data.q1, data.q2, data.q3, data.q4, data.q5, data.q6, data.q7a, data.q7b, data.q7c, data.q7d, data.q8a, data.q8b, data.q8c,
       data.accountName, data.accountType || 'checking', data.bankName, data.bankAddress, data.routing, data.accountNum,
-      data.draftSchedule, data.draftDate, data.riskScore || Math.floor(Math.random() * 100),
-      data.phone
+      data.draftSchedule, data.draftDate, data.riskScore || Math.floor(Math.random() * 100)
     ]);
     
     res.status(201).json({ success: true, id: data.id });
