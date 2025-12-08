@@ -94,7 +94,7 @@ router.post('/', async (req, res) => {
     const result = await pool.query(`
       INSERT INTO applications (
         app_id, status, date, carrier, plan_type, monthly_premium, face_amount, willing_to_accept,
-        first_name, middle_name, last_name, address, phone, city, state, zip, state_of_birth,
+        first_name, middle_name, last_name, address, city, state, zip, state_of_birth,
         dob, age, ssn, gender, height, weight, tobacco,
         owner_name, owner_rel, owner_ssn, owner_address,
         primary_ben_name, primary_ben_rel, contingent_ben_name, contingent_ben_rel,
@@ -105,20 +105,20 @@ router.post('/', async (req, res) => {
         draft_schedule, draft_date, risk_score
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
-        $9, $10, $11, $12, $13, $14, $15, $16, $17,
-        $18, $19, $20, $21, $22, $23, $24,
-        $25, $26, $27, $28,
-        $29, $30, $31, $32,
-        $33, $34, $35,
-        $36, $37, $38,
-        $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51,
-        $52, $53, $54, $55, $56, $57,
-        $58, $59, $60
+        $9, $10, $11, $12, $13, $14, $15, $16,
+        $17, $18, $19, $20, $21, $22, $23,
+        $24, $25, $26, $27,
+        $28, $29, $30, $31,
+        $32, $33, $34,
+        $35, $36, $37,
+        $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50,
+        $51, $52, $53, $54, $55, $56,
+        $57, $58, $59
       ) RETURNING *
     `, [
       data.id, data.status || 'Submitted', data.date || new Date().toISOString().split('T')[0],
       data.carrier, data.planType, data.monthlyPremium || data.premium, data.faceAmount, data.willingToAccept || false,
-      data.firstName, data.middleName, data.lastName, data.address, data.phone, data.city, data.state, data.zip, data.stateOfBirth,
+      data.firstName, data.middleName, data.lastName, data.address, data.city, data.state, data.zip, data.stateOfBirth,
       data.dob || null, data.age || null, data.ssn, data.gender, data.height, data.weight, data.tobacco,
       data.ownerName, data.ownerRel, data.ownerSsn, data.ownerAddress,
       data.primaryBenName, data.primaryBenRel, data.contingentBenName, data.contingentBenRel,
