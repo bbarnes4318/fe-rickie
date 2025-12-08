@@ -1,0 +1,138 @@
+You need to add many things:
+
+1. Age: This needs to be a field that is sent to the dashboard/customer/policy area of the applicaton and calculated automatically based on the date of birth.
+
+2. Height - must have 4'0 to 4'11; 5'0 to 5'11; 6'0 to 6'11; 7'0 to 7'11
+
+3. There must be an owner section for the person that will own this policy. The user should only enter information here if the owner is a different person than the proposed insured:
+
+	a. owner name
+
+	b. relationship dropdown (spouse, child, parent, partner, friend, relative, other)
+
+	c. ssn
+
+	d. address
+
+4. Contingent Beneficiary-The user must have the option to add a contingent beneficiary (optional)
+
+	a. Name
+	b. Beneficiary Relationship dropdown (spouse, child, parent, partner, friend, relative, other)
+
+5. Must add this: **Check here if you are willing to accept any plan for which you qualify based on this application. The insurance for which you qualify may have a graded or return of premium death benefit for the first two (2) or three (3) years, a face amount less than any indicated on this application, and riders may not be available.**
+
+6. Must add this: During the past 12 months have you used tobacco in any form (excluding occasional pipe and cigar use)?    Yes    No 
+
+7. Add this in the proper area of the application: Rider:  Grandchild/Great Grandchild Coverage   ____ Number of Children Applying    ____ Units
+
+8. Add this: Do you have existing life insurance or an annuity contract? Yes, No
+	IF Yes: Will you replace an existing life insurance policy or an annuity? Yes, No 
+
+9. Add this: Physician Name
+
+ 
+AND WE MUST ADD ALL OF THE FOLLOWING HEALTH QUESTIONS (IF THEY DON'T ALREADY EXIST):
+
+HEALTH INFORMATION
+
+ 1.Are you currently hospitalized, confined to a nursing facility, a bed, or a wheelchair due to chronic illness or disease, currently
+
+ using oxygen equipment to assist in breathing, receiving Hospice Care or home health care, or had an amputation caused by
+
+ disease, or do you currently have any form of cancer (excluding basal cell skin cancer) diagnosed or treated by a medical
+
+ professional, or do you require assistance (from anyone) with activities of daily living such as bathing, dressing, eating
+
+ or toileting?   Yes  No
+
+ 2.Have you had or been medically advised to have an organ transplant or kidney dialysis, or have you been medically diagnosed
+
+ as having congestive heart failure (CHF), Alzheimer’s, dementia, mental incapacity, Lou Gehrig’s disease (ALS), liver failure,
+
+ respiratory failure, or been diagnosed by a medical professional as having a terminal medical condition or end-stage disease
+
+ that is expected to result in death in the next 12 months?   Yes  No
+
+
+ 3.Have you been medically treated or diagnosed by a medical professional as having Acquired Immune Deficiency Syndrome
+
+ (AIDS), AIDS related complex (ARC), or any immune deficiency related disorder or tested positive for the Human
+
+ Immunodeficiency Virus (HIV)?  Yes   No
+
+ If any answer to questions 1 through 3 is answered “Yes” the Proposed Insured is not eligible for any coverage.
+
+
+ 4.Have you ever been medically diagnosed or treated for complications of diabetes, including insulin shock, diabetic coma,
+
+ retinopathy (eye), nephropathy (kidney), neuropathy (nerve damage/pain), or used insulin prior to age 50? ..............................  Yes  No
+
+
+ 5.Have you ever been medically diagnosed, treated or taken medication for renal insufficiency, kidney failure, chronic kidney
+
+ disease, or more than one occurrence of cancer in your lifetime (excluding basal cell skin cancer)? .........................................  Yes  No
+
+
+ 6.Within the past 2 years have you had any diagnostic testing (excluding tests related to Human Immunodeficiency Virus (HIV)),
+
+ surgery, or hospitalization advised by a medical professional which has not been completed or for which the results have
+
+ not been received?Yes  No
+
+
+ 7.Within the past 2 years have you:
+
+ a. been medically diagnosed or treated for angina (chest pain), stroke or TIA, cardiomyopathy, systemic lupus (SLE), cirrhosis,
+
+ Hepatitis C, chronic hepatitis, chronic pancreatitis, chronic obstructive pulmonary disease (COPD), emphysema, chronic
+
+ bronchitis, or required oxygen equipment to assist in breathing?   Yes  No 
+
+ b. had a heart attack or aneurysm, or had or been medically advised to have any type of heart, brain or circulatory surgery
+
+ (including, but not limited to a pacemaker insertion, defibrillator placement), or any procedure to improve circulation?  Yes  No 
+
+c. been medically diagnosed, or treated, or taken medication for any form of cancer (excluding basal cell skin cancer)? Yes  No 
+
+d. used illegal drugs, abused alcohol or drugs, had or been recommended by a medical professional to have treatment or
+
+ counseling for alcohol or drug use or been advised to discontinue use of alcohol or drugs?  Yes  No
+
+
+ If any answer to questions 4 through 7 is answered “Yes” the Proposed Insured should apply for the Return of Premium Death Benefit Plan.
+
+ 8. Within the past 3 years have you been medically diagnosed or treated, or hospitalized for:
+
+ a. stroke, angina (chest pain), heart attack, aneurysm, heart or circulatory surgery or any procedure to improve circulation? Yes  No
+
+ b. or taken medication for any form of cancer (excluding basal cell skin cancer), emphysema, chronic bronchitis, chronic
+
+ obstructive pulmonary disease (COPD), ulcerative colitis, cirrhosis, Hepatitis C, or liver disease?  Yes  No
+
+ c. paralysis of two or more extremities or cerebral palsy, multiple sclerosis, seizures, Parkinson’s disease or muscular dystrophy? Yes  No
+
+ If any answer to question 8 is answered “Yes” the Proposed Insured should apply for the Graded Death Benefit Plan.
+
+ If all questions 1 through 8 are answered “No” the Proposed Insured should apply for the Immediate Death Benefit Plan.
+
+WE MUST ADD ALL OF THE FOLLOWING TO THE Bank Details SECTION. IF ALREADY PRESENT THEN SKIP:
+
+name on account
+
+account type (checking, savings)
+
+bank name
+
+bank address
+
+routing
+
+account
+
+Would you like your draft to coincide with your Social Security payment schedule? o Yes o No
+
+Please choose one of the following as your requested draft date (applies to first and future drafts of this account):
+
+o Requested Draft Date, If Any (1st-28th) OR o 2nd Wednesday o 3rd Wednesday o 4th Wednesday
+
+
