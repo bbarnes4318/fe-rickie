@@ -112,6 +112,18 @@ const INITIAL_DATA = {
 
 // --- Shared UI Components ---
 
+// Date formatter helper
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'N/A';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
+  } catch {
+    return dateStr;
+  }
+};
+
 const Logo = ({ small = false }) => (
   <div className={`flex items-center justify-center ${small ? 'mb-2' : 'mb-6'}`}>
     <img 
@@ -1286,7 +1298,7 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                          </div>
                          <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
                             <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-600">ID: {selectedApp.id}</span>
-                            <span className="flex items-center gap-1"><Calendar size={14}/> {selectedApp.date}</span>
+                            <span className="flex items-center gap-1"><Calendar size={14}/> {formatDate(selectedApp.date)}</span>
                             <span className="flex items-center gap-1"><MapPin size={14}/> {selectedApp.state || 'N/A'}</span>
                          </div>
                        </div>
@@ -1342,7 +1354,7 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                             </h3>
                             <div className="grid grid-cols-1 gap-2">
                                <DataField label="Full Name" value={`${selectedApp.firstName || selectedApp.name} ${selectedApp.middleName || ''} ${selectedApp.lastName || ''}`} />
-                               <DataField label="Date of Birth" value={selectedApp.dob} />
+                               <DataField label="Date of Birth" value={formatDate(selectedApp.dob)} />
                                <DataField label="Age" value={selectedApp.age} />
                                <DataField label="State of Birth" value={selectedApp.stateOfBirth} />
                                <DataField label="SSN" value={selectedApp.ssn} />
