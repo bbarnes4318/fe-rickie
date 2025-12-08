@@ -234,6 +234,70 @@ const DataField = ({ label, value, copyable = true }) => {
   );
 };
 
+// --- Component: Login Form ---
+const Login = ({ onLogin }) => {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const data = await api.login(password);
+      if (data.success) {
+        onLogin(data.token);
+      }
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800">Agent Access</h2>
+          <p className="text-slate-500">Enter your secure password to continue.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+             <Input 
+                type="password" 
+                placeholder="Password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                required
+             />
+          </div>
+          
+          {error && (
+            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-center gap-2">
+              <AlertTriangle size={16} /> {error}
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? <RefreshCw size={20} className="animate-spin"/> : 'Login'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // --- Component: Customer Application Form ---
 
 const CustomerForm = ({ onComplete }) => {
@@ -1435,23 +1499,51 @@ export default function App() {
   const [submissions, setSubmissions] = useState([]);
   const [lastSubmission, setLastSubmission] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check auth on mount
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (token) => {
+    localStorage.setItem('authToken', token);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    setIsAuthenticated(false);
+    setView('home');
+  };
 
   // Load applications from API
   const loadApplications = useCallback(async () => {
+    if (!isAuthenticated) return;
+
     try {
       setLoading(true);
       const data = await api.getApplications();
       setSubmissions(data);
     } catch (error) {
       console.error('Failed to load applications:', error);
+      if (error.message === 'Unauthorized' || error.message.includes('401') || error.message.includes('403')) {
+        setIsAuthenticated(false);
+        localStorage.removeItem('authToken');
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    loadApplications();
-  }, [loadApplications]);
+    if (isAuthenticated) {
+      loadApplications();
+    }
+  }, [isAuthenticated, loadApplications]);
 
   const handleAppSubmit = async (data) => {
     try {
@@ -1465,8 +1557,10 @@ export default function App() {
       await api.createApplication(newApp);
       setLastSubmission(newApp);
       setView('success');
-      // Reload to get the saved version
-      loadApplications();
+      // If we are logged in, reload the list
+      if (isAuthenticated) {
+        loadApplications();
+      }
     } catch (error) {
       console.error('Failed to submit application:', error);
       alert('Failed to submit application. Please try again.');
@@ -1503,7 +1597,9 @@ export default function App() {
               </div>
               <h2 className="text-2xl font-bold text-slate-800 group-hover:text-white mb-2">Agent Dashboard</h2>
               <p className="text-slate-500 group-hover:text-slate-400">Login to the AI-powered backend to manage submissions and risks.</p>
-              <button className="mt-6 px-6 py-2 bg-white border border-slate-300 text-slate-700 rounded-full font-bold hover:bg-slate-50 group-hover:bg-blue-600 group-hover:border-transparent group-hover:text-white transition-all">Login</button>
+              <button className="mt-6 px-6 py-2 bg-white border border-slate-300 text-slate-700 rounded-full font-bold hover:bg-slate-50 group-hover:bg-blue-600 group-hover:border-transparent group-hover:text-white transition-all">
+                {isAuthenticated ? 'Go to Dashboard' : 'Login'}
+              </button>
            </div>
         </div>
       </div>
@@ -1525,7 +1621,9 @@ export default function App() {
            <p className="text-slate-500 mb-6">Thank you, {lastSubmission?.firstName}. Your application ID is <span className="font-mono font-bold text-slate-700">{lastSubmission?.id}</span>.</p>
            <div className="flex flex-col gap-3">
              <button onClick={() => setView('home')} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold">Return Home</button>
-             <button onClick={() => setView('admin')} className="w-full py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold">View in Dashboard (Demo)</button>
+             <button onClick={() => setView('admin')} className="w-full py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold">
+                View in Dashboard
+             </button>
            </div>
          </div>
       </div>
@@ -1533,7 +1631,19 @@ export default function App() {
   }
 
   if (view === 'admin') {
-    return <AdminDashboard submissions={submissions} onLogout={() => setView('home')} onUpdateSubmission={handleUpdateSubmission} />;
+    if (!isAuthenticated) {
+      return (
+        <>
+           <div className="fixed top-4 left-4 z-50">
+             <button onClick={() => setView('home')} className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm text-slate-600 hover:text-slate-900 font-bold text-sm">
+                <ChevronLeft size={16}/> Back
+             </button>
+           </div>
+           <Login onLogin={handleLogin} />
+        </>
+      );
+    }
+    return <AdminDashboard submissions={submissions} onLogout={handleLogout} onUpdateSubmission={handleUpdateSubmission} />;
   }
 
   return null;

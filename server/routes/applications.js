@@ -1,10 +1,11 @@
 import express from 'express';
 import pool from '../db.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // GET all applications
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT * FROM applications 
@@ -135,7 +136,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update application
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { status, plan, premium } = req.body;
   
