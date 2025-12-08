@@ -19,6 +19,7 @@ CREATE TABLE applications (
   middle_name VARCHAR(100),
   last_name VARCHAR(100),
   address TEXT,
+  phone VARCHAR(20),
   city VARCHAR(100),
   state VARCHAR(10),
   zip VARCHAR(20),

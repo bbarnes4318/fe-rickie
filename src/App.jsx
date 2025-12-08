@@ -25,7 +25,7 @@ const RELATIONSHIPS = [
 ];
 
 const APP_STATUSES = [
-  "Underwriting", "Issued", "Paid & Issued", "Active", "Not Taken", "Cancelled", "Lapsed", "Pending"
+  "Submitted", "Underwriting", "Issued", "Paid", "Not Taken", "Lapsed"
 ];
 
 const PLAN_TYPES = [
@@ -62,6 +62,7 @@ const INITIAL_DATA = {
   // Personal
   firstName: '', middleName: '', lastName: '',
   address: '', city: '', state: '', zip: '',
+  phone: '',
   dob: '', age: '', stateOfBirth: '', ssn: '',
   height: "5'9\"", weight: 170, gender: '',
   
@@ -112,21 +113,12 @@ const INITIAL_DATA = {
 // --- Shared UI Components ---
 
 const Logo = ({ small = false }) => (
-  <div className={`flex flex-col items-center justify-center ${small ? 'mb-2' : 'mb-6'}`}>
-    <div className={`relative ${small ? 'w-10 h-8' : 'w-16 h-12'} mb-2`}>
-      <svg viewBox="0 0 64 48" className="w-full h-full drop-shadow-sm">
-        <path d="M0 4C0 1.8 1.8 0 4 0H28V24H0V4Z" fill="#00205B"/> 
-        <path d="M14 6L16 11H21L17 14L18.5 19L14 16L9.5 19L11 14L7 11H12L14 6Z" fill="white"/> 
-        <path d="M30 0H60C62.2 0 64 1.8 64 4V8H30V0Z" fill="#C8102E"/> 
-        <path d="M30 12H64V20H30V12Z" fill="#C8102E"/> 
-        <path d="M0 28H64V36H0V28Z" fill="#C8102E"/> 
-        <path d="M0 40H64V44C64 46.2 62.2 48 60 48H4C1.8 48 0 46.2 0 44V40Z" fill="#C8102E"/> 
-      </svg>
-    </div>
-    <div className="text-center">
-      <h1 className={`${small ? 'text-sm' : 'text-xl'} font-extrabold tracking-wider text-slate-800 leading-tight`}>AMERICAN</h1>
-      <h1 className={`${small ? 'text-sm' : 'text-xl'} font-extrabold tracking-wider text-slate-800 leading-tight`}>BENEFICIARY</h1>
-    </div>
+  <div className={`flex items-center justify-center ${small ? 'mb-2' : 'mb-6'}`}>
+    <img 
+      src="/amerben.png" 
+      alt="American Beneficiary" 
+      className={`${small ? 'h-8' : 'h-16'} w-auto object-contain`} 
+    />
   </div>
 );
 
@@ -448,6 +440,7 @@ const CustomerForm = ({ onComplete }) => {
             <Select label="State" options={STATES} value={data.state} onChange={(e) => update('state', e.target.value)} />
             <Input label="Zip Code" value={data.zip} onChange={(e) => update('zip', e.target.value)} />
           </div>
+          <Input label="Phone Number" type="tel" placeholder="(555) 555-5555" value={data.phone} onChange={(e) => update('phone', e.target.value)} required />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <Input type="date" label="Date of Birth" value={data.dob} onChange={handleDobChange} required />
@@ -677,6 +670,7 @@ const CustomerForm = ({ onComplete }) => {
     // Validation logic per step
     if (step === 1 && !data.carrier) { alert("Please select a carrier."); return; }
     if (step === 2 && (!data.planType || !data.monthlyPremium)) { alert("Please select a policy and enter a premium."); return; }
+    if (step === 7 && (!data.accountNum || !data.routing || !data.draftDate)) { alert("Please complete all banking details including Draft Date."); return; }
     setStep(Math.min(totalSteps, step + 1));
   };
   const prevStep = () => setStep(Math.max(1, step - 1));
@@ -769,18 +763,17 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
 
   const StatusBadge = ({ status }) => {
     const styles = {
-      'Approved': 'bg-green-100 text-green-700 border-green-200',
+      'Submitted': 'bg-blue-100 text-blue-700 border-blue-200',
+      'Underwriting': 'bg-indigo-100 text-indigo-700 border-indigo-200',
       'Issued': 'bg-green-100 text-green-700 border-green-200',
+      'Paid': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      'Not Taken': 'bg-slate-100 text-slate-500 border-slate-200',
+      'Lapsed': 'bg-red-50 text-red-600 border-red-200',
+      // Legacy statuses for backwards compatibility
+      'Approved': 'bg-green-100 text-green-700 border-green-200',
       'Paid & Issued': 'bg-emerald-100 text-emerald-700 border-emerald-200',
       'Active': 'bg-blue-100 text-blue-700 border-blue-200',
-      'Pending': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      'Underwriting': 'bg-indigo-100 text-indigo-700 border-indigo-200',
-      'Review': 'bg-orange-100 text-orange-700 border-orange-200',
-      'Flagged': 'bg-red-100 text-red-700 border-red-200',
-      'Not Taken': 'bg-slate-100 text-slate-500 border-slate-200',
-      'Cancelled': 'bg-red-50 text-red-700 border-red-200',
-      'Lapsed': 'bg-red-50 text-red-600 border-red-200',
-      'Delinquent': 'bg-red-100 text-red-700 border-red-200'
+      'Pending': 'bg-yellow-100 text-yellow-700 border-yellow-200'
     };
     return (
       <span className={`px-2 py-1 rounded-md text-xs font-bold border whitespace-nowrap ${styles[status] || 'bg-slate-100 text-slate-600'}`}>
@@ -807,18 +800,18 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
     
     const counts = {
       applications: filtered.length,
+      submitted: filtered.filter(s => s.status === 'Submitted').length,
+      underwriting: filtered.filter(s => s.status === 'Underwriting').length,
       issued: filtered.filter(s => s.status === 'Issued').length,
-      paidIssued: filtered.filter(s => s.status === 'Paid & Issued').length,
-      active: filtered.filter(s => s.status === 'Active').length,
-      underwriting: filtered.filter(s => s.status === 'Underwriting' || s.status === 'Pending').length,
+      paid: filtered.filter(s => s.status === 'Paid').length,
       notTaken: filtered.filter(s => s.status === 'Not Taken').length,
-      cancelled: filtered.filter(s => s.status === 'Cancelled').length,
       lapsed: filtered.filter(s => s.status === 'Lapsed').length,
     };
 
-    const retentionBase = counts.active + counts.cancelled + counts.lapsed;
-    const retentionRate = retentionBase > 0 ? ((counts.active / retentionBase) * 100).toFixed(1) : 0;
-    const appsToIssue = counts.applications > 0 ? ((counts.active / counts.applications) * 100).toFixed(1) : 0;
+    const activeCount = counts.issued + counts.paid;
+    const retentionBase = activeCount + counts.notTaken + counts.lapsed;
+    const retentionRate = retentionBase > 0 ? ((activeCount / retentionBase) * 100).toFixed(1) : 0;
+    const appsToIssue = counts.applications > 0 ? ((activeCount / counts.applications) * 100).toFixed(1) : 0;
 
     return { counts, retentionRate, appsToIssue };
   }, [submissions, timeFilter]);
@@ -830,8 +823,8 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
          {[
            { label: 'Total Apps', val: submissions.length, icon: FileText, color: 'blue' },
-           { label: 'Active Policies', val: submissions.filter(s => s.status === 'Active').length, icon: Shield, color: 'green' },
-           { label: 'Pending', val: submissions.filter(s => s.status === 'Pending').length, icon: Activity, color: 'orange' },
+           { label: 'Issued/Paid', val: analyticsData.counts.issued + analyticsData.counts.paid, icon: Shield, color: 'green' },
+           { label: 'Underwriting', val: analyticsData.counts.underwriting, icon: Activity, color: 'orange' },
            { label: 'Avg Premium', val: submissions.length > 0 ? `$${(submissions.reduce((sum, s) => sum + parseFloat(s.premium || 0), 0) / submissions.length).toFixed(2)}` : '$0.00', icon: DollarSign, color: 'purple' },
          ].map((stat, i) => (
            <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between hover:shadow-md transition-shadow">
@@ -1278,6 +1271,18 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                          <div className="flex items-center gap-3">
                            <h2 className="text-2xl font-bold text-slate-900">{selectedApp.name || selectedApp.firstName + ' ' + selectedApp.lastName}</h2>
                            <StatusBadge status={selectedApp.status} />
+                            <select
+                              value={editData.status || selectedApp.status}
+                              onChange={(e) => {
+                                const newStatus = e.target.value;
+                                setEditData(prev => ({ ...prev, status: newStatus }));
+                                onUpdateSubmission({ ...selectedApp, status: newStatus });
+                                setSelectedApp(prev => ({ ...prev, status: newStatus }));
+                              }}
+                              className="ml-2 border border-slate-300 rounded-lg px-2 py-1 text-sm font-bold text-slate-700 cursor-pointer hover:border-blue-400 focus:outline-none focus:border-blue-500"
+                            >
+                              {APP_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
                          </div>
                          <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
                             <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-600">ID: {selectedApp.id}</span>
@@ -1339,6 +1344,7 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                                <DataField label="Full Name" value={`${selectedApp.firstName || selectedApp.name} ${selectedApp.middleName || ''} ${selectedApp.lastName || ''}`} />
                                <DataField label="Date of Birth" value={selectedApp.dob} />
                                <DataField label="Age" value={selectedApp.age} />
+                               <DataField label="State of Birth" value={selectedApp.stateOfBirth} />
                                <DataField label="SSN" value={selectedApp.ssn} />
                                <DataField label="Gender" value={selectedApp.gender} />
                                <div className="grid grid-cols-2 gap-2">
@@ -1416,7 +1422,10 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                                <DataField label="Routing Number" value={selectedApp.routing} />
                                <DataField label="Account Number" value={selectedApp.accountNum} />
                                <DataField label="Draft Schedule" value={selectedApp.draftSchedule === 'ss_payment' ? 'Social Security' : 'Specific Date'} />
-                               <DataField label="Draft Date" value={selectedApp.draftDate} />
+                               <DataField 
+                                  label={selectedApp.draftSchedule === 'ss_payment' ? "SS Payment Day" : "Draft Date"} 
+                                  value={selectedApp.draftDate} 
+                               />
                             </div>
                           </div>
                        </div>
@@ -1461,8 +1470,49 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                                       <div className="flex justify-between"><span>Q8c</span><span className={selectedApp.q8c ? 'text-blue-600 font-bold' : 'text-green-600'}>{selectedApp.q8c ? 'YES' : 'NO'}</span></div>
                                    </div>
                                 </div>
+                                </div>
                             </div>
-                          </div>
+
+                           {/* Riders & Coverage Options */}
+                           <div>
+                             <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                               <Shield size={20} className="text-purple-600"/> Coverage Options
+                             </h3>
+                             <div className="space-y-4">
+                               <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                                  <div className="flex justify-between items-center mb-2">
+                                     <span className="text-sm font-bold text-slate-600">Willing to Accept</span>
+                                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${selectedApp.willingToAccept ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                                        {selectedApp.willingToAccept ? 'YES' : 'NO'}
+                                     </span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                     <span className="text-sm font-bold text-slate-600">Existing Insurance</span>
+                                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${selectedApp.hasExisting ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                                        {selectedApp.hasExisting ? 'YES' : 'NO'}
+                                     </span>
+                                  </div>
+                                  {selectedApp.hasExisting && (
+                                     <div className="flex justify-between items-center mt-2 pl-4 border-l-2 border-slate-200">
+                                       <span className="text-sm text-slate-500">Will Replace?</span>
+                                       <span className={`font-bold ${selectedApp.willReplace ? 'text-red-600' : 'text-slate-600'}`}>
+                                          {selectedApp.willReplace ? 'YES' : 'NO'}
+                                       </span>
+                                     </div>
+                                  )}
+                               </div>
+
+                               {(selectedApp.grandchildCount > 0 || selectedApp.grandchildUnits > 0) && (
+                                 <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                                    <p className="text-xs font-bold text-purple-700 uppercase mb-2">Grandchild Rider</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                       <DataField label="Children" value={selectedApp.grandchildCount} />
+                                       <DataField label="Units" value={selectedApp.grandchildUnits} />
+                                    </div>
+                                 </div>
+                               )}
+                             </div>
+                           </div>
 
                           <div>
                             <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">

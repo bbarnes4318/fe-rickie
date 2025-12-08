@@ -30,6 +30,7 @@ router.get('/', authenticateToken, async (req, res) => {
       lastName: row.last_name,
       name: `${row.first_name || ''} ${row.last_name || ''}`.trim(),
       address: row.address,
+      phone: row.phone,
       city: row.city,
       state: row.state,
       zip: row.zip,
@@ -93,7 +94,7 @@ router.post('/', async (req, res) => {
     const result = await pool.query(`
       INSERT INTO applications (
         app_id, status, date, carrier, plan_type, monthly_premium, face_amount, willing_to_accept,
-        first_name, middle_name, last_name, address, city, state, zip, state_of_birth,
+        first_name, middle_name, last_name, address, phone, city, state, zip, state_of_birth,
         dob, age, ssn, gender, height, weight, tobacco,
         owner_name, owner_rel, owner_ssn, owner_address,
         primary_ben_name, primary_ben_rel, contingent_ben_name, contingent_ben_rel,
@@ -104,7 +105,7 @@ router.post('/', async (req, res) => {
         draft_schedule, draft_date, risk_score
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
-        $9, $10, $11, $12, $13, $14, $15, $16,
+        $9, $10, $11, $12, $60, $13, $14, $15, $16,
         $17, $18, $19, $20, $21, $22, $23,
         $24, $25, $26, $27,
         $28, $29, $30, $31,
@@ -125,7 +126,8 @@ router.post('/', async (req, res) => {
       data.hasExisting, data.willReplace, data.physicianName,
       data.q1, data.q2, data.q3, data.q4, data.q5, data.q6, data.q7a, data.q7b, data.q7c, data.q7d, data.q8a, data.q8b, data.q8c,
       data.accountName, data.accountType || 'checking', data.bankName, data.bankAddress, data.routing, data.accountNum,
-      data.draftSchedule, data.draftDate, data.riskScore || Math.floor(Math.random() * 100)
+      data.draftSchedule, data.draftDate, data.riskScore || Math.floor(Math.random() * 100),
+      data.phone
     ]);
     
     res.status(201).json({ success: true, id: data.id });
