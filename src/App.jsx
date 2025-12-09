@@ -174,11 +174,11 @@ const CARRIER_LOGOS = {
 // CarrierLogo component for displaying carrier logos
 const CarrierLogo = ({ carrier, size = "md", className = "" }) => {
   const sizeClasses = {
-    xs: "h-8 max-w-[80px]",
-    sm: "h-12 max-w-[120px]",
-    md: "h-16 max-w-[160px]",
-    lg: "h-20 max-w-[200px]",
-    xl: "h-24 max-w-[240px]",
+    xs: "h-6 max-w-[70px]",
+    sm: "h-8 max-w-[100px]",
+    md: "h-10 max-w-[120px]",
+    lg: "h-12 max-w-[140px]",
+    xl: "h-16 max-w-[180px]",
   };
 
   const logoSrc = CARRIER_LOGOS[carrier];
@@ -1647,14 +1647,14 @@ const CustomerForm = ({ onComplete }) => {
               update("carrier", c);
               update("planType", "");
             }}
-            className={`p-3 rounded-xl border-2 text-left transition-all flex items-center justify-between group ${
+            className={`p-3 rounded-xl border-2 text-left transition-all flex items-center justify-between group overflow-hidden ${
               data.carrier === c
                 ? "border-blue-600 bg-blue-50"
                 : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
             }`}
           >
-            <div className="flex items-center justify-center min-h-[72px]">
-              <CarrierLogo carrier={c} size="md" />
+            <div className="flex items-center justify-center h-[36px] w-[110px] overflow-hidden">
+              <CarrierLogo carrier={c} size="sm" />
             </div>
             <div
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
@@ -1905,10 +1905,12 @@ const CustomerForm = ({ onComplete }) => {
 
           {/* Quote Display */}
           {hasCarrierRates && selectedCarrierQuote && (
-            <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl border border-green-200 shadow-sm">
+            <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl border border-green-200 shadow-sm overflow-hidden">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <CarrierLogo carrier={data.carrier} size="md" />
+                  <div className="h-[36px] w-[110px] flex items-center justify-start overflow-hidden flex-shrink-0">
+                    <CarrierLogo carrier={data.carrier} size="sm" />
+                  </div>
                   <p className="text-4xl font-extrabold text-green-700 tracking-tight">
                     ${selectedCarrierQuote.toFixed(2)}
                     <span className="text-lg font-medium text-green-600 ml-1">
@@ -1966,7 +1968,7 @@ const CustomerForm = ({ onComplete }) => {
                       update("planType", "");
                       if (quote) update("monthlyPremium", quote.toFixed(2));
                     }}
-                    className={`relative p-3 rounded-xl border-2 text-center transition-all group ${
+                    className={`relative p-2 rounded-xl border-2 text-center transition-all group overflow-hidden ${
                       isSelected
                         ? "border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-100 ring-offset-1"
                         : quote
@@ -1975,8 +1977,8 @@ const CustomerForm = ({ onComplete }) => {
                     }`}
                     disabled={!quote}
                   >
-                    <div className="flex items-center justify-center min-h-[56px] mb-2">
-                      <CarrierLogo carrier={carrier} size="sm" />
+                    <div className="flex items-center justify-center h-[28px] mb-1 overflow-hidden">
+                      <CarrierLogo carrier={carrier} size="xs" />
                     </div>
                     {quote ? (
                       <p
