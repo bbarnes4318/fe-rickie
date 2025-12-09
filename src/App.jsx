@@ -141,7 +141,12 @@ const CARRIER_CONFIG = {
   SBLI: { annualFee: 48, monthlyFactor: 0.087, hasTobacco: true },
   CICA: { annualFee: 0, monthlyFactor: 0, hasTobacco: false },
   GTL: { annualFee: 48, monthlyFactor: 0.08333, hasTobacco: false },
-  Corebridge: { annualFee: 0, monthlyFactor: 0, hasTobacco: false, directLookup: true },
+  Corebridge: {
+    annualFee: 0,
+    monthlyFactor: 0,
+    hasTobacco: false,
+    directLookup: true,
+  },
   TransAmerica: { annualFee: 0, monthlyFactor: 0.45, hasTobacco: true },
 };
 
@@ -401,128 +406,500 @@ const TRANSAMERICA_RATES = {
 // No tobacco factor, no health factor - these are final monthly rates
 const COREBRIDGE_RATES = {
   50: {
-    male: { 5000: 31.43, 10000: 60.85, 15000: 90.27, 20000: 119.7, 25000: 149.12 },
-    female: { 5000: 21.94, 10000: 41.88, 15000: 61.81, 20000: 86.79, 25000: 107.98 }
+    male: {
+      5000: 31.43,
+      10000: 60.85,
+      15000: 90.27,
+      20000: 119.7,
+      25000: 149.12,
+    },
+    female: {
+      5000: 21.94,
+      10000: 41.88,
+      15000: 61.81,
+      20000: 86.79,
+      25000: 107.98,
+    },
   },
   51: {
-    male: { 5000: 31.9, 10000: 61.79, 15000: 91.69, 20000: 121.58, 25000: 151.48 },
-    female: { 5000: 22.44, 10000: 42.88, 15000: 63.31, 20000: 93.14, 25000: 115.93 }
+    male: {
+      5000: 31.9,
+      10000: 61.79,
+      15000: 91.69,
+      20000: 121.58,
+      25000: 151.48,
+    },
+    female: {
+      5000: 22.44,
+      10000: 42.88,
+      15000: 63.31,
+      20000: 93.14,
+      25000: 115.93,
+    },
   },
   52: {
-    male: { 5000: 32.43, 10000: 62.87, 15000: 93.3, 20000: 127.84, 25000: 159.29 },
-    female: { 5000: 23.21, 10000: 44.42, 15000: 65.63, 20000: 98.58, 25000: 122.72 }
+    male: {
+      5000: 32.43,
+      10000: 62.87,
+      15000: 93.3,
+      20000: 127.84,
+      25000: 159.29,
+    },
+    female: {
+      5000: 23.21,
+      10000: 44.42,
+      15000: 65.63,
+      20000: 98.58,
+      25000: 122.72,
+    },
   },
   53: {
-    male: { 5000: 32.91, 10000: 63.81, 15000: 94.71, 20000: 135.14, 25000: 168.43 },
-    female: { 5000: 24.36, 10000: 46.71, 15000: 69.07, 20000: 103.53, 25000: 128.92 }
+    male: {
+      5000: 32.91,
+      10000: 63.81,
+      15000: 94.71,
+      20000: 135.14,
+      25000: 168.43,
+    },
+    female: {
+      5000: 24.36,
+      10000: 46.71,
+      15000: 69.07,
+      20000: 103.53,
+      25000: 128.92,
+    },
   },
   54: {
-    male: { 5000: 33.45, 10000: 64.9, 15000: 96.35, 20000: 141.51, 25000: 176.39 },
-    female: { 5000: 25.38, 10000: 48.76, 15000: 72.15, 20000: 108.02, 25000: 134.52 }
+    male: {
+      5000: 33.45,
+      10000: 64.9,
+      15000: 96.35,
+      20000: 141.51,
+      25000: 176.39,
+    },
+    female: {
+      5000: 25.38,
+      10000: 48.76,
+      15000: 72.15,
+      20000: 108.02,
+      25000: 134.52,
+    },
   },
   55: {
-    male: { 5000: 34.36, 10000: 66.72, 15000: 99.08, 20000: 147.18, 25000: 183.48 },
-    female: { 5000: 26.3, 10000: 50.61, 15000: 74.91, 20000: 112.02, 25000: 139.53 }
+    male: {
+      5000: 34.36,
+      10000: 66.72,
+      15000: 99.08,
+      20000: 147.18,
+      25000: 183.48,
+    },
+    female: {
+      5000: 26.3,
+      10000: 50.61,
+      15000: 74.91,
+      20000: 112.02,
+      25000: 139.53,
+    },
   },
   56: {
-    male: { 5000: 35.33, 10000: 68.65, 15000: 101.98, 20000: 151.42, 25000: 188.78 },
-    female: { 5000: 27.33, 10000: 52.67, 15000: 78.0, 20000: 116.51, 25000: 145.14 }
+    male: {
+      5000: 35.33,
+      10000: 68.65,
+      15000: 101.98,
+      20000: 151.42,
+      25000: 188.78,
+    },
+    female: {
+      5000: 27.33,
+      10000: 52.67,
+      15000: 78.0,
+      20000: 116.51,
+      25000: 145.14,
+    },
   },
   57: {
-    male: { 5000: 36.19, 10000: 70.37, 15000: 104.56, 20000: 155.19, 25000: 193.49 },
-    female: { 5000: 28.13, 10000: 54.26, 15000: 80.39, 20000: 120.03, 25000: 149.54 }
+    male: {
+      5000: 36.19,
+      10000: 70.37,
+      15000: 104.56,
+      20000: 155.19,
+      25000: 193.49,
+    },
+    female: {
+      5000: 28.13,
+      10000: 54.26,
+      15000: 80.39,
+      20000: 120.03,
+      25000: 149.54,
+    },
   },
   58: {
-    male: { 5000: 36.95, 10000: 71.91, 15000: 106.86, 20000: 158.51, 25000: 197.64 },
-    female: { 5000: 28.95, 10000: 55.89, 15000: 82.84, 20000: 123.6, 25000: 154.0 }
+    male: {
+      5000: 36.95,
+      10000: 71.91,
+      15000: 106.86,
+      20000: 158.51,
+      25000: 197.64,
+    },
+    female: {
+      5000: 28.95,
+      10000: 55.89,
+      15000: 82.84,
+      20000: 123.6,
+      25000: 154.0,
+    },
   },
   59: {
-    male: { 5000: 37.48, 10000: 72.97, 15000: 108.45, 20000: 160.86, 25000: 200.58 },
-    female: { 5000: 29.7, 10000: 57.4, 15000: 85.09, 20000: 126.88, 25000: 158.11 }
+    male: {
+      5000: 37.48,
+      10000: 72.97,
+      15000: 108.45,
+      20000: 160.86,
+      25000: 200.58,
+    },
+    female: {
+      5000: 29.7,
+      10000: 57.4,
+      15000: 85.09,
+      20000: 126.88,
+      25000: 158.11,
+    },
   },
   60: {
-    male: { 5000: 38.05, 10000: 74.09, 15000: 110.14, 20000: 162.51, 25000: 202.64 },
-    female: { 5000: 30.3, 10000: 58.61, 15000: 86.91, 20000: 129.49, 25000: 161.36 }
+    male: {
+      5000: 38.05,
+      10000: 74.09,
+      15000: 110.14,
+      20000: 162.51,
+      25000: 202.64,
+    },
+    female: {
+      5000: 30.3,
+      10000: 58.61,
+      15000: 86.91,
+      20000: 129.49,
+      25000: 161.36,
+    },
   },
   61: {
-    male: { 5000: 40.62, 10000: 79.25, 15000: 117.87, 20000: 174.54, 25000: 217.67 },
-    female: { 5000: 32.08, 10000: 62.17, 15000: 92.25, 20000: 137.28, 25000: 171.1 }
+    male: {
+      5000: 40.62,
+      10000: 79.25,
+      15000: 117.87,
+      20000: 174.54,
+      25000: 217.67,
+    },
+    female: {
+      5000: 32.08,
+      10000: 62.17,
+      15000: 92.25,
+      20000: 137.28,
+      25000: 171.1,
+    },
   },
   62: {
-    male: { 5000: 43.22, 10000: 84.44, 15000: 125.66, 20000: 185.87, 25000: 231.83 },
-    female: { 5000: 33.71, 10000: 65.42, 15000: 97.13, 20000: 144.35, 25000: 179.94 }
+    male: {
+      5000: 43.22,
+      10000: 84.44,
+      15000: 125.66,
+      20000: 185.87,
+      25000: 231.83,
+    },
+    female: {
+      5000: 33.71,
+      10000: 65.42,
+      15000: 97.13,
+      20000: 144.35,
+      25000: 179.94,
+    },
   },
   63: {
-    male: { 5000: 45.7, 10000: 89.4, 15000: 133.11, 20000: 196.72, 25000: 245.4 },
-    female: { 5000: 35.12, 10000: 68.23, 15000: 101.34, 20000: 150.49, 25000: 187.61 }
+    male: {
+      5000: 45.7,
+      10000: 89.4,
+      15000: 133.11,
+      20000: 196.72,
+      25000: 245.4,
+    },
+    female: {
+      5000: 35.12,
+      10000: 68.23,
+      15000: 101.34,
+      20000: 150.49,
+      25000: 187.61,
+    },
   },
   64: {
-    male: { 5000: 48.09, 10000: 94.18, 15000: 140.27, 20000: 207.1, 25000: 258.37 },
-    female: { 5000: 36.19, 10000: 70.37, 15000: 104.56, 20000: 155.19, 25000: 193.49 }
+    male: {
+      5000: 48.09,
+      10000: 94.18,
+      15000: 140.27,
+      20000: 207.1,
+      25000: 258.37,
+    },
+    female: {
+      5000: 36.19,
+      10000: 70.37,
+      15000: 104.56,
+      20000: 155.19,
+      25000: 193.49,
+    },
   },
   65: {
-    male: { 5000: 50.42, 10000: 98.83, 15000: 147.24, 20000: 217.26, 25000: 271.07 },
-    female: { 5000: 37.11, 10000: 72.22, 15000: 107.32, 20000: 159.21, 25000: 198.51 }
+    male: {
+      5000: 50.42,
+      10000: 98.83,
+      15000: 147.24,
+      20000: 217.26,
+      25000: 271.07,
+    },
+    female: {
+      5000: 37.11,
+      10000: 72.22,
+      15000: 107.32,
+      20000: 159.21,
+      25000: 198.51,
+    },
   },
   66: {
-    male: { 5000: 52.47, 10000: 102.93, 15000: 153.4, 20000: 226.21, 25000: 282.27 },
-    female: { 5000: 39.01, 10000: 76.01, 15000: 113.02, 20000: 167.45, 25000: 208.81 }
+    male: {
+      5000: 52.47,
+      10000: 102.93,
+      15000: 153.4,
+      20000: 226.21,
+      25000: 282.27,
+    },
+    female: {
+      5000: 39.01,
+      10000: 76.01,
+      15000: 113.02,
+      20000: 167.45,
+      25000: 208.81,
+    },
   },
   67: {
-    male: { 5000: 54.25, 10000: 106.5, 15000: 158.75, 20000: 233.99, 25000: 291.98 },
-    female: { 5000: 40.57, 10000: 79.15, 15000: 117.72, 20000: 174.31, 25000: 217.38 }
+    male: {
+      5000: 54.25,
+      10000: 106.5,
+      15000: 158.75,
+      20000: 233.99,
+      25000: 291.98,
+    },
+    female: {
+      5000: 40.57,
+      10000: 79.15,
+      15000: 117.72,
+      20000: 174.31,
+      25000: 217.38,
+    },
   },
   68: {
-    male: { 5000: 55.92, 10000: 109.84, 15000: 163.76, 20000: 241.31, 25000: 301.14 },
-    female: { 5000: 42.03, 10000: 82.06, 15000: 122.09, 20000: 180.66, 25000: 225.33 }
+    male: {
+      5000: 55.92,
+      10000: 109.84,
+      15000: 163.76,
+      20000: 241.31,
+      25000: 301.14,
+    },
+    female: {
+      5000: 42.03,
+      10000: 82.06,
+      15000: 122.09,
+      20000: 180.66,
+      25000: 225.33,
+    },
   },
   69: {
-    male: { 5000: 57.39, 10000: 112.77, 15000: 168.16, 20000: 247.66, 25000: 309.08 },
-    female: { 5000: 43.44, 10000: 84.88, 15000: 126.33, 20000: 186.82, 25000: 233.02 }
+    male: {
+      5000: 57.39,
+      10000: 112.77,
+      15000: 168.16,
+      20000: 247.66,
+      25000: 309.08,
+    },
+    female: {
+      5000: 43.44,
+      10000: 84.88,
+      15000: 126.33,
+      20000: 186.82,
+      25000: 233.02,
+    },
   },
   70: {
-    male: { 5000: 58.68, 10000: 115.36, 15000: 172.04, 20000: 253.35, 25000: 316.19 },
-    female: { 5000: 44.74, 10000: 87.47, 15000: 130.2, 20000: 192.47, 25000: 240.09 }
+    male: {
+      5000: 58.68,
+      10000: 115.36,
+      15000: 172.04,
+      20000: 253.35,
+      25000: 316.19,
+    },
+    female: {
+      5000: 44.74,
+      10000: 87.47,
+      15000: 130.2,
+      20000: 192.47,
+      25000: 240.09,
+    },
   },
   71: {
-    male: { 5000: 63.98, 10000: 125.96, 15000: 187.94, 20000: 276.47, 25000: 345.09 },
-    female: { 5000: 49.06, 10000: 96.12, 15000: 143.18, 20000: 211.34, 25000: 263.67 }
+    male: {
+      5000: 63.98,
+      10000: 125.96,
+      15000: 187.94,
+      20000: 276.47,
+      25000: 345.09,
+    },
+    female: {
+      5000: 49.06,
+      10000: 96.12,
+      15000: 143.18,
+      20000: 211.34,
+      25000: 263.67,
+    },
   },
   72: {
-    male: { 5000: 69.17, 10000: 136.34, 15000: 203.51, 20000: 299.12, 25000: 373.4 },
-    female: { 5000: 53.17, 10000: 104.34, 15000: 155.51, 20000: 229.28, 25000: 286.1 }
+    male: {
+      5000: 69.17,
+      10000: 136.34,
+      15000: 203.51,
+      20000: 299.12,
+      25000: 373.4,
+    },
+    female: {
+      5000: 53.17,
+      10000: 104.34,
+      15000: 155.51,
+      20000: 229.28,
+      25000: 286.1,
+    },
   },
   73: {
-    male: { 5000: 74.04, 10000: 146.08, 15000: 218.11, 20000: 320.36, 25000: 399.94 },
-    female: { 5000: 57.11, 10000: 112.22, 15000: 167.33, 20000: 246.5, 25000: 307.62 }
+    male: {
+      5000: 74.04,
+      10000: 146.08,
+      15000: 218.11,
+      20000: 320.36,
+      25000: 399.94,
+    },
+    female: {
+      5000: 57.11,
+      10000: 112.22,
+      15000: 167.33,
+      20000: 246.5,
+      25000: 307.62,
+    },
   },
   74: {
-    male: { 5000: 78.58, 10000: 155.17, 15000: 231.75, 20000: 340.17, 25000: 424.71 },
-    female: { 5000: 60.74, 10000: 119.48, 15000: 178.22, 20000: 262.31, 25000: 327.39 }
+    male: {
+      5000: 78.58,
+      10000: 155.17,
+      15000: 231.75,
+      20000: 340.17,
+      25000: 424.71,
+    },
+    female: {
+      5000: 60.74,
+      10000: 119.48,
+      15000: 178.22,
+      20000: 262.31,
+      25000: 327.39,
+    },
   },
   75: {
-    male: { 5000: 82.47, 10000: 162.95, 15000: 243.42, 20000: 357.15, 25000: 445.94 },
-    female: { 5000: 63.98, 10000: 125.96, 15000: 187.94, 20000: 276.47, 25000: 345.09 }
+    male: {
+      5000: 82.47,
+      10000: 162.95,
+      15000: 243.42,
+      20000: 357.15,
+      25000: 445.94,
+    },
+    female: {
+      5000: 63.98,
+      10000: 125.96,
+      15000: 187.94,
+      20000: 276.47,
+      25000: 345.09,
+    },
   },
   76: {
-    male: { 5000: 96.25, 10000: 190.5, 15000: 284.75, 20000: 417.32, 25000: 521.15 },
-    female: { 5000: 73.17, 10000: 144.33, 15000: 215.5, 20000: 316.57, 25000: 395.21 }
+    male: {
+      5000: 96.25,
+      10000: 190.5,
+      15000: 284.75,
+      20000: 417.32,
+      25000: 521.15,
+    },
+    female: {
+      5000: 73.17,
+      10000: 144.33,
+      15000: 215.5,
+      20000: 316.57,
+      25000: 395.21,
+    },
   },
   77: {
-    male: { 5000: 109.5, 10000: 217.01, 15000: 324.51, 20000: 451.53, 25000: 563.91 },
-    female: { 5000: 81.83, 10000: 161.66, 15000: 241.49, 20000: 354.32, 25000: 442.4 }
+    male: {
+      5000: 109.5,
+      10000: 217.01,
+      15000: 324.51,
+      20000: 451.53,
+      25000: 563.91,
+    },
+    female: {
+      5000: 81.83,
+      10000: 161.66,
+      15000: 241.49,
+      20000: 354.32,
+      25000: 442.4,
+    },
   },
   78: {
-    male: { 5000: 112.9, 10000: 223.8, 15000: 334.71, 20000: 451.99, 25000: 564.49 },
-    female: { 5000: 89.93, 10000: 177.87, 15000: 265.8, 20000: 389.71, 25000: 486.64 }
+    male: {
+      5000: 112.9,
+      10000: 223.8,
+      15000: 334.71,
+      20000: 451.99,
+      25000: 564.49,
+    },
+    female: {
+      5000: 89.93,
+      10000: 177.87,
+      15000: 265.8,
+      20000: 389.71,
+      25000: 486.64,
+    },
   },
   79: {
-    male: { 5000: 113.13, 10000: 224.25, 15000: 335.38, 20000: 452.45, 25000: 565.06 },
-    female: { 5000: 97.5, 10000: 193.0, 15000: 288.51, 20000: 422.74, 25000: 527.92 }
+    male: {
+      5000: 113.13,
+      10000: 224.25,
+      15000: 335.38,
+      20000: 452.45,
+      25000: 565.06,
+    },
+    female: {
+      5000: 97.5,
+      10000: 193.0,
+      15000: 288.51,
+      20000: 422.74,
+      25000: 527.92,
+    },
   },
   80: {
-    male: { 5000: 113.36, 10000: 224.71, 15000: 336.07, 20000: 452.9, 25000: 565.62 },
-    female: { 5000: 104.21, 10000: 206.42, 15000: 308.62, 20000: 447.41, 25000: 558.76 }
+    male: {
+      5000: 113.36,
+      10000: 224.71,
+      15000: 336.07,
+      20000: 452.9,
+      25000: 565.62,
+    },
+    female: {
+      5000: 104.21,
+      10000: 206.42,
+      15000: 308.62,
+      20000: 447.41,
+      25000: 558.76,
+    },
   },
 };
 
@@ -763,23 +1140,23 @@ const formatDate = (dateStr) => {
 
 const Logo = ({ small = false }) => (
   <div
-    className={`flex items-center justify-center ${small ? "mb-2" : "mb-6"}`}
+    className={`flex items-center justify-center ${small ? "mb-1" : "mb-2"}`}
   >
     <img
       src="/amerben.png"
       alt="American Beneficiary"
-      className={`${small ? "h-8" : "h-16"} w-auto object-contain`}
+      className={`${small ? "h-6" : "h-10"} w-auto object-contain`}
     />
   </div>
 );
 
 const SectionTitle = ({ icon: Icon, title, subtitle }) => (
-  <div className="mb-6 border-b border-slate-200 pb-2">
-    <div className="flex items-center gap-2 text-blue-900 mb-1">
-      <Icon size={24} className="stroke-[2.5px]" />
-      <h2 className="text-xl font-bold">{title}</h2>
+  <div className="mb-3 border-b border-slate-200 pb-1">
+    <div className="flex items-center gap-2 text-blue-900 mb-0.5">
+      <Icon size={20} className="stroke-[2.5px]" />
+      <h2 className="text-lg font-bold">{title}</h2>
     </div>
-    {subtitle && <p className="text-sm text-slate-500 ml-8">{subtitle}</p>}
+    {subtitle && <p className="text-xs text-slate-500 ml-7">{subtitle}</p>}
   </div>
 );
 
@@ -793,7 +1170,7 @@ const Input = ({
   required = false,
   ...props
 }) => (
-  <div className={`flex flex-col gap-1 ${className}`}>
+  <div className={`flex flex-col gap-0.5 ${className}`}>
     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
@@ -802,14 +1179,14 @@ const Input = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all text-slate-800 font-medium placeholder:text-slate-400"
+      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all text-slate-800 font-medium placeholder:text-slate-400 text-sm"
       {...props}
     />
   </div>
 );
 
 const Select = ({ label, value, onChange, options, className = "" }) => (
-  <div className={`flex flex-col gap-1 ${className}`}>
+  <div className={`flex flex-col gap-0.5 ${className}`}>
     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
       {label}
     </label>
@@ -817,7 +1194,7 @@ const Select = ({ label, value, onChange, options, className = "" }) => (
       <select
         value={value}
         onChange={onChange}
-        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white appearance-none text-slate-800 font-medium"
+        className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white appearance-none text-slate-800 font-medium text-sm"
       >
         <option value="">Select...</option>
         {options.map((opt) => (
@@ -826,26 +1203,26 @@ const Select = ({ label, value, onChange, options, className = "" }) => (
           </option>
         ))}
       </select>
-      <div className="absolute right-3 top-3.5 pointer-events-none text-slate-400">
-        <ChevronRight className="rotate-90" size={16} />
+      <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+        <ChevronRight className="rotate-90" size={14} />
       </div>
     </div>
   </div>
 );
 
 const YesNo = ({ label, value, onChange, subLabel }) => (
-  <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm mb-4">
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div className="p-2 bg-white border border-slate-100 rounded-lg shadow-sm mb-2">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
       <div className="flex-1">
-        <p className="font-medium text-slate-800">{label}</p>
-        {subLabel && <p className="text-sm text-slate-500 mt-1">{subLabel}</p>}
+        <p className="font-medium text-slate-800 text-sm">{label}</p>
+        {subLabel && <p className="text-xs text-slate-500 mt-0.5">{subLabel}</p>}
       </div>
       <div className="flex gap-2">
         <button
           onClick={() => onChange(true)}
-          className={`px-6 py-2 rounded-lg font-bold transition-all ${
+          className={`px-4 py-1 rounded-lg font-bold transition-all text-sm ${
             value === true
-              ? "bg-blue-600 text-white shadow-md scale-105"
+              ? "bg-blue-600 text-white shadow-md"
               : "bg-slate-100 text-slate-500 hover:bg-slate-200"
           }`}
         >
@@ -853,9 +1230,9 @@ const YesNo = ({ label, value, onChange, subLabel }) => (
         </button>
         <button
           onClick={() => onChange(false)}
-          className={`px-6 py-2 rounded-lg font-bold transition-all ${
+          className={`px-4 py-1 rounded-lg font-bold transition-all text-sm ${
             value === false
-              ? "bg-slate-700 text-white shadow-md scale-105"
+              ? "bg-slate-700 text-white shadow-md"
               : "bg-slate-100 text-slate-500 hover:bg-slate-200"
           }`}
         >
@@ -867,7 +1244,7 @@ const YesNo = ({ label, value, onChange, subLabel }) => (
 );
 
 const StepIndicator = ({ currentStep, totalSteps }) => (
-  <div className="flex items-center justify-center gap-2 mb-8">
+  <div className="flex items-center justify-center gap-2 mb-3">
     {[...Array(totalSteps)].map((_, idx) => (
       <div
         key={idx}
@@ -1076,6 +1453,64 @@ const CustomerForm = ({ onComplete }) => {
     }
   }, [eligibility, data.carrier]);
 
+  // Auto-switch to Corebridge when any health question is "Yes"
+  useEffect(() => {
+    const healthQuestions = [
+      data.q1,
+      data.q2,
+      data.q3,
+      data.q4,
+      data.q5,
+      data.q6,
+      data.q7a,
+      data.q7b,
+      data.q7c,
+      data.q7d,
+      data.q8a,
+      data.q8b,
+      data.q8c,
+    ];
+    const anyYes = healthQuestions.some((q) => q === true);
+
+    if (anyYes && data.carrier !== "Corebridge") {
+      update("carrier", "Corebridge");
+      update("planType", "Guaranteed Issue");
+      // Calculate Corebridge premium if we have the required data
+      const age = parseInt(data.age);
+      if (age && data.gender && data.faceAmount) {
+        const corebridgePremium = calculateMonthlyPremium(
+          "Corebridge",
+          age,
+          data.gender,
+          data.tobacco,
+          data.faceAmount
+        );
+        if (corebridgePremium) {
+          update("monthlyPremium", corebridgePremium.toFixed(2));
+        }
+      }
+    }
+  }, [
+    data.q1,
+    data.q2,
+    data.q3,
+    data.q4,
+    data.q5,
+    data.q6,
+    data.q7a,
+    data.q7b,
+    data.q7c,
+    data.q7d,
+    data.q8a,
+    data.q8b,
+    data.q8c,
+    data.carrier,
+    data.age,
+    data.gender,
+    data.tobacco,
+    data.faceAmount,
+  ]);
+
   const handleSubmit = () => {
     onComplete({
       ...data,
@@ -1095,15 +1530,15 @@ const CustomerForm = ({ onComplete }) => {
         title="Select Carrier"
         subtitle="Choose the insurance carrier."
       />
-      <div className="grid grid-cols-1 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
         {Object.keys(CARRIERS).map((c) => (
           <button
             key={c}
             onClick={() => {
               update("carrier", c);
               update("planType", "");
-            }} // Reset plan when carrier changes
-            className={`p-6 rounded-xl border-2 text-left transition-all flex items-center justify-between group ${
+            }}
+            className={`p-3 rounded-xl border-2 text-left transition-all flex items-center justify-between group ${
               data.carrier === c
                 ? "border-blue-600 bg-blue-50"
                 : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
@@ -1111,25 +1546,22 @@ const CustomerForm = ({ onComplete }) => {
           >
             <div>
               <h3
-                className={`font-bold text-lg ${
+                className={`font-bold text-base ${
                   data.carrier === c ? "text-blue-700" : "text-slate-700"
                 }`}
               >
                 {c}
               </h3>
-              <p className="text-sm text-slate-500">
-                Select to view available policies
-              </p>
             </div>
             <div
-              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                 data.carrier === c
                   ? "border-blue-600 bg-blue-600"
                   : "border-slate-300"
               }`}
             >
               {data.carrier === c && (
-                <div className="w-2.5 h-2.5 bg-white rounded-full" />
+                <div className="w-2 h-2 bg-white rounded-full" />
               )}
             </div>
           </button>
@@ -1227,13 +1659,9 @@ const CustomerForm = ({ onComplete }) => {
           subtitle="Configure the policy details."
         />
 
-        {/* Required fields for quote calculation */}
-        <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 mb-6">
-          <h3 className="font-bold text-blue-800 mb-4">
-            Customer Information for Quote
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        {/* Customer Info Row - all inline */}
+        <div className="p-2 bg-blue-50 rounded-lg border border-blue-200 mb-2">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 items-end">
             <Input
               type="date"
               label="Date of Birth"
@@ -1241,86 +1669,64 @@ const CustomerForm = ({ onComplete }) => {
               onChange={handleDobChange}
               required
             />
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-500 uppercase">
-                Age (Auto-calculated)
-              </label>
-              <div className="p-3 bg-white border border-slate-200 rounded-lg font-bold text-slate-700">
-                {data.age || "Enter DOB"}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase">Age</label>
+              <div className="p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 text-sm text-center">
+                {data.age || "-"}
               </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-500 uppercase">
-                Gender <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-2">
+            <div className="flex flex-col gap-0.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase">Gender *</label>
+              <div className="flex gap-1">
                 <button
                   onClick={() => update("gender", "Male")}
-                  className={`flex-1 p-3 rounded-lg font-bold transition-all ${
+                  className={`flex-1 p-2 rounded-lg font-bold text-sm transition-all ${
                     data.gender === "Male"
                       ? "bg-blue-600 text-white"
-                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      : "bg-white border border-slate-200 text-slate-600"
                   }`}
                 >
-                  Male
+                  M
                 </button>
                 <button
                   onClick={() => update("gender", "Female")}
-                  className={`flex-1 p-3 rounded-lg font-bold transition-all ${
+                  className={`flex-1 p-2 rounded-lg font-bold text-sm transition-all ${
                     data.gender === "Female"
                       ? "bg-blue-600 text-white"
-                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      : "bg-white border border-slate-200 text-slate-600"
                   }`}
                 >
-                  Female
+                  F
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Tobacco Question - only show for carriers that use tobacco rates */}
-          <div className="p-3 bg-white rounded-lg border border-slate-200">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex-1">
-                <p className="font-medium text-slate-800">
-                  Have you used tobacco in any form during the past 12 months?
-                </p>
-                <p className="text-sm text-slate-500 mt-1">
-                  (Excluding occasional pipe and cigar use)
-                </p>
-              </div>
-              <div className="flex gap-2">
+            <div className="flex flex-col gap-0.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase">Tobacco</label>
+              <div className="flex gap-1">
                 <button
                   onClick={() => update("tobacco", true)}
-                  className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                  className={`flex-1 p-2 rounded-lg font-bold text-sm transition-all ${
                     data.tobacco === true
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      ? "bg-blue-600 text-white"
+                      : "bg-white border border-slate-200 text-slate-500"
                   }`}
                 >
                   Yes
                 </button>
                 <button
                   onClick={() => update("tobacco", false)}
-                  className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                  className={`flex-1 p-2 rounded-lg font-bold text-sm transition-all ${
                     data.tobacco === false
-                      ? "bg-slate-700 text-white shadow-md"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      ? "bg-slate-700 text-white"
+                      : "bg-white border border-slate-200 text-slate-500"
                   }`}
                 >
                   No
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Coverage Amount */}
-          <div className="mt-4">
-            <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">
-              Coverage Amount (Face Value){" "}
-              <span className="text-red-500">*</span>
-            </label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-0.5 md:col-span-2">
+              <label className="text-xs font-semibold text-slate-500 uppercase">Coverage: ${data.faceAmount.toLocaleString()}</label>
               <input
                 type="range"
                 min="5000"
@@ -1328,196 +1734,123 @@ const CustomerForm = ({ onComplete }) => {
                 step="1000"
                 value={data.faceAmount}
                 onChange={(e) => update("faceAmount", parseInt(e.target.value))}
-                className="flex-1 h-3 bg-white rounded-lg appearance-none cursor-pointer accent-blue-600 border border-slate-200"
+                className="h-8 bg-white rounded-lg appearance-none cursor-pointer accent-blue-600 border border-slate-200"
               />
-              <div className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 min-w-32 text-center">
-                ${data.faceAmount.toLocaleString()}
-              </div>
             </div>
           </div>
         </div>
 
-        <div className="mb-6">
-          <label className="text-sm font-bold text-slate-700 block mb-2">
-            Select Policy Type
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {data.carrier &&
-              CARRIERS[data.carrier].map((policy) => (
-                <button
-                  key={policy}
-                  onClick={() => {
-                    update("planType", policy);
-                    // Auto-set premium if we have a calculated quote
-                    if (selectedCarrierQuote) {
-                      update("monthlyPremium", selectedCarrierQuote.toFixed(2));
-                    }
-                  }}
-                  className={`p-4 rounded-lg border-2 text-sm font-bold transition-all ${
-                    data.planType === policy
-                      ? "border-blue-600 bg-blue-600 text-white shadow-md"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {policy}
-                </button>
-              ))}
-            {!data.carrier && (
-              <p className="text-slate-500 italic">
-                Please select a carrier first.
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Calculated Quote Display for carriers with rate tables */}
-        {hasCarrierRates && (
-          <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 mb-6">
-            <h3 className="font-bold text-green-800 mb-3 flex items-center gap-2">
-              <DollarSign size={20} />
-              Calculated Quote - {data.carrier}
-            </h3>
-            {selectedCarrierQuote ? (
-              <div className="flex items-center gap-4">
-                <div className="text-4xl font-bold text-green-700">
-                  ${selectedCarrierQuote.toFixed(2)}
-                </div>
-                <div className="text-green-600 text-sm">
-                  <p>/month</p>
-                  <p className="text-xs mt-1">
-                    Based on: Age {data.age}, {data.gender}
-                    {CARRIER_CONFIG[data.carrier]?.hasTobacco
-                      ? `, ${data.tobacco ? "Tobacco" : "Non-Tobacco"}`
-                      : ""}
-                    , ${data.faceAmount.toLocaleString()} coverage
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="p-3 bg-yellow-100 text-yellow-800 rounded-lg text-sm flex items-center gap-2">
-                <AlertTriangle size={16} />
-                {!data.age
-                  ? "Please enter date of birth to calculate quote."
-                  : !data.gender
-                  ? "Please select gender to calculate quote."
-                  : `Age ${data.age} is outside the rate range for ${data.carrier}. Please select a different carrier.`}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Compare Quotes Section */}
-        {data.age && data.gender && (
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
-            <h3 className="font-bold text-slate-700 mb-3">
-              Compare Monthly Premium Quotes
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {["Aflac", "SBLI", "CICA", "GTL", "TransAmerica", "Corebridge"].map(
-                (carrier) => {
-                  const quote = carrierQuotes[carrier];
-                  const isSelected = data.carrier === carrier;
-                  return (
-                    <button
-                      key={carrier}
-                      onClick={() => {
-                        update("carrier", carrier);
-                        update("planType", "");
-                        if (quote) update("monthlyPremium", quote.toFixed(2));
-                      }}
-                      className={`p-3 rounded-lg border-2 text-center transition-all ${
-                        isSelected
-                          ? "border-blue-600 bg-blue-50"
-                          : quote
-                          ? "border-slate-200 hover:border-blue-300 hover:bg-white"
-                          : "border-slate-100 bg-slate-100 opacity-50"
-                      }`}
-                      disabled={!quote}
-                    >
-                      <p
-                        className={`text-sm font-bold ${
-                          isSelected ? "text-blue-700" : "text-slate-700"
-                        }`}
-                      >
-                        {carrier}
-                      </p>
-                      {quote ? (
-                        <p
-                          className={`text-lg font-bold ${
-                            isSelected ? "text-blue-600" : "text-green-600"
-                          }`}
-                        >
-                          ${quote.toFixed(2)}
-                        </p>
-                      ) : (
-                        <p className="text-xs text-slate-400">
-                          N/A for age {data.age}
-                        </p>
-                      )}
-                    </button>
-                  );
-                }
+        {/* Policy Type + Quote Display Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+          {/* Policy Types */}
+          <div>
+            <label className="text-xs font-bold text-slate-700 block mb-1">Policy Type</label>
+            <div className="grid grid-cols-3 gap-1">
+              {data.carrier &&
+                CARRIERS[data.carrier].map((policy) => (
+                  <button
+                    key={policy}
+                    onClick={() => {
+                      update("planType", policy);
+                      if (selectedCarrierQuote) {
+                        update("monthlyPremium", selectedCarrierQuote.toFixed(2));
+                      }
+                    }}
+                    className={`p-2 rounded-lg border-2 text-xs font-bold transition-all ${
+                      data.planType === policy
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {policy}
+                  </button>
+                ))}
+              {!data.carrier && (
+                <p className="text-slate-500 italic text-sm col-span-3">Select a carrier first.</p>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-2">
-              {CARRIER_CONFIG[data.carrier]?.hasTobacco
-                ? `Rates shown for ${
-                    data.tobacco ? "Tobacco" : "Non-Tobacco"
-                  } users.`
-                : data.carrier && CARRIER_CONFIG[data.carrier]
-                ? "Tobacco status does not affect rates for this carrier."
-                : ""}
-            </p>
+          </div>
+
+          {/* Quote Display */}
+          {hasCarrierRates && selectedCarrierQuote && (
+            <div className="p-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-green-700">{data.carrier} Quote</p>
+                  <p className="text-2xl font-bold text-green-700">${selectedCarrierQuote.toFixed(2)}<span className="text-sm">/mo</span></p>
+                </div>
+                <div className="text-right text-xs text-green-600">
+                  <p>Age {data.age}, {data.gender}</p>
+                  <p>${data.faceAmount.toLocaleString()} coverage</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Compare Quotes - All 6 carriers in one row */}
+        {data.age && data.gender && (
+          <div className="p-2 bg-slate-50 rounded-lg border border-slate-200 mb-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-slate-700">Compare Carriers</span>
+              <span className="text-xs text-slate-500">{data.tobacco ? "Tobacco" : "Non-Tobacco"} rates</span>
+            </div>
+            <div className="grid grid-cols-6 gap-1">
+              {["Aflac", "SBLI", "CICA", "GTL", "TransAmerica", "Corebridge"].map((carrier) => {
+                const quote = carrierQuotes[carrier];
+                const isSelected = data.carrier === carrier;
+                return (
+                  <button
+                    key={carrier}
+                    onClick={() => {
+                      update("carrier", carrier);
+                      update("planType", "");
+                      if (quote) update("monthlyPremium", quote.toFixed(2));
+                    }}
+                    className={`p-1.5 rounded-lg border-2 text-center transition-all ${
+                      isSelected
+                        ? "border-blue-600 bg-blue-50"
+                        : quote
+                        ? "border-slate-200 hover:border-blue-300"
+                        : "border-slate-100 bg-slate-100 opacity-50"
+                    }`}
+                    disabled={!quote}
+                  >
+                    <p className={`text-xs font-bold truncate ${isSelected ? "text-blue-700" : "text-slate-700"}`}>
+                      {carrier.replace("America", "")}
+                    </p>
+                    {quote ? (
+                      <p className={`text-sm font-bold ${isSelected ? "text-blue-600" : "text-green-600"}`}>
+                        ${quote.toFixed(0)}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-400">N/A</p>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        <div className="mb-6">
+        {/* Monthly Premium Input */}
+        <div className="flex items-end gap-2">
           <Input
             label="Monthly Premium ($)"
             type="number"
             placeholder="0.00"
             value={data.monthlyPremium}
             onChange={(e) => update("monthlyPremium", e.target.value)}
-            className="md:w-1/2"
+            className="flex-1"
           />
-          {hasCarrierRates &&
-            selectedCarrierQuote &&
-            data.monthlyPremium !== selectedCarrierQuote.toFixed(2) && (
-              <button
-                onClick={() =>
-                  update("monthlyPremium", selectedCarrierQuote.toFixed(2))
-                }
-                className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-              >
-                <RefreshCw size={14} /> Use calculated rate: $
-                {selectedCarrierQuote.toFixed(2)}
-              </button>
-            )}
-        </div>
-
-        {/* Grandchild Rider */}
-        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
-          <h3 className="font-bold text-slate-700 mb-4">
-            Rider: Grandchild/Great-Grandchild Coverage
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="number"
-              label="Number of Children Applying"
-              value={data.grandchildCount}
-              onChange={(e) =>
-                update("grandchildCount", parseInt(e.target.value) || 0)
-              }
-            />
-            <Input
-              type="number"
-              label="Units"
-              value={data.grandchildUnits}
-              onChange={(e) =>
-                update("grandchildUnits", parseInt(e.target.value) || 0)
-              }
-            />
-          </div>
+          {hasCarrierRates && selectedCarrierQuote && data.monthlyPremium !== selectedCarrierQuote.toFixed(2) && (
+            <button
+              onClick={() => update("monthlyPremium", selectedCarrierQuote.toFixed(2))}
+              className="p-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 whitespace-nowrap"
+            >
+              <RefreshCw size={12} /> Use ${selectedCarrierQuote.toFixed(2)}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -1548,15 +1881,18 @@ const CustomerForm = ({ onComplete }) => {
           title="Personal Information"
           subtitle="Tell us about the proposed insured."
         />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        
+        {/* Row 1: Name fields */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-2">
           <Input
             label="First Name"
             value={data.firstName}
             onChange={(e) => update("firstName", e.target.value)}
             required
+            className="col-span-2"
           />
           <Input
-            label="Middle Name"
+            label="Middle"
             value={data.middleName}
             onChange={(e) => update("middleName", e.target.value)}
           />
@@ -1565,35 +1901,10 @@ const CustomerForm = ({ onComplete }) => {
             value={data.lastName}
             onChange={(e) => update("lastName", e.target.value)}
             required
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <Input
-            label="Street Address"
-            value={data.address}
-            onChange={(e) => update("address", e.target.value)}
-            className="md:col-span-2"
+            className="col-span-2"
           />
           <Input
-            label="City"
-            value={data.city}
-            onChange={(e) => update("city", e.target.value)}
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="State"
-              options={STATES}
-              value={data.state}
-              onChange={(e) => update("state", e.target.value)}
-            />
-            <Input
-              label="Zip Code"
-              value={data.zip}
-              onChange={(e) => update("zip", e.target.value)}
-            />
-          </div>
-          <Input
-            label="Phone Number"
+            label="Phone"
             type="tel"
             placeholder="(555) 555-5555"
             value={data.phone}
@@ -1601,7 +1912,35 @@ const CustomerForm = ({ onComplete }) => {
             required
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+
+        {/* Row 2: Address */}
+        <div className="grid grid-cols-6 gap-2 mb-2">
+          <Input
+            label="Street Address"
+            value={data.address}
+            onChange={(e) => update("address", e.target.value)}
+            className="col-span-3"
+          />
+          <Input
+            label="City"
+            value={data.city}
+            onChange={(e) => update("city", e.target.value)}
+          />
+          <Select
+            label="State"
+            options={STATES}
+            value={data.state}
+            onChange={(e) => update("state", e.target.value)}
+          />
+          <Input
+            label="Zip"
+            value={data.zip}
+            onChange={(e) => update("zip", e.target.value)}
+          />
+        </div>
+
+        {/* Row 3: DOB, Age, State of Birth, SSN, Height, Weight */}
+        <div className="grid grid-cols-6 gap-2 mb-2">
           <Input
             type="date"
             label="Date of Birth"
@@ -1609,22 +1948,18 @@ const CustomerForm = ({ onComplete }) => {
             onChange={handleDobChange}
             required
           />
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">
-              Age (Auto-calculated)
-            </label>
-            <div className="p-3 bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-700">
-              {data.age || "Enter DOB"}
+          <div className="flex flex-col gap-0.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase">Age</label>
+            <div className="p-2 bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-700 text-sm text-center">
+              {data.age || "-"}
             </div>
           </div>
           <Select
-            label="State of Birth"
+            label="Birth State"
             options={STATES}
             value={data.stateOfBirth}
             onChange={(e) => update("stateOfBirth", e.target.value)}
           />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <Input
             label="SSN"
             placeholder="XXX-XX-XXXX"
@@ -1638,73 +1973,68 @@ const CustomerForm = ({ onComplete }) => {
             value={data.height}
             onChange={(e) => update("height", e.target.value)}
           />
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">
-              Weight (lbs)
-            </label>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase">Weight</label>
             <input
               type="number"
               min="50"
               max="500"
               value={data.weight}
               onChange={(e) => update("weight", parseInt(e.target.value) || 0)}
-              className="p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium"
+              className="p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium text-sm"
             />
-          </div>
-        </div>
-        <div className="mb-6">
-          <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">
-            Gender
-          </label>
-          <div className="flex gap-4">
-            {["Male", "Female"].map((g) => (
-              <button
-                key={g}
-                onClick={() => update("gender", g)}
-                className={`flex-1 p-3 rounded-lg border-2 font-bold transition-all ${
-                  data.gender === g
-                    ? "border-blue-600 bg-blue-50 text-blue-700"
-                    : "border-slate-200 text-slate-400"
-                }`}
-              >
-                {g}
-              </button>
-            ))}
           </div>
         </div>
 
-        {/* Owner Section */}
-        <div className="mt-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
-          <h3 className="font-bold text-slate-700 mb-2">
-            Policy Owner (if different from insured)
-          </h3>
-          <p className="text-sm text-slate-500 mb-4">
-            Only complete this section if the owner is a different person than
-            the proposed insured.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Owner Name"
-              value={data.ownerName}
-              onChange={(e) => update("ownerName", e.target.value)}
-            />
-            <Select
-              label="Relationship to Insured"
-              options={RELATIONSHIPS}
-              value={data.ownerRel}
-              onChange={(e) => update("ownerRel", e.target.value)}
-            />
-            <Input
-              label="Owner SSN"
-              placeholder="XXX-XX-XXXX"
-              value={data.ownerSsn}
-              onChange={(e) => update("ownerSsn", e.target.value)}
-            />
-            <Input
-              label="Owner Address"
-              value={data.ownerAddress}
-              onChange={(e) => update("ownerAddress", e.target.value)}
-            />
+        {/* Row 4: Gender + Owner Section side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {/* Gender */}
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Gender</label>
+            <div className="flex gap-2">
+              {["Male", "Female"].map((g) => (
+                <button
+                  key={g}
+                  onClick={() => update("gender", g)}
+                  className={`flex-1 p-2 rounded-lg border-2 font-bold text-sm transition-all ${
+                    data.gender === g
+                      ? "border-blue-600 bg-blue-50 text-blue-700"
+                      : "border-slate-200 text-slate-400"
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Owner Section - inline */}
+          <div className="md:col-span-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+            <p className="text-xs font-bold text-slate-600 mb-1">Policy Owner (if different)</p>
+            <div className="grid grid-cols-4 gap-2">
+              <Input
+                label="Owner Name"
+                value={data.ownerName}
+                onChange={(e) => update("ownerName", e.target.value)}
+              />
+              <Select
+                label="Relationship"
+                options={RELATIONSHIPS}
+                value={data.ownerRel}
+                onChange={(e) => update("ownerRel", e.target.value)}
+              />
+              <Input
+                label="Owner SSN"
+                placeholder="XXX-XX-XXXX"
+                value={data.ownerSsn}
+                onChange={(e) => update("ownerSsn", e.target.value)}
+              />
+              <Input
+                label="Owner Address"
+                value={data.ownerAddress}
+                onChange={(e) => update("ownerAddress", e.target.value)}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -1772,7 +2102,7 @@ const CustomerForm = ({ onComplete }) => {
         subtitle="Answer all questions honestly. Your answers determine plan eligibility."
       />
 
-      <div className="mb-6">
+      <div className="mb-3">
         <Input
           label="Physician Name (if applicable)"
           value={data.physicianName}
@@ -1780,11 +2110,11 @@ const CustomerForm = ({ onComplete }) => {
         />
       </div>
 
-      <div className="p-4 bg-red-50 rounded-xl border border-red-200 mb-6">
-        <h3 className="font-bold text-red-800 mb-4 flex items-center gap-2">
-          <AlertTriangle size={20} /> Critical Questions (1-3)
+      <div className="p-3 bg-red-50 rounded-lg border border-red-200 mb-3">
+        <h3 className="font-bold text-red-800 mb-2 flex items-center gap-2 text-sm">
+          <AlertTriangle size={16} /> Critical Questions (1-3)
         </h3>
-        <p className="text-sm text-red-700 mb-4">
+        <p className="text-xs text-red-700 mb-2">
           If any "Yes", proposed insured is not eligible.
         </p>
         <YesNo
@@ -1805,8 +2135,8 @@ const CustomerForm = ({ onComplete }) => {
         />
       </div>
 
-      <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 mb-6">
-        <h3 className="font-bold text-yellow-800 mb-4">
+      <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 mb-3">
+        <h3 className="font-bold text-yellow-800 mb-2 text-sm">
           Questions 4-7 (Return of Premium)
         </h3>
         <YesNo
@@ -1846,8 +2176,8 @@ const CustomerForm = ({ onComplete }) => {
         />
       </div>
 
-      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 mb-6">
-        <h3 className="font-bold text-blue-800 mb-4">
+      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 mb-3">
+        <h3 className="font-bold text-blue-800 mb-2 text-sm">
           Question 8 (Graded Plan)
         </h3>
         <YesNo
@@ -1867,18 +2197,90 @@ const CustomerForm = ({ onComplete }) => {
         />
       </div>
 
-      <div
-        className={`mt-6 p-4 rounded-xl flex items-center gap-3 ${
-          eligibility.status === "ineligible"
-            ? "bg-red-100 text-red-900"
-            : eligibility.status === "modified"
-            ? "bg-yellow-100 text-yellow-900"
-            : "bg-green-100 text-green-900"
-        }`}
-      >
-        <Activity size={20} />
-        <p className="font-bold">{eligibility.message}</p>
-      </div>
+      {/* Eligibility and Carrier Display */}
+      {(() => {
+        const healthQuestions = [
+          data.q1,
+          data.q2,
+          data.q3,
+          data.q4,
+          data.q5,
+          data.q6,
+          data.q7a,
+          data.q7b,
+          data.q7c,
+          data.q7d,
+          data.q8a,
+          data.q8b,
+          data.q8c,
+        ];
+        const anyYes = healthQuestions.some((q) => q === true);
+
+        if (anyYes) {
+          // Calculate Corebridge premium
+          const age = parseInt(data.age);
+          const corebridgePremium =
+            age && data.gender && data.faceAmount
+              ? calculateMonthlyPremium(
+                  "Corebridge",
+                  age,
+                  data.gender,
+                  data.tobacco,
+                  data.faceAmount
+                )
+              : null;
+
+          return (
+            <div className="mt-3 p-3 rounded-lg bg-blue-100 text-blue-900">
+              <div className="flex items-center gap-3 mb-3">
+                <Shield size={20} />
+                <p className="font-bold">
+                  Recommended Carrier: Corebridge - Guaranteed Issue
+                </p>
+              </div>
+              {corebridgePremium ? (
+                <div className="p-3 bg-white rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-blue-600 uppercase">
+                        Monthly Premium
+                      </p>
+                      <p className="text-2xl font-bold text-blue-800">
+                        ${corebridgePremium.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="text-sm text-blue-600">
+                      <p>Coverage: ${data.faceAmount.toLocaleString()}</p>
+                      <p>
+                        Age: {data.age} | {data.gender}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-blue-700">
+                  Complete customer information to see premium.
+                </p>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <div
+            className={`mt-3 p-3 rounded-lg flex items-center gap-3 ${
+              eligibility.status === "ineligible"
+                ? "bg-red-100 text-red-900"
+                : eligibility.status === "modified"
+                ? "bg-yellow-100 text-yellow-900"
+                : "bg-green-100 text-green-900"
+            }`}
+          >
+            <Activity size={20} />
+            <p className="font-bold">{eligibility.message}</p>
+          </div>
+        );
+      })()}
     </div>
   );
 
@@ -1890,15 +2292,15 @@ const CustomerForm = ({ onComplete }) => {
         subtitle="Select your plan details and additional options."
       />
 
-      <div className="p-6 bg-slate-900 text-white rounded-2xl shadow-xl mb-6">
-        <h3 className="text-blue-300 font-bold uppercase text-sm mb-2">
+      <div className="p-3 bg-slate-900 text-white rounded-xl shadow-lg mb-3">
+        <h3 className="text-blue-300 font-bold uppercase text-xs mb-1">
           Eligible Plan
         </h3>
-        <h2 className="text-3xl font-bold mb-1">{data.planType}</h2>
-        <p className="text-slate-400 text-sm">Based on your health profile.</p>
+        <h2 className="text-xl font-bold">{data.planType}</h2>
+        <p className="text-slate-400 text-xs">Based on your health profile.</p>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-3">
         <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">
           Face Amount: ${data.faceAmount.toLocaleString()}
         </label>
@@ -1914,15 +2316,15 @@ const CustomerForm = ({ onComplete }) => {
       </div>
 
       {/* Willing to Accept */}
-      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 mb-6">
-        <label className="flex items-start gap-3 cursor-pointer">
+      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 mb-3">
+        <label className="flex items-start gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={data.willingToAccept}
             onChange={(e) => update("willingToAccept", e.target.checked)}
-            className="mt-1 w-5 h-5 accent-blue-600"
+            className="mt-0.5 w-4 h-4 accent-blue-600"
           />
-          <span className="text-sm text-slate-700">
+          <span className="text-xs text-slate-700">
             <strong>
               Check here if you are willing to accept any plan for which you
               qualify
@@ -1967,7 +2369,7 @@ const CustomerForm = ({ onComplete }) => {
         subtitle="Bank Draft Setup"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
         <Input
           label="Name on Account"
           value={data.accountName}
@@ -1981,7 +2383,7 @@ const CustomerForm = ({ onComplete }) => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
         <Input
           label="Bank Name"
           value={data.bankName}
@@ -1994,7 +2396,7 @@ const CustomerForm = ({ onComplete }) => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <Input
           label="Routing Number"
           value={data.routing}
@@ -2008,8 +2410,8 @@ const CustomerForm = ({ onComplete }) => {
       </div>
 
       {/* Draft Schedule */}
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
-        <h3 className="font-bold text-slate-700 mb-4">Draft Schedule</h3>
+      <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 mb-3">
+        <h3 className="font-bold text-slate-700 mb-2 text-sm">Draft Schedule</h3>
         <YesNo
           label="Would you like your draft to coincide with your Social Security payment schedule?"
           value={data.draftSchedule === "ss_payment"}
@@ -2019,7 +2421,7 @@ const CustomerForm = ({ onComplete }) => {
         />
 
         {data.draftSchedule === "ss_payment" && (
-          <div className="mt-4">
+          <div className="mt-2">
             <Select
               label="Social Security Draft Day"
               options={[
@@ -2036,7 +2438,7 @@ const CustomerForm = ({ onComplete }) => {
         )}
 
         {data.draftSchedule !== "ss_payment" && (
-          <div className="mt-4">
+          <div className="mt-2">
             <Select
               label="Requested Draft Day (1st-28th)"
               options={[...Array(28).keys()].map((i) => `${i + 1}`)}
@@ -2146,7 +2548,7 @@ const CustomerForm = ({ onComplete }) => {
   const prevStep = () => setStep(Math.max(1, step - 1));
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white min-h-screen">
+    <div className="max-w-3xl mx-auto px-4 py-2 bg-white">
       <Logo />
       <StepIndicator currentStep={step} totalSteps={totalSteps} />
       {step === 1 && renderCarrierSelect()}
@@ -2157,7 +2559,7 @@ const CustomerForm = ({ onComplete }) => {
       {step === 6 && renderStep4()}
       {step === 7 && renderStep5()}
       {step === 8 && renderReview()}
-      <div className="mt-8 flex justify-between">
+      <div className="mt-3 flex justify-between">
         <button
           onClick={prevStep}
           disabled={step === 1}
