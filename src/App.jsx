@@ -139,7 +139,7 @@ const CARRIERS = {
 const CARRIER_CONFIG = {
   Aflac: { annualFee: 48, monthlyFactor: 0.0875, hasTobacco: true },
   SBLI: { annualFee: 48, monthlyFactor: 0.087, hasTobacco: true },
-  CICA: { annualFee: 0, monthlyFactor: 0, hasTobacco: false },
+  CICA: { annualFee: 0, monthlyFactor: 0, hasTobacco: false, simpleFormula: true },
   GTL: { annualFee: 48, monthlyFactor: 0.08333, hasTobacco: false },
   Corebridge: {
     annualFee: 0,
@@ -147,7 +147,8 @@ const CARRIER_CONFIG = {
     hasTobacco: false,
     directLookup: true,
   },
-  TransAmerica: { annualFee: 0, monthlyFactor: 0.45, hasTobacco: true },
+  TransAmerica: { annualFee: 48, monthlyFactor: 0.0875, hasTobacco: true },
+  "American Amicable": { annualFee: 30, monthlyFactor: 0.088, hasTobacco: true },
 };
 
 // Carrier logo mapping (located in /logos folder)
@@ -438,6 +439,46 @@ const TRANSAMERICA_RATES = {
   83: { maleNS: 246.16, maleSm: 374.56, femaleNS: 196.52, femaleSm: 275.67 },
   84: { maleNS: 266.01, maleSm: 400.05, femaleNS: 214.78, femaleSm: 296.79 },
   85: { maleNS: 287.46, maleSm: 427.27, femaleNS: 233.96, femaleSm: 319.53 },
+};
+
+// American Amicable: ages 50-85, smoker/non-smoker (from rating.xlsx amam sheet)
+const AMAM_RATES = {
+  50: { maleNS: 32.96, maleSm: 43.12, femaleNS: 27.30, femaleSm: 32.55 },
+  51: { maleNS: 34.90, maleSm: 45.03, femaleNS: 29.36, femaleSm: 33.62 },
+  52: { maleNS: 36.67, maleSm: 47.09, femaleNS: 30.58, femaleSm: 35.34 },
+  53: { maleNS: 39.14, maleSm: 49.42, femaleNS: 32.21, femaleSm: 37.29 },
+  54: { maleNS: 40.94, maleSm: 51.61, femaleNS: 33.74, femaleSm: 38.73 },
+  55: { maleNS: 42.49, maleSm: 53.82, femaleNS: 35.28, femaleSm: 40.94 },
+  56: { maleNS: 44.18, maleSm: 56.05, femaleNS: 36.42, femaleSm: 42.23 },
+  57: { maleNS: 45.32, maleSm: 58.29, femaleNS: 37.70, femaleSm: 44.20 },
+  58: { maleNS: 47.64, maleSm: 61.08, femaleNS: 38.77, femaleSm: 45.91 },
+  59: { maleNS: 49.50, maleSm: 63.35, femaleNS: 40.17, femaleSm: 47.70 },
+  60: { maleNS: 50.47, maleSm: 65.82, femaleNS: 40.48, femaleSm: 49.01 },
+  61: { maleNS: 53.38, maleSm: 70.04, femaleNS: 42.85, femaleSm: 51.46 },
+  62: { maleNS: 56.09, maleSm: 73.13, femaleNS: 44.50, femaleSm: 54.08 },
+  63: { maleNS: 58.71, maleSm: 76.01, femaleNS: 46.44, femaleSm: 56.85 },
+  64: { maleNS: 61.80, maleSm: 79.64, femaleNS: 48.50, femaleSm: 59.78 },
+  65: { maleNS: 64.89, maleSm: 83.43, femaleNS: 50.47, femaleSm: 62.57 },
+  66: { maleNS: 69.24, maleSm: 88.51, femaleNS: 53.59, femaleSm: 65.88 },
+  67: { maleNS: 73.78, maleSm: 93.22, femaleNS: 56.34, femaleSm: 69.33 },
+  68: { maleNS: 78.70, maleSm: 98.88, femaleNS: 59.45, femaleSm: 72.10 },
+  69: { maleNS: 83.12, maleSm: 104.55, femaleNS: 62.52, femaleSm: 77.12 },
+  70: { maleNS: 86.53, maleSm: 108.72, femaleNS: 65.61, femaleSm: 79.02 },
+  71: { maleNS: 92.03, maleSm: 115.15, femaleNS: 69.53, femaleSm: 83.20 },
+  72: { maleNS: 97.83, maleSm: 121.93, femaleNS: 73.65, femaleSm: 87.61 },
+  73: { maleNS: 104.40, maleSm: 129.60, femaleNS: 78.84, femaleSm: 92.61 },
+  74: { maleNS: 111.76, maleSm: 137.51, femaleNS: 83.69, femaleSm: 97.75 },
+  75: { maleNS: 119.74, maleSm: 147.55, femaleNS: 89.87, femaleSm: 104.29 },
+  76: { maleNS: 128.75, maleSm: 157.59, femaleNS: 95.83, femaleSm: 112.49 },
+  77: { maleNS: 138.02, maleSm: 168.10, femaleNS: 101.29, femaleSm: 120.00 },
+  78: { maleNS: 150.28, maleSm: 180.87, femaleNS: 108.15, femaleSm: 127.85 },
+  79: { maleNS: 161.92, maleSm: 191.58, femaleNS: 116.60, femaleSm: 139.06 },
+  80: { maleNS: 174.07, maleSm: 203.53, femaleNS: 126.18, femaleSm: 150.62 },
+  81: { maleNS: 187.87, maleSm: 216.30, femaleNS: 135.75, femaleSm: 164.14 },
+  82: { maleNS: 202.91, maleSm: 229.56, femaleNS: 146.26, femaleSm: 179.51 },
+  83: { maleNS: 217.02, maleSm: 246.08, femaleNS: 158.11, femaleSm: 195.69 },
+  84: { maleNS: 232.78, maleSm: 266.64, femaleNS: 170.98, femaleSm: 214.76 },
+  85: { maleNS: 248.49, maleSm: 289.69, femaleNS: 185.66, femaleSm: 236.13 },
 };
 
 // Corebridge: ages 50-80, final monthly premiums by gender and coverage amount (Guaranteed Issue)
@@ -994,6 +1035,17 @@ const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmount) => {
         ? rateTable.femaleSm
         : rateTable.femaleNS;
       break;
+    case "American Amicable":
+      rateTable = AMAM_RATES[age];
+      if (!rateTable) return null;
+      rate = isMale
+        ? isSmoker
+          ? rateTable.maleSm
+          : rateTable.maleNS
+        : isSmoker
+        ? rateTable.femaleSm
+        : rateTable.femaleNS;
+      break;
     case "Corebridge": {
       // Corebridge rates are final monthly premiums, direct lookup by age, gender, and coverage
       rateTable = COREBRIDGE_RATES[age];
@@ -1017,6 +1069,12 @@ const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmount) => {
   // 4. Divide by 12 for monthly premium
   const units = faceAmount / 1000;
   const annualBase = rate * units;
+  
+  // CICA uses simple formula: just divide annual by 12 (no fee, no factor)
+  if (config.simpleFormula) {
+    return Math.round((annualBase / 12) * 100) / 100;
+  }
+  
   const totalAnnual = annualBase + config.annualFee;
   const withFactor = totalAnnual + totalAnnual * config.monthlyFactor;
   const monthlyPremium = withFactor / 12;
@@ -1650,6 +1708,13 @@ const CustomerForm = ({ onComplete }) => {
               data.tobacco,
               data.faceAmount
             ),
+            "American Amicable": calculateMonthlyPremium(
+              "American Amicable",
+              age,
+              data.gender,
+              data.tobacco,
+              data.faceAmount
+            ),
           }
         : {};
 
@@ -1664,6 +1729,7 @@ const CustomerForm = ({ onComplete }) => {
       "GTL",
       "TransAmerica",
       "Corebridge",
+      "American Amicable",
     ].includes(data.carrier);
 
     // Auto-calculate age from DOB
@@ -2563,6 +2629,7 @@ const CustomerForm = ({ onComplete }) => {
         "GTL",
         "TransAmerica",
         "Corebridge",
+        "American Amicable",
       ].includes(data.carrier);
       if (hasRates && !data.monthlyPremium) {
         alert(
