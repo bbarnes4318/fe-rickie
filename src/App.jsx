@@ -127,19 +127,24 @@ const PLAN_TYPES = [
 
 const CARRIERS = {
   "American Amicable": ["Level", "Graded", "Modified"],
-  Corebridge: ["Guaranteed Issue", "Simplified Issue"],
-  TransAmerica: ["Level", "Graded"],
-  Aflac: ["Level", "Graded", "Return of Premium"],
-  SBLI: ["Level", "Graded", "Return of Premium"],
-  CICA: ["Level", "Graded", "Return of Premium"],
-  GTL: ["Level", "Graded", "Return of Premium"],
+  Corebridge: ["Guaranteed Issue"],
+  TransAmerica: ["Level"],
+  Aflac: ["Level"],
+  SBLI: ["Level"],
+  CICA: ["Level"],
+  GTL: ["Graded"],
 };
 
 // Carrier fee and monthly factor configuration (from rating.xlsx Key sheet)
 const CARRIER_CONFIG = {
   Aflac: { annualFee: 48, monthlyFactor: 0.0875, hasTobacco: true },
   SBLI: { annualFee: 48, monthlyFactor: 0.087, hasTobacco: true },
-  CICA: { annualFee: 0, monthlyFactor: 0, hasTobacco: false, simpleFormula: true },
+  CICA: {
+    annualFee: 0,
+    monthlyFactor: 0,
+    hasTobacco: false,
+    simpleFormula: true,
+  },
   GTL: { annualFee: 48, monthlyFactor: 0.08333, hasTobacco: false },
   Corebridge: {
     annualFee: 0,
@@ -148,7 +153,11 @@ const CARRIER_CONFIG = {
     directLookup: true,
   },
   TransAmerica: { annualFee: 48, monthlyFactor: 0.0875, hasTobacco: true },
-  "American Amicable": { annualFee: 30, monthlyFactor: 0.088, hasTobacco: true },
+  "American Amicable": {
+    annualFee: 30,
+    monthlyFactor: 0.088,
+    hasTobacco: true,
+  },
 };
 
 // Carrier logo mapping (located in /logos folder)
@@ -165,25 +174,27 @@ const CARRIER_LOGOS = {
 // CarrierLogo component for displaying carrier logos
 const CarrierLogo = ({ carrier, size = "md", className = "" }) => {
   const sizeClasses = {
-    xs: "h-4 max-w-[40px]",
-    sm: "h-6 max-w-[60px]",
-    md: "h-8 max-w-[80px]",
-    lg: "h-10 max-w-[100px]",
-    xl: "h-12 max-w-[120px]",
+    xs: "h-8 max-w-[80px]",
+    sm: "h-12 max-w-[120px]",
+    md: "h-16 max-w-[160px]",
+    lg: "h-20 max-w-[200px]",
+    xl: "h-24 max-w-[240px]",
   };
-  
+
   const logoSrc = CARRIER_LOGOS[carrier];
-  
+
   if (!logoSrc) {
     // Fallback to text if no logo available
     return <span className={`font-bold ${className}`}>{carrier}</span>;
   }
-  
+
   return (
     <img
       src={logoSrc}
       alt={`${carrier} logo`}
-      className={`object-contain ${sizeClasses[size] || sizeClasses.md} ${className}`}
+      className={`object-contain ${
+        sizeClasses[size] || sizeClasses.md
+      } ${className}`}
       title={carrier}
     />
   );
@@ -443,38 +454,38 @@ const TRANSAMERICA_RATES = {
 
 // American Amicable: ages 50-85, smoker/non-smoker (from rating.xlsx amam sheet)
 const AMAM_RATES = {
-  50: { maleNS: 32.96, maleSm: 43.12, femaleNS: 27.30, femaleSm: 32.55 },
-  51: { maleNS: 34.90, maleSm: 45.03, femaleNS: 29.36, femaleSm: 33.62 },
+  50: { maleNS: 32.96, maleSm: 43.12, femaleNS: 27.3, femaleSm: 32.55 },
+  51: { maleNS: 34.9, maleSm: 45.03, femaleNS: 29.36, femaleSm: 33.62 },
   52: { maleNS: 36.67, maleSm: 47.09, femaleNS: 30.58, femaleSm: 35.34 },
   53: { maleNS: 39.14, maleSm: 49.42, femaleNS: 32.21, femaleSm: 37.29 },
   54: { maleNS: 40.94, maleSm: 51.61, femaleNS: 33.74, femaleSm: 38.73 },
   55: { maleNS: 42.49, maleSm: 53.82, femaleNS: 35.28, femaleSm: 40.94 },
   56: { maleNS: 44.18, maleSm: 56.05, femaleNS: 36.42, femaleSm: 42.23 },
-  57: { maleNS: 45.32, maleSm: 58.29, femaleNS: 37.70, femaleSm: 44.20 },
+  57: { maleNS: 45.32, maleSm: 58.29, femaleNS: 37.7, femaleSm: 44.2 },
   58: { maleNS: 47.64, maleSm: 61.08, femaleNS: 38.77, femaleSm: 45.91 },
-  59: { maleNS: 49.50, maleSm: 63.35, femaleNS: 40.17, femaleSm: 47.70 },
+  59: { maleNS: 49.5, maleSm: 63.35, femaleNS: 40.17, femaleSm: 47.7 },
   60: { maleNS: 50.47, maleSm: 65.82, femaleNS: 40.48, femaleSm: 49.01 },
   61: { maleNS: 53.38, maleSm: 70.04, femaleNS: 42.85, femaleSm: 51.46 },
-  62: { maleNS: 56.09, maleSm: 73.13, femaleNS: 44.50, femaleSm: 54.08 },
+  62: { maleNS: 56.09, maleSm: 73.13, femaleNS: 44.5, femaleSm: 54.08 },
   63: { maleNS: 58.71, maleSm: 76.01, femaleNS: 46.44, femaleSm: 56.85 },
-  64: { maleNS: 61.80, maleSm: 79.64, femaleNS: 48.50, femaleSm: 59.78 },
+  64: { maleNS: 61.8, maleSm: 79.64, femaleNS: 48.5, femaleSm: 59.78 },
   65: { maleNS: 64.89, maleSm: 83.43, femaleNS: 50.47, femaleSm: 62.57 },
   66: { maleNS: 69.24, maleSm: 88.51, femaleNS: 53.59, femaleSm: 65.88 },
   67: { maleNS: 73.78, maleSm: 93.22, femaleNS: 56.34, femaleSm: 69.33 },
-  68: { maleNS: 78.70, maleSm: 98.88, femaleNS: 59.45, femaleSm: 72.10 },
+  68: { maleNS: 78.7, maleSm: 98.88, femaleNS: 59.45, femaleSm: 72.1 },
   69: { maleNS: 83.12, maleSm: 104.55, femaleNS: 62.52, femaleSm: 77.12 },
   70: { maleNS: 86.53, maleSm: 108.72, femaleNS: 65.61, femaleSm: 79.02 },
-  71: { maleNS: 92.03, maleSm: 115.15, femaleNS: 69.53, femaleSm: 83.20 },
+  71: { maleNS: 92.03, maleSm: 115.15, femaleNS: 69.53, femaleSm: 83.2 },
   72: { maleNS: 97.83, maleSm: 121.93, femaleNS: 73.65, femaleSm: 87.61 },
-  73: { maleNS: 104.40, maleSm: 129.60, femaleNS: 78.84, femaleSm: 92.61 },
+  73: { maleNS: 104.4, maleSm: 129.6, femaleNS: 78.84, femaleSm: 92.61 },
   74: { maleNS: 111.76, maleSm: 137.51, femaleNS: 83.69, femaleSm: 97.75 },
   75: { maleNS: 119.74, maleSm: 147.55, femaleNS: 89.87, femaleSm: 104.29 },
   76: { maleNS: 128.75, maleSm: 157.59, femaleNS: 95.83, femaleSm: 112.49 },
-  77: { maleNS: 138.02, maleSm: 168.10, femaleNS: 101.29, femaleSm: 120.00 },
+  77: { maleNS: 138.02, maleSm: 168.1, femaleNS: 101.29, femaleSm: 120.0 },
   78: { maleNS: 150.28, maleSm: 180.87, femaleNS: 108.15, femaleSm: 127.85 },
-  79: { maleNS: 161.92, maleSm: 191.58, femaleNS: 116.60, femaleSm: 139.06 },
+  79: { maleNS: 161.92, maleSm: 191.58, femaleNS: 116.6, femaleSm: 139.06 },
   80: { maleNS: 174.07, maleSm: 203.53, femaleNS: 126.18, femaleSm: 150.62 },
-  81: { maleNS: 187.87, maleSm: 216.30, femaleNS: 135.75, femaleSm: 164.14 },
+  81: { maleNS: 187.87, maleSm: 216.3, femaleNS: 135.75, femaleSm: 164.14 },
   82: { maleNS: 202.91, maleSm: 229.56, femaleNS: 146.26, femaleSm: 179.51 },
   83: { maleNS: 217.02, maleSm: 246.08, femaleNS: 158.11, femaleSm: 195.69 },
   84: { maleNS: 232.78, maleSm: 266.64, femaleNS: 170.98, femaleSm: 214.76 },
@@ -1069,12 +1080,12 @@ const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmount) => {
   // 4. Divide by 12 for monthly premium
   const units = faceAmount / 1000;
   const annualBase = rate * units;
-  
+
   // CICA uses simple formula: just divide annual by 12 (no fee, no factor)
   if (config.simpleFormula) {
     return Math.round((annualBase / 12) * 100) / 100;
   }
-  
+
   const totalAnnual = annualBase + config.annualFee;
   const withFactor = totalAnnual + totalAnnual * config.monthlyFactor;
   const monthlyPremium = withFactor / 12;
@@ -1311,7 +1322,9 @@ const YesNo = ({ label, value, onChange, subLabel }) => (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
       <div className="flex-1">
         <p className="font-medium text-slate-800 text-sm">{label}</p>
-        {subLabel && <p className="text-xs text-slate-500 mt-0.5">{subLabel}</p>}
+        {subLabel && (
+          <p className="text-xs text-slate-500 mt-0.5">{subLabel}</p>
+        )}
       </div>
       <div className="flex gap-2">
         <button
@@ -1758,30 +1771,36 @@ const CustomerForm = ({ onComplete }) => {
         />
 
         {/* Customer Info Row - all inline */}
-        <div className="p-2 bg-blue-50 rounded-lg border border-blue-200 mb-2">
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 items-end">
-            <Input
-              type="date"
-              label="Date of Birth"
-              value={data.dob}
-              onChange={handleDobChange}
-              required
-            />
-            <div className="flex flex-col gap-0.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase">Age</label>
-              <div className="p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 text-sm text-center">
+        <div className="p-6 bg-blue-50/80 rounded-xl border border-blue-200 mb-6 shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-5 items-end">
+            <div className="col-span-2 md:col-span-1">
+              <Input
+                type="date"
+                label="Date of Birth"
+                value={data.dob}
+                onChange={handleDobChange}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-slate-500 uppercase">
+                Age
+              </label>
+              <div className="p-2.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 text-sm text-center h-[42px] flex items-center justify-center shadow-sm">
                 {data.age || "-"}
               </div>
             </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase">Gender *</label>
-              <div className="flex gap-1">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-slate-500 uppercase">
+                Gender *
+              </label>
+              <div className="flex gap-2">
                 <button
                   onClick={() => update("gender", "Male")}
                   className={`flex-1 p-2 rounded-lg font-bold text-sm transition-all ${
                     data.gender === "Male"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white border border-slate-200 text-slate-600"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-blue-50"
                   }`}
                 >
                   M
@@ -1790,23 +1809,25 @@ const CustomerForm = ({ onComplete }) => {
                   onClick={() => update("gender", "Female")}
                   className={`flex-1 p-2 rounded-lg font-bold text-sm transition-all ${
                     data.gender === "Female"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white border border-slate-200 text-slate-600"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-blue-50"
                   }`}
                 >
                   F
                 </button>
               </div>
             </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase">Tobacco</label>
-              <div className="flex gap-1">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-slate-500 uppercase">
+                Tobacco
+              </label>
+              <div className="flex gap-2">
                 <button
                   onClick={() => update("tobacco", true)}
                   className={`flex-1 p-2 rounded-lg font-bold text-sm transition-all ${
                     data.tobacco === true
-                      ? "bg-blue-600 text-white"
-                      : "bg-white border border-slate-200 text-slate-500"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
                   }`}
                 >
                   Yes
@@ -1815,16 +1836,21 @@ const CustomerForm = ({ onComplete }) => {
                   onClick={() => update("tobacco", false)}
                   className={`flex-1 p-2 rounded-lg font-bold text-sm transition-all ${
                     data.tobacco === false
-                      ? "bg-slate-700 text-white"
-                      : "bg-white border border-slate-200 text-slate-500"
+                      ? "bg-slate-700 text-white shadow-md"
+                      : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
                   }`}
                 >
                   No
                 </button>
               </div>
             </div>
-            <div className="flex flex-col gap-0.5 md:col-span-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase">Coverage: ${data.faceAmount.toLocaleString()}</label>
+            <div className="flex flex-col gap-1 md:col-span-2">
+              <label className="text-xs font-semibold text-slate-500 uppercase">
+                Coverage:{" "}
+                <span className="text-blue-700 text-sm">
+                  ${data.faceAmount.toLocaleString()}
+                </span>
+              </label>
               <input
                 type="range"
                 min="5000"
@@ -1832,18 +1858,21 @@ const CustomerForm = ({ onComplete }) => {
                 step="1000"
                 value={data.faceAmount}
                 onChange={(e) => update("faceAmount", parseInt(e.target.value))}
-                className="h-8 bg-white rounded-lg appearance-none cursor-pointer accent-blue-600 border border-slate-200"
+                className="h-10 w-full bg-white rounded-lg appearance-none cursor-pointer accent-blue-600 border border-slate-200 px-2 shadow-inner"
               />
             </div>
           </div>
         </div>
 
         {/* Policy Type + Quote Display Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+        {/* Policy Type + Quote Display Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Policy Types */}
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Policy Type</label>
-            <div className="grid grid-cols-3 gap-1">
+            <label className="text-sm font-bold text-slate-700 block mb-3">
+              Policy Type
+            </label>
+            <div className="flex flex-wrap gap-3">
               {data.carrier &&
                 CARRIERS[data.carrier].map((policy) => (
                   <button
@@ -1851,50 +1880,82 @@ const CustomerForm = ({ onComplete }) => {
                     onClick={() => {
                       update("planType", policy);
                       if (selectedCarrierQuote) {
-                        update("monthlyPremium", selectedCarrierQuote.toFixed(2));
+                        update(
+                          "monthlyPremium",
+                          selectedCarrierQuote.toFixed(2)
+                        );
                       }
                     }}
-                    className={`p-2 rounded-lg border-2 text-xs font-bold transition-all ${
+                    className={`px-4 py-3 rounded-xl border-2 text-sm font-bold transition-all ${
                       data.planType === policy
-                        ? "border-blue-600 bg-blue-600 text-white"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        ? "border-blue-600 bg-blue-600 text-white shadow-md transform scale-105"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-blue-300"
                     }`}
                   >
                     {policy}
                   </button>
                 ))}
               {!data.carrier && (
-                <p className="text-slate-500 italic text-sm col-span-3">Select a carrier first.</p>
+                <p className="text-slate-500 italic text-sm">
+                  Select a carrier first to see policy options.
+                </p>
               )}
             </div>
           </div>
 
           {/* Quote Display */}
           {hasCarrierRates && selectedCarrierQuote && (
-            <div className="p-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+            <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl border border-green-200 shadow-sm">
               <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                  <CarrierLogo carrier={data.carrier} size="sm" />
-                  <p className="text-2xl font-bold text-green-700">${selectedCarrierQuote.toFixed(2)}<span className="text-sm">/mo</span></p>
+                <div className="flex items-center gap-4">
+                  <CarrierLogo carrier={data.carrier} size="md" />
+                  <p className="text-4xl font-extrabold text-green-700 tracking-tight">
+                    ${selectedCarrierQuote.toFixed(2)}
+                    <span className="text-lg font-medium text-green-600 ml-1">
+                      /mo
+                    </span>
+                  </p>
                 </div>
-                <div className="text-right text-xs text-green-600">
-                  <p>Age {data.age}, {data.gender}</p>
-                  <p>${data.faceAmount.toLocaleString()} coverage</p>
+                <div className="text-right text-sm text-green-800 font-medium">
+                  <p className="mb-1">
+                    Age {data.age}, {data.gender}
+                  </p>
+                  <div className="bg-white/50 px-2 py-1 rounded text-green-700">
+                    <span className="font-bold">
+                      ${data.faceAmount.toLocaleString()}
+                    </span>{" "}
+                    coverage
+                  </div>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Compare Quotes - All 6 carriers in one row */}
+        {/* Compare Quotes - All carriers in one row */}
         {data.age && data.gender && (
-          <div className="p-2 bg-slate-50 rounded-lg border border-slate-200 mb-2">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-slate-700">Compare Carriers</span>
-              <span className="text-xs text-slate-500">{data.tobacco ? "Tobacco" : "Non-Tobacco"} rates</span>
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp size={20} className="text-blue-600" />
+                <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                  Compare All Carriers
+                </span>
+              </div>
+              <span className="px-3 py-1 bg-white rounded-full text-xs font-bold text-slate-500 border border-slate-200 shadow-sm">
+                {data.tobacco ? "Tobacco Rates" : "Non-Tobacco Rates"}
+              </span>
             </div>
-            <div className="grid grid-cols-6 gap-1">
-              {["Aflac", "SBLI", "CICA", "GTL", "TransAmerica", "Corebridge"].map((carrier) => {
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+              {[
+                "Aflac",
+                "SBLI",
+                "CICA",
+                "GTL",
+                "TransAmerica",
+                "Corebridge",
+                "American Amicable",
+              ].map((carrier) => {
                 const quote = carrierQuotes[carrier];
                 const isSelected = data.carrier === carrier;
                 return (
@@ -1905,24 +1966,30 @@ const CustomerForm = ({ onComplete }) => {
                       update("planType", "");
                       if (quote) update("monthlyPremium", quote.toFixed(2));
                     }}
-                    className={`p-1.5 rounded-lg border-2 text-center transition-all ${
+                    className={`relative p-3 rounded-xl border-2 text-center transition-all group ${
                       isSelected
-                        ? "border-blue-600 bg-blue-50"
+                        ? "border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-100 ring-offset-1"
                         : quote
-                        ? "border-slate-200 hover:border-blue-300"
-                        : "border-slate-100 bg-slate-100 opacity-50"
+                        ? "border-slate-200 bg-white hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5"
+                        : "border-slate-100 bg-slate-50 opacity-60 grayscale"
                     }`}
                     disabled={!quote}
                   >
-                    <div className="flex items-center justify-center min-h-[24px] mb-1">
-                      <CarrierLogo carrier={carrier} size="xs" />
+                    <div className="flex items-center justify-center min-h-[40px] mb-2">
+                      <CarrierLogo carrier={carrier} size="sm" />
                     </div>
                     {quote ? (
-                      <p className={`text-sm font-bold ${isSelected ? "text-blue-600" : "text-green-600"}`}>
+                      <p
+                        className={`text-lg font-bold ${
+                          isSelected
+                            ? "text-blue-700"
+                            : "text-slate-700 group-hover:text-blue-600"
+                        }`}
+                      >
                         ${quote.toFixed(0)}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-400">N/A</p>
+                      <p className="text-xs text-slate-400 font-medium">N/A</p>
                     )}
                   </button>
                 );
@@ -1941,14 +2008,18 @@ const CustomerForm = ({ onComplete }) => {
             onChange={(e) => update("monthlyPremium", e.target.value)}
             className="flex-1"
           />
-          {hasCarrierRates && selectedCarrierQuote && data.monthlyPremium !== selectedCarrierQuote.toFixed(2) && (
-            <button
-              onClick={() => update("monthlyPremium", selectedCarrierQuote.toFixed(2))}
-              className="p-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 whitespace-nowrap"
-            >
-              <RefreshCw size={12} /> Use ${selectedCarrierQuote.toFixed(2)}
-            </button>
-          )}
+          {hasCarrierRates &&
+            selectedCarrierQuote &&
+            data.monthlyPremium !== selectedCarrierQuote.toFixed(2) && (
+              <button
+                onClick={() =>
+                  update("monthlyPremium", selectedCarrierQuote.toFixed(2))
+                }
+                className="p-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 whitespace-nowrap"
+              >
+                <RefreshCw size={12} /> Use ${selectedCarrierQuote.toFixed(2)}
+              </button>
+            )}
         </div>
       </div>
     );
@@ -1979,76 +2050,92 @@ const CustomerForm = ({ onComplete }) => {
           title="Personal Information"
           subtitle="Tell us about the proposed insured."
         />
-        
+
         {/* Row 1: Name fields */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-2">
-          <Input
-            label="First Name"
-            value={data.firstName}
-            onChange={(e) => update("firstName", e.target.value)}
-            required
-            className="col-span-2"
-          />
-          <Input
-            label="Middle"
-            value={data.middleName}
-            onChange={(e) => update("middleName", e.target.value)}
-          />
-          <Input
-            label="Last Name"
-            value={data.lastName}
-            onChange={(e) => update("lastName", e.target.value)}
-            required
-            className="col-span-2"
-          />
-          <Input
-            label="Phone"
-            type="tel"
-            placeholder="(555) 555-5555"
-            value={data.phone}
-            onChange={(e) => update("phone", e.target.value)}
-            required
-          />
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+          <div className="md:col-span-2">
+            <Input
+              label="First Name"
+              value={data.firstName}
+              onChange={(e) => update("firstName", e.target.value)}
+              required
+            />
+          </div>
+          <div className="md:col-span-1">
+            <Input
+              label="Middle"
+              value={data.middleName}
+              onChange={(e) => update("middleName", e.target.value)}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Input
+              label="Last Name"
+              value={data.lastName}
+              onChange={(e) => update("lastName", e.target.value)}
+              required
+            />
+          </div>
+          <div className="md:col-span-1">
+            <Input
+              label="Phone"
+              type="tel"
+              placeholder="(555) 555-5555"
+              value={data.phone}
+              onChange={(e) => update("phone", e.target.value)}
+              required
+            />
+          </div>
         </div>
 
         {/* Row 2: Address */}
-        <div className="grid grid-cols-6 gap-2 mb-2">
-          <Input
-            label="Street Address"
-            value={data.address}
-            onChange={(e) => update("address", e.target.value)}
-            className="col-span-3"
-          />
-          <Input
-            label="City"
-            value={data.city}
-            onChange={(e) => update("city", e.target.value)}
-          />
-          <Select
-            label="State"
-            options={STATES}
-            value={data.state}
-            onChange={(e) => update("state", e.target.value)}
-          />
-          <Input
-            label="Zip"
-            value={data.zip}
-            onChange={(e) => update("zip", e.target.value)}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+          <div className="md:col-span-3">
+            <Input
+              label="Street Address"
+              value={data.address}
+              onChange={(e) => update("address", e.target.value)}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Input
+              label="City"
+              value={data.city}
+              onChange={(e) => update("city", e.target.value)}
+            />
+          </div>
+          <div className="md:col-span-1">
+            <Select
+              label="State"
+              options={STATES}
+              value={data.state}
+              onChange={(e) => update("state", e.target.value)}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Input
+              label="Zip"
+              value={data.zip}
+              onChange={(e) => update("zip", e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Row 3: DOB, Age, State of Birth, SSN, Height, Weight */}
-        <div className="grid grid-cols-6 gap-2 mb-2">
+        <div className="grid grid-cols-6 gap-4 mb-6">
           <Input
             type="date"
             label="Date of Birth"
             value={data.dob}
             onChange={handleDobChange}
             required
+            className="col-span-2"
           />
-          <div className="flex flex-col gap-0.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Age</label>
-            <div className="p-2 bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-700 text-sm text-center">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase">
+              Age
+            </label>
+            <div className="p-2.5 bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-700 text-sm text-center h-[42px] flex items-center justify-center">
               {data.age || "-"}
             </div>
           </div>
@@ -2057,47 +2144,56 @@ const CustomerForm = ({ onComplete }) => {
             options={STATES}
             value={data.stateOfBirth}
             onChange={(e) => update("stateOfBirth", e.target.value)}
+            className="col-span-3"
           />
-          <Input
-            label="SSN"
-            placeholder="XXX-XX-XXXX"
-            value={data.ssn}
-            onChange={(e) => update("ssn", e.target.value)}
-            required
-          />
-          <Select
-            label="Height"
-            options={HEIGHT_OPTIONS}
-            value={data.height}
-            onChange={(e) => update("height", e.target.value)}
-          />
-          <div className="flex flex-col gap-0.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Weight</label>
+          <div className="col-span-2">
+            <Input
+              label="SSN"
+              placeholder="XXX-XX-XXXX"
+              value={data.ssn}
+              onChange={(e) => update("ssn", e.target.value)}
+              required
+            />
+          </div>
+          <div className="col-span-2">
+            <Select
+              label="Height"
+              options={HEIGHT_OPTIONS}
+              value={data.height}
+              onChange={(e) => update("height", e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1 col-span-2">
+            <label className="text-xs font-semibold text-slate-500 uppercase">
+              Weight
+            </label>
             <input
               type="number"
               min="50"
               max="500"
               value={data.weight}
               onChange={(e) => update("weight", parseInt(e.target.value) || 0)}
-              className="p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium text-sm"
+              className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium text-sm h-[42px]"
             />
           </div>
         </div>
 
         {/* Row 4: Gender + Owner Section side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Gender */}
-          <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Gender</label>
-            <div className="flex gap-2">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">
+              Gender
+            </label>
+            <div className="flex gap-4">
               {["Male", "Female"].map((g) => (
                 <button
                   key={g}
                   onClick={() => update("gender", g)}
-                  className={`flex-1 p-2 rounded-lg border-2 font-bold text-sm transition-all ${
+                  className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${
                     data.gender === g
-                      ? "border-blue-600 bg-blue-50 text-blue-700"
-                      : "border-slate-200 text-slate-400"
+                      ? "border-blue-600 bg-blue-600 text-white shadow-md transform scale-105"
+                      : "border-slate-200 bg-white text-slate-500 hover:border-blue-300"
                   }`}
                 >
                   {g}
@@ -2107,9 +2203,11 @@ const CustomerForm = ({ onComplete }) => {
           </div>
 
           {/* Owner Section - inline */}
-          <div className="md:col-span-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
-            <p className="text-xs font-bold text-slate-600 mb-1">Policy Owner (if different)</p>
-            <div className="grid grid-cols-4 gap-2">
+          <div className="md:col-span-2 p-5 bg-slate-50/80 rounded-xl border border-slate-200">
+            <p className="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">
+              Policy Owner (if different from insured)
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Owner Name"
                 value={data.ownerName}
@@ -2509,7 +2607,9 @@ const CustomerForm = ({ onComplete }) => {
 
       {/* Draft Schedule */}
       <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 mb-3">
-        <h3 className="font-bold text-slate-700 mb-2 text-sm">Draft Schedule</h3>
+        <h3 className="font-bold text-slate-700 mb-2 text-sm">
+          Draft Schedule
+        </h3>
         <YesNo
           label="Would you like your draft to coincide with your Social Security payment schedule?"
           value={data.draftSchedule === "ss_payment"}
@@ -3601,7 +3701,10 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                       <p className="text-xs font-bold text-slate-400 uppercase mb-1">
                         Carrier
                       </p>
-                      <CarrierLogo carrier={selectedApp.carrier || "American Amicable"} size="lg" />
+                      <CarrierLogo
+                        carrier={selectedApp.carrier || "American Amicable"}
+                        size="lg"
+                      />
                     </div>
                     <div className="text-right">
                       <p className="text-xs font-bold text-slate-400 uppercase">
