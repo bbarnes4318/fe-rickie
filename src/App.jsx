@@ -35,7 +35,326 @@ const PLAN_TYPES = [
 const CARRIERS = {
   "American Amicable": ["Level", "Graded", "Modified"],
   "Corebridge": ["Guaranteed Issue", "Simplified Issue"],
-  "TransAmerica": ["Level", "Graded"]
+  "TransAmerica": ["Level", "Graded"],
+  "Aflac": ["Level", "Graded", "Return of Premium"],
+  "SBLI": ["Level", "Graded", "Return of Premium"],
+  "CICA": ["Level", "Graded", "Return of Premium"],
+  "GTL": ["Level", "Graded", "Return of Premium"]
+};
+
+// Carrier fee and monthly factor configuration (from rating.xlsx Key sheet)
+const CARRIER_CONFIG = {
+  "Aflac": { annualFee: 48, monthlyFactor: 0.0875, hasTobacco: true },
+  "SBLI": { annualFee: 48, monthlyFactor: 0.087, hasTobacco: true },
+  "CICA": { annualFee: 0, monthlyFactor: 1, hasTobacco: false },
+  "GTL": { annualFee: 48, monthlyFactor: 0.08333, hasTobacco: false },
+  "TransAmerica": { annualFee: 48, monthlyFactor: 0.0875, hasTobacco: true }
+};
+
+// Rate tables: cost per $1000 of death benefit (from rating.xlsx)
+// Aflac: ages 45-80, smoker/non-smoker
+const AFLAC_RATES = {
+  45: { maleNS: 28.97, maleSm: 45.40, femaleNS: 24.00, femaleSm: 36.70 },
+  46: { maleNS: 29.87, maleSm: 45.83, femaleNS: 24.41, femaleSm: 37.05 },
+  47: { maleNS: 30.78, maleSm: 46.29, femaleNS: 24.81, femaleSm: 37.43 },
+  48: { maleNS: 31.68, maleSm: 46.76, femaleNS: 25.22, femaleSm: 37.81 },
+  49: { maleNS: 32.59, maleSm: 47.23, femaleNS: 25.62, femaleSm: 38.19 },
+  50: { maleNS: 33.49, maleSm: 47.71, femaleNS: 26.03, femaleSm: 38.57 },
+  51: { maleNS: 34.58, maleSm: 50.00, femaleNS: 26.60, femaleSm: 40.17 },
+  52: { maleNS: 35.67, maleSm: 52.28, femaleNS: 27.16, femaleSm: 41.77 },
+  53: { maleNS: 36.75, maleSm: 54.57, femaleNS: 27.73, femaleSm: 43.37 },
+  54: { maleNS: 37.84, maleSm: 56.85, femaleNS: 28.29, femaleSm: 44.97 },
+  55: { maleNS: 38.93, maleSm: 59.14, femaleNS: 28.86, femaleSm: 46.57 },
+  56: { maleNS: 40.50, maleSm: 61.42, femaleNS: 30.04, femaleSm: 48.17 },
+  57: { maleNS: 42.08, maleSm: 63.71, femaleNS: 31.23, femaleSm: 49.77 },
+  58: { maleNS: 43.66, maleSm: 66.00, femaleNS: 32.42, femaleSm: 51.37 },
+  59: { maleNS: 45.23, maleSm: 68.28, femaleNS: 33.61, femaleSm: 52.97 },
+  60: { maleNS: 46.81, maleSm: 70.57, femaleNS: 34.80, femaleSm: 54.57 },
+  61: { maleNS: 49.24, maleSm: 75.48, femaleNS: 36.93, femaleSm: 57.31 },
+  62: { maleNS: 51.67, maleSm: 80.40, femaleNS: 39.06, femaleSm: 60.06 },
+  63: { maleNS: 54.11, maleSm: 85.31, femaleNS: 41.20, femaleSm: 62.80 },
+  64: { maleNS: 56.54, maleSm: 90.22, femaleNS: 43.33, femaleSm: 65.54 },
+  65: { maleNS: 58.97, maleSm: 95.14, femaleNS: 45.46, femaleSm: 68.28 },
+  66: { maleNS: 62.71, maleSm: 101.37, femaleNS: 48.42, femaleSm: 72.65 },
+  67: { maleNS: 66.45, maleSm: 107.60, femaleNS: 51.37, femaleSm: 77.02 },
+  68: { maleNS: 70.19, maleSm: 113.82, femaleNS: 54.33, femaleSm: 81.39 },
+  69: { maleNS: 73.93, maleSm: 120.05, femaleNS: 57.28, femaleSm: 85.76 },
+  70: { maleNS: 77.68, maleSm: 126.28, femaleNS: 60.24, femaleSm: 90.14 },
+  71: { maleNS: 82.28, maleSm: 133.54, femaleNS: 64.16, femaleSm: 95.54 },
+  72: { maleNS: 86.88, maleSm: 140.80, femaleNS: 68.08, femaleSm: 100.94 },
+  73: { maleNS: 91.48, maleSm: 148.06, femaleNS: 72.00, femaleSm: 106.34 },
+  74: { maleNS: 96.08, maleSm: 155.32, femaleNS: 75.92, femaleSm: 111.74 },
+  75: { maleNS: 100.69, maleSm: 162.58, femaleNS: 79.84, femaleSm: 117.14 },
+  76: { maleNS: 107.56, maleSm: 173.31, femaleNS: 85.35, femaleSm: 124.48 },
+  77: { maleNS: 114.44, maleSm: 184.03, femaleNS: 90.86, femaleSm: 131.82 },
+  78: { maleNS: 121.31, maleSm: 194.76, femaleNS: 96.37, femaleSm: 139.16 },
+  79: { maleNS: 128.19, maleSm: 205.48, femaleNS: 101.88, femaleSm: 146.50 },
+  80: { maleNS: 135.06, maleSm: 216.21, femaleNS: 107.39, femaleSm: 153.84 }
+};
+
+// SBLI: ages 50-85, smoker/non-smoker
+const SBLI_RATES = {
+  50: { maleNS: 38.90, maleSm: 52.90, femaleNS: 30.85, femaleSm: 41.80 },
+  51: { maleNS: 40.35, maleSm: 55.05, femaleNS: 32.05, femaleSm: 43.25 },
+  52: { maleNS: 41.80, maleSm: 57.20, femaleNS: 33.25, femaleSm: 44.70 },
+  53: { maleNS: 43.25, maleSm: 59.35, femaleNS: 34.45, femaleSm: 46.15 },
+  54: { maleNS: 44.70, maleSm: 61.50, femaleNS: 35.65, femaleSm: 47.60 },
+  55: { maleNS: 46.15, maleSm: 63.65, femaleNS: 36.85, femaleSm: 49.05 },
+  56: { maleNS: 48.20, maleSm: 66.50, femaleNS: 38.50, femaleSm: 51.25 },
+  57: { maleNS: 50.25, maleSm: 69.35, femaleNS: 40.15, femaleSm: 53.45 },
+  58: { maleNS: 52.30, maleSm: 72.20, femaleNS: 41.80, femaleSm: 55.65 },
+  59: { maleNS: 54.35, maleSm: 75.05, femaleNS: 43.45, femaleSm: 57.85 },
+  60: { maleNS: 56.40, maleSm: 77.90, femaleNS: 45.10, femaleSm: 60.05 },
+  61: { maleNS: 59.35, maleSm: 82.40, femaleNS: 47.55, femaleSm: 63.35 },
+  62: { maleNS: 62.30, maleSm: 86.90, femaleNS: 50.00, femaleSm: 66.65 },
+  63: { maleNS: 65.25, maleSm: 91.40, femaleNS: 52.45, femaleSm: 69.95 },
+  64: { maleNS: 68.20, maleSm: 95.90, femaleNS: 54.90, femaleSm: 73.25 },
+  65: { maleNS: 71.15, maleSm: 100.40, femaleNS: 57.35, femaleSm: 76.55 },
+  66: { maleNS: 76.20, maleSm: 108.50, femaleNS: 61.80, femaleSm: 83.50 },
+  67: { maleNS: 81.25, maleSm: 116.60, femaleNS: 66.25, femaleSm: 90.45 },
+  68: { maleNS: 86.30, maleSm: 124.70, femaleNS: 70.70, femaleSm: 97.40 },
+  69: { maleNS: 91.35, maleSm: 132.80, femaleNS: 75.15, femaleSm: 104.35 },
+  70: { maleNS: 96.40, maleSm: 140.90, femaleNS: 79.60, femaleSm: 111.30 },
+  71: { maleNS: 103.35, maleSm: 151.55, femaleNS: 85.55, femaleSm: 120.05 },
+  72: { maleNS: 110.30, maleSm: 162.20, femaleNS: 91.50, femaleSm: 128.80 },
+  73: { maleNS: 117.25, maleSm: 172.85, femaleNS: 97.45, femaleSm: 137.55 },
+  74: { maleNS: 124.20, maleSm: 183.50, femaleNS: 103.40, femaleSm: 146.30 },
+  75: { maleNS: 131.15, maleSm: 194.15, femaleNS: 109.35, femaleSm: 155.05 },
+  76: { maleNS: 140.40, maleSm: 208.05, femaleNS: 117.15, femaleSm: 166.35 },
+  77: { maleNS: 149.65, maleSm: 221.95, femaleNS: 124.95, femaleSm: 177.65 },
+  78: { maleNS: 158.90, maleSm: 235.85, femaleNS: 132.75, femaleSm: 188.95 },
+  79: { maleNS: 168.15, maleSm: 249.75, femaleNS: 140.55, femaleSm: 200.25 },
+  80: { maleNS: 177.40, maleSm: 263.65, femaleNS: 148.35, femaleSm: 211.55 },
+  81: { maleNS: 189.30, maleSm: 281.00, femaleNS: 158.75, femaleSm: 225.55 },
+  82: { maleNS: 201.20, maleSm: 298.35, femaleNS: 169.15, femaleSm: 239.55 },
+  83: { maleNS: 213.10, maleSm: 315.70, femaleNS: 179.55, femaleSm: 253.55 },
+  84: { maleNS: 225.00, maleSm: 333.05, femaleNS: 189.95, femaleSm: 267.55 },
+  85: { maleNS: 236.90, maleSm: 350.40, femaleNS: 200.35, femaleSm: 281.55 }
+};
+
+// CICA: ages 45-85, gender only (no tobacco)
+const CICA_RATES = {
+  45: { male: 32.38, female: 30.03 },
+  46: { male: 33.63, female: 31.21 },
+  47: { male: 34.89, female: 32.39 },
+  48: { male: 36.24, female: 33.64 },
+  49: { male: 37.67, female: 34.90 },
+  50: { male: 39.11, female: 36.25 },
+  51: { male: 40.72, female: 37.68 },
+  52: { male: 42.74, female: 39.12 },
+  53: { male: 44.92, female: 40.63 },
+  54: { male: 47.21, female: 42.54 },
+  55: { male: 49.63, female: 44.61 },
+  56: { male: 52.39, female: 46.77 },
+  57: { male: 55.03, female: 49.05 },
+  58: { male: 57.78, female: 51.66 },
+  59: { male: 60.68, female: 54.13 },
+  60: { male: 63.71, female: 56.70 },
+  61: { male: 66.90, female: 59.41 },
+  62: { male: 70.25, female: 62.22 },
+  63: { male: 73.76, female: 65.18 },
+  64: { male: 77.45, female: 68.28 },
+  65: { male: 81.32, female: 71.54 },
+  66: { male: 85.39, female: 74.97 },
+  67: { male: 89.65, female: 78.57 },
+  68: { male: 94.14, female: 82.35 },
+  69: { male: 98.84, female: 86.31 },
+  70: { male: 103.79, female: 90.47 },
+  71: { male: 108.98, female: 94.84 },
+  72: { male: 114.42, female: 99.42 },
+  73: { male: 120.14, female: 104.23 },
+  74: { male: 126.15, female: 109.28 },
+  75: { male: 132.46, female: 114.59 },
+  76: { male: 139.08, female: 120.16 },
+  77: { male: 146.04, female: 126.02 },
+  78: { male: 153.34, female: 132.17 },
+  79: { male: 161.01, female: 138.62 },
+  80: { male: 169.06, female: 145.40 },
+  81: { male: 177.51, female: 152.52 },
+  82: { male: 186.39, female: 160.00 },
+  83: { male: 195.71, female: 167.85 },
+  84: { male: 205.49, female: 176.09 },
+  85: { male: 215.77, female: 184.74 }
+};
+
+// GTL: ages 40-89, gender only (no tobacco)
+const GTL_RATES = {
+  40: { male: 55, female: 40 },
+  41: { male: 56, female: 40 },
+  42: { male: 57, female: 40 },
+  43: { male: 58, female: 40 },
+  44: { male: 59, female: 40 },
+  45: { male: 60, female: 40 },
+  46: { male: 60, female: 40 },
+  47: { male: 60, female: 40 },
+  48: { male: 60, female: 40 },
+  49: { male: 60, female: 40 },
+  50: { male: 61, female: 41 },
+  51: { male: 62, female: 42 },
+  52: { male: 63, female: 44 },
+  53: { male: 64, female: 46 },
+  54: { male: 65, female: 49 },
+  55: { male: 67, female: 51 },
+  56: { male: 70, female: 53 },
+  57: { male: 72, female: 55 },
+  58: { male: 73, female: 56 },
+  59: { male: 75, female: 58 },
+  60: { male: 78, female: 60 },
+  61: { male: 81, female: 62 },
+  62: { male: 84, female: 64 },
+  63: { male: 87, female: 66 },
+  64: { male: 91, female: 69 },
+  65: { male: 95, female: 72 },
+  66: { male: 100, female: 75 },
+  67: { male: 105, female: 79 },
+  68: { male: 110, female: 83 },
+  69: { male: 116, female: 87 },
+  70: { male: 122, female: 92 },
+  71: { male: 129, female: 97 },
+  72: { male: 136, female: 103 },
+  73: { male: 144, female: 109 },
+  74: { male: 152, female: 115 },
+  75: { male: 161, female: 122 },
+  76: { male: 170, female: 129 },
+  77: { male: 180, female: 137 },
+  78: { male: 190, female: 145 },
+  79: { male: 201, female: 154 },
+  80: { male: 213, female: 163 },
+  81: { male: 226, female: 173 },
+  82: { male: 239, female: 184 },
+  83: { male: 253, female: 195 },
+  84: { male: 268, female: 207 },
+  85: { male: 284, female: 219 },
+  86: { male: 301, female: 232 },
+  87: { male: 319, female: 246 },
+  88: { male: 338, female: 261 },
+  89: { male: 358, female: 277 }
+};
+
+// TransAmerica: ages 18-80, smoker/non-smoker
+const TRANSAMERICA_RATES = {
+  18: { maleNS: 27.21, maleSm: 31.68, femaleNS: 24.30, femaleSm: 25.05 },
+  19: { maleNS: 27.27, maleSm: 32.93, femaleNS: 24.70, femaleSm: 26.08 },
+  20: { maleNS: 27.34, maleSm: 34.20, femaleNS: 25.10, femaleSm: 27.89 },
+  21: { maleNS: 28.12, maleSm: 35.40, femaleNS: 25.35, femaleSm: 28.68 },
+  22: { maleNS: 28.93, maleSm: 36.62, femaleNS: 25.60, femaleSm: 29.10 },
+  23: { maleNS: 29.74, maleSm: 37.90, femaleNS: 25.86, femaleSm: 29.89 },
+  24: { maleNS: 30.59, maleSm: 39.22, femaleNS: 26.10, femaleSm: 30.86 },
+  25: { maleNS: 30.92, maleSm: 39.89, femaleNS: 26.36, femaleSm: 31.86 },
+  26: { maleNS: 31.24, maleSm: 40.55, femaleNS: 26.42, femaleSm: 32.46 },
+  27: { maleNS: 31.31, maleSm: 40.62, femaleNS: 26.47, femaleSm: 33.07 },
+  28: { maleNS: 31.39, maleSm: 40.70, femaleNS: 26.52, femaleSm: 33.68 },
+  29: { maleNS: 31.48, maleSm: 40.79, femaleNS: 26.59, femaleSm: 34.32 },
+  30: { maleNS: 31.58, maleSm: 40.89, femaleNS: 26.64, femaleSm: 34.97 },
+  31: { maleNS: 31.69, maleSm: 41.41, femaleNS: 27.36, femaleSm: 35.10 },
+  32: { maleNS: 31.81, maleSm: 42.43, femaleNS: 28.18, femaleSm: 35.23 },
+  33: { maleNS: 32.03, maleSm: 43.47, femaleNS: 29.02, femaleSm: 35.36 },
+  34: { maleNS: 32.71, maleSm: 44.55, femaleNS: 29.66, femaleSm: 35.49 },
+  35: { maleNS: 33.22, maleSm: 45.64, femaleNS: 30.16, femaleSm: 35.62 },
+  36: { maleNS: 34.48, maleSm: 48.05, femaleNS: 31.43, femaleSm: 37.35 },
+  37: { maleNS: 35.53, maleSm: 50.57, femaleNS: 32.48, femaleSm: 39.17 },
+  38: { maleNS: 36.71, maleSm: 53.22, femaleNS: 33.48, femaleSm: 41.07 },
+  39: { maleNS: 38.43, maleSm: 56.00, femaleNS: 34.45, femaleSm: 43.07 },
+  40: { maleNS: 40.22, maleSm: 58.94, femaleNS: 35.33, femaleSm: 45.16 },
+  41: { maleNS: 42.09, maleSm: 62.04, femaleNS: 36.99, femaleSm: 47.36 },
+  42: { maleNS: 44.07, maleSm: 65.30, femaleNS: 38.68, femaleSm: 49.66 },
+  43: { maleNS: 46.12, maleSm: 68.72, femaleNS: 40.48, femaleSm: 52.08 },
+  44: { maleNS: 48.28, maleSm: 72.33, femaleNS: 42.44, femaleSm: 54.60 },
+  45: { maleNS: 51.81, maleSm: 76.12, femaleNS: 48.51, femaleSm: 57.27 },
+  46: { maleNS: 56.80, maleSm: 78.07, femaleNS: 52.95, femaleSm: 58.91 },
+  47: { maleNS: 56.30, maleSm: 79.95, femaleNS: 62.54, femaleSm: 58.20 },
+  48: { maleNS: 59.95, maleSm: 81.02, femaleNS: 66.48, femaleSm: 59.72 },
+  49: { maleNS: 62.93, maleSm: 82.10, femaleNS: 66.67, femaleSm: 61.13 },
+  50: { maleNS: 63.06, maleSm: 83.14, femaleNS: 67.53, femaleSm: 61.91 },
+  51: { maleNS: 63.19, maleSm: 85.75, femaleNS: 70.37, femaleSm: 62.69 },
+  52: { maleNS: 64.57, maleSm: 88.40, femaleNS: 73.34, femaleSm: 65.28 },
+  53: { maleNS: 65.97, maleSm: 92.85, femaleNS: 76.42, femaleSm: 67.88 },
+  54: { maleNS: 67.41, maleSm: 95.47, femaleNS: 79.64, femaleSm: 70.49 },
+  55: { maleNS: 68.87, maleSm: 97.90, femaleNS: 82.99, femaleSm: 72.47 },
+  56: { maleNS: 69.35, maleSm: 103.05, femaleNS: 83.03, femaleSm: 80.12 },
+  57: { maleNS: 69.80, maleSm: 108.47, femaleNS: 83.07, femaleSm: 82.68 },
+  58: { maleNS: 70.20, maleSm: 114.18, femaleNS: 83.11, femaleSm: 85.33 },
+  59: { maleNS: 70.56, maleSm: 120.17, femaleNS: 85.64, femaleSm: 86.33 },
+  60: { maleNS: 70.87, maleSm: 126.49, femaleNS: 89.44, femaleSm: 87.03 },
+  61: { maleNS: 74.06, maleSm: 133.13, femaleNS: 93.41, femaleSm: 89.40 },
+  62: { maleNS: 77.38, maleSm: 140.14, femaleNS: 97.54, femaleSm: 94.15 },
+  63: { maleNS: 80.84, maleSm: 147.50, femaleNS: 101.87, femaleSm: 99.12 },
+  64: { maleNS: 84.43, maleSm: 155.26, femaleNS: 106.38, femaleSm: 104.30 },
+  65: { maleNS: 88.17, maleSm: 163.41, femaleNS: 111.09, femaleSm: 109.71 },
+  66: { maleNS: 93.53, maleSm: 172.91, femaleNS: 117.73, femaleSm: 117.01 },
+  67: { maleNS: 99.21, maleSm: 182.98, femaleNS: 124.77, femaleSm: 124.80 },
+  68: { maleNS: 105.23, maleSm: 193.61, femaleNS: 132.24, femaleSm: 133.11 },
+  69: { maleNS: 111.63, maleSm: 204.87, femaleNS: 140.14, femaleSm: 141.97 },
+  70: { maleNS: 118.41, maleSm: 216.79, femaleNS: 146.65, femaleSm: 151.42 },
+  71: { maleNS: 124.13, maleSm: 229.39, femaleNS: 156.77, femaleSm: 161.46 },
+  72: { maleNS: 130.12, maleSm: 242.72, femaleNS: 166.82, femaleSm: 172.17 },
+  73: { maleNS: 136.37, maleSm: 256.84, femaleNS: 176.79, femaleSm: 183.59 },
+  74: { maleNS: 142.91, maleSm: 271.78, femaleNS: 187.36, femaleSm: 195.77 },
+  75: { maleNS: 149.73, maleSm: 287.59, femaleNS: 198.56, femaleSm: 208.75 },
+  76: { maleNS: 159.90, maleSm: 307.15, femaleNS: 213.77, femaleSm: 220.26 },
+  77: { maleNS: 170.19, maleSm: 328.04, femaleNS: 230.15, femaleSm: 231.96 },
+  78: { maleNS: 180.63, maleSm: 336.59, femaleNS: 240.02, femaleSm: 243.84 },
+  79: { maleNS: 191.19, maleSm: 338.70, femaleNS: 242.14, femaleSm: 255.92 },
+  80: { maleNS: 201.89, maleSm: 340.82, femaleNS: 244.28, femaleSm: 268.18 }
+};
+
+// Calculate monthly premium based on carrier, age, gender, tobacco, and face amount
+const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmount) => {
+  const config = CARRIER_CONFIG[carrier];
+  if (!config) return null;
+
+  let rateTable, rate;
+  const isMale = gender === 'Male';
+  const isSmoker = tobacco === true;
+
+  switch (carrier) {
+    case 'Aflac':
+      rateTable = AFLAC_RATES[age];
+      if (!rateTable) return null;
+      rate = isMale 
+        ? (isSmoker ? rateTable.maleSm : rateTable.maleNS)
+        : (isSmoker ? rateTable.femaleSm : rateTable.femaleNS);
+      break;
+    case 'SBLI':
+      rateTable = SBLI_RATES[age];
+      if (!rateTable) return null;
+      rate = isMale
+        ? (isSmoker ? rateTable.maleSm : rateTable.maleNS)
+        : (isSmoker ? rateTable.femaleSm : rateTable.femaleNS);
+      break;
+    case 'CICA':
+      rateTable = CICA_RATES[age];
+      if (!rateTable) return null;
+      rate = isMale ? rateTable.male : rateTable.female;
+      break;
+    case 'GTL':
+      rateTable = GTL_RATES[age];
+      if (!rateTable) return null;
+      rate = isMale ? rateTable.male : rateTable.female;
+      break;
+    case 'TransAmerica':
+      rateTable = TRANSAMERICA_RATES[age];
+      if (!rateTable) return null;
+      rate = isMale
+        ? (isSmoker ? rateTable.maleSm : rateTable.maleNS)
+        : (isSmoker ? rateTable.femaleSm : rateTable.femaleNS);
+      break;
+    default:
+      return null;
+  }
+
+  // Formula from rate_calc.txt:
+  // 1. Multiply rate by (faceAmount / 1000)
+  // 2. Add annual policy fee
+  // 3. Apply monthly factor: (totalAnnual * monthlyFactor) + totalAnnual
+  // 4. Divide by 12 for monthly premium
+  const units = faceAmount / 1000;
+  const annualBase = rate * units;
+  const totalAnnual = annualBase + config.annualFee;
+  const withFactor = totalAnnual + (totalAnnual * config.monthlyFactor);
+  const monthlyPremium = withFactor / 12;
+
+  return Math.round(monthlyPremium * 100) / 100; // Round to 2 decimal places
 };
 
 // Height options in ft'in" format
@@ -377,7 +696,21 @@ const CustomerForm = ({ onComplete }) => {
     </div>
   );
 
-  const renderPolicySelect = () => (
+  const renderPolicySelect = () => {
+    // Calculate quotes for each carrier with rates
+    const age = parseInt(data.age);
+    const carrierQuotes = (age && data.gender) ? {
+      'Aflac': calculateMonthlyPremium('Aflac', age, data.gender, data.tobacco, data.faceAmount),
+      'SBLI': calculateMonthlyPremium('SBLI', age, data.gender, data.tobacco, data.faceAmount),
+      'CICA': calculateMonthlyPremium('CICA', age, data.gender, data.tobacco, data.faceAmount),
+      'GTL': calculateMonthlyPremium('GTL', age, data.gender, data.tobacco, data.faceAmount),
+      'TransAmerica': calculateMonthlyPremium('TransAmerica', age, data.gender, data.tobacco, data.faceAmount)
+    } : {};
+
+    const selectedCarrierQuote = data.carrier && CARRIER_CONFIG[data.carrier] ? carrierQuotes[data.carrier] : null;
+    const hasCarrierRates = ['Aflac', 'SBLI', 'CICA', 'GTL', 'TransAmerica'].includes(data.carrier);
+
+    return (
     <div className="animate-fade-in">
       <SectionTitle icon={FileText} title="Policy & Premium" subtitle="Configure the policy details." />
       
@@ -397,6 +730,73 @@ const CustomerForm = ({ onComplete }) => {
         </div>
       </div>
 
+      {/* Calculated Quote Display for carriers with rate tables */}
+      {hasCarrierRates && (
+        <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 mb-6">
+          <h3 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+            <DollarSign size={20} />
+            Calculated Quote - {data.carrier}
+          </h3>
+          {selectedCarrierQuote ? (
+            <div className="flex items-center gap-4">
+              <div className="text-4xl font-bold text-green-700">${selectedCarrierQuote.toFixed(2)}</div>
+              <div className="text-green-600 text-sm">
+                <p>/month</p>
+                <p className="text-xs mt-1">
+                  Based on: Age {data.age}, {data.gender}{CARRIER_CONFIG[data.carrier]?.hasTobacco ? `, ${data.tobacco ? 'Tobacco' : 'Non-Tobacco'}` : ''}, ${data.faceAmount.toLocaleString()} coverage
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-yellow-100 text-yellow-800 rounded-lg text-sm flex items-center gap-2">
+              <AlertTriangle size={16} />
+              {!data.age ? 'Please enter date of birth to calculate quote.' : 
+               !data.gender ? 'Please select gender to calculate quote.' :
+               `Age ${data.age} is outside the rate range for ${data.carrier}. Please select a different carrier.`}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Compare Quotes Section */}
+      {data.age && data.gender && (
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+          <h3 className="font-bold text-slate-700 mb-3">Compare Monthly Premium Quotes</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {['Aflac', 'SBLI', 'CICA', 'GTL', 'TransAmerica'].map(carrier => {
+              const quote = carrierQuotes[carrier];
+              const isSelected = data.carrier === carrier;
+              return (
+                <button
+                  key={carrier}
+                  onClick={() => { update('carrier', carrier); update('planType', ''); if (quote) update('monthlyPremium', quote.toFixed(2)); }}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    isSelected 
+                      ? 'border-blue-600 bg-blue-50' 
+                      : quote ? 'border-slate-200 hover:border-blue-300 hover:bg-white' : 'border-slate-100 bg-slate-100 opacity-50'
+                  }`}
+                  disabled={!quote}
+                >
+                  <p className={`text-sm font-bold ${isSelected ? 'text-blue-700' : 'text-slate-700'}`}>{carrier}</p>
+                  {quote ? (
+                    <p className={`text-lg font-bold ${isSelected ? 'text-blue-600' : 'text-green-600'}`}>${quote.toFixed(2)}</p>
+                  ) : (
+                    <p className="text-xs text-slate-400">N/A for age {data.age}</p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-slate-500 mt-2">
+            {CARRIER_CONFIG[data.carrier]?.hasTobacco 
+              ? `Rates shown for ${data.tobacco ? 'Tobacco' : 'Non-Tobacco'} users.` 
+              : data.carrier && CARRIER_CONFIG[data.carrier] 
+                ? 'Tobacco status does not affect rates for this carrier.'
+                : ''}
+          </p>
+        </div>
+      )}
+
       <div className="mb-6">
          <Input 
             label="Monthly Premium ($)" 
@@ -406,6 +806,14 @@ const CustomerForm = ({ onComplete }) => {
             onChange={(e) => update('monthlyPremium', e.target.value)} 
             className="md:w-1/2"
          />
+         {hasCarrierRates && selectedCarrierQuote && data.monthlyPremium !== selectedCarrierQuote.toFixed(2) && (
+           <button 
+             onClick={() => update('monthlyPremium', selectedCarrierQuote.toFixed(2))}
+             className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+           >
+             <RefreshCw size={14} /> Use calculated rate: ${selectedCarrierQuote.toFixed(2)}
+           </button>
+         )}
       </div>
 
       {/* Grandchild Rider */}
@@ -417,7 +825,8 @@ const CustomerForm = ({ onComplete }) => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const renderStep1 = () => {
     // Auto-calculate age from DOB

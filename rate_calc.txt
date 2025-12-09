@@ -1,0 +1,53 @@
+I've added an excel file to the main folder named 'rates.xlxs'.
+
+We will use this file to calculate the monthly premiums for each application.
+
+Build the proper formula to calculate the rates based on the rate charts from the excel file and the examples below that will tell you how to calculate the rates properly.
+
+Then, please build a quoting section of the quote application so that we give the proper rates to customers on the application.
+
+The sheet named 'Key' contains the Annual Policy Fee from B2:E2 and the monthly rating factor from B3:E3.
+
+Aflac and SBLI contain smoker and non-smoker rates for Males and Females.
+
+CICA and GTL contain only rates for Males and Females and smoking is not a factor in rates.
+
+Column A on each sheet contains the customer Age.
+
+The other columns contain the annual cost per $1000 of death benefit coverage. 
+
+Here's an example of how we should calculate the monthly premiums for a 60 year old Male Non-Tobacco for $5000 in death benefit coverage:
+
+Aflac:
+$46.81 cost per $1000
+$5000 death benefit divided by $1000 is 5
+5 multiplied by $46.81 is $234.05
+Annual Fee is $48. So total annual premium is $234.05+48=$282.05
+Monthly factor is .0875. $282.05 x .0875=$24.68
+$24.68 + $282.05=$306.73
+$306.73/12=$25.56 per month
+
+Sheet:
+
+Key	B2:E2 contains the annual policy fee for each carrier. Add this to the total annual amount before calculating the monthly factor in B3:E3
+	B3:E3 contains the rate you multiple the annual policy premium by and then add the amount to the annual premium and divide by 12 to get the monthly rate
+
+Aflac 	A2:A37 contains the customer age
+	B2:B37 contains the Male Non-Smoker rates
+	C2:C37 contains the Female Non-Smoker rates
+	D2:D37 contains the Male Smoker rates
+	E2:E37 contains the Female Smoker rates
+
+SBLI 	A2:A37 contains the customer age
+	B2:B37 contains the Male Non-Smoker rates
+	C2:C37 contains the Female Non-Smoker rates
+	D2:D37 contains the Male Smoker rates
+	E2:E37 contains the Female Smoker rates
+
+CICA 	A2:A42 contains the customer age
+	B2:B42 contains the Male rates
+	C2:C42 contains the Female rates
+
+GTL 	A2:A52 contains the customer age
+	B2:B52 contains the Male rates
+	C2:C52 contains the Female rates
