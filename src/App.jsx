@@ -710,10 +710,83 @@ const CustomerForm = ({ onComplete }) => {
     const selectedCarrierQuote = data.carrier && CARRIER_CONFIG[data.carrier] ? carrierQuotes[data.carrier] : null;
     const hasCarrierRates = ['Aflac', 'SBLI', 'CICA', 'GTL', 'TransAmerica'].includes(data.carrier);
 
+    // Auto-calculate age from DOB
+    const calculateAge = (dob) => {
+      if (!dob) return '';
+      const today = new Date();
+      const birth = new Date(dob);
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      return age;
+    };
+
+    const handleDobChange = (e) => {
+      const dob = e.target.value;
+      update('dob', dob);
+      update('age', calculateAge(dob));
+    };
+
     return (
     <div className="animate-fade-in">
       <SectionTitle icon={FileText} title="Policy & Premium" subtitle="Configure the policy details." />
       
+      {/* Required fields for quote calculation */}
+      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 mb-6">
+        <h3 className="font-bold text-blue-800 mb-4">Customer Information for Quote</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <Input type="date" label="Date of Birth" value={data.dob} onChange={handleDobChange} required />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase">Age (Auto-calculated)</label>
+            <div className="p-3 bg-white border border-slate-200 rounded-lg font-bold text-slate-700">
+              {data.age || 'Enter DOB'}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase">Gender <span className="text-red-500">*</span></label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => update('gender', 'Male')}
+                className={`flex-1 p-3 rounded-lg font-bold transition-all ${data.gender === 'Male' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+              >
+                Male
+              </button>
+              <button
+                onClick={() => update('gender', 'Female')}
+                className={`flex-1 p-3 rounded-lg font-bold transition-all ${data.gender === 'Female' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+              >
+                Female
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tobacco Question - only show for carriers that use tobacco rates */}
+        <div className="p-3 bg-white rounded-lg border border-slate-200">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex-1">
+              <p className="font-medium text-slate-800">Have you used tobacco in any form during the past 12 months?</p>
+              <p className="text-sm text-slate-500 mt-1">(Excluding occasional pipe and cigar use)</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => update('tobacco', true)}
+                className={`px-6 py-2 rounded-lg font-bold transition-all ${data.tobacco === true ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => update('tobacco', false)}
+                className={`px-6 py-2 rounded-lg font-bold transition-all ${data.tobacco === false ? 'bg-slate-700 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="mb-6">
         <label className="text-sm font-bold text-slate-700 block mb-2">Select Policy Type</label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1581,11 +1654,10 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 transition-all">
         <div className="p-6 border-b border-slate-800">
-           <div className="flex items-center gap-2 text-white mb-1">
-             <Shield className="text-red-600 fill-current" size={28} />
-             <h1 className="font-extrabold tracking-wider text-lg">AMBEN</h1>
+           <div className="flex items-center justify-center mb-2">
+             <img src="/amerben.png" alt="American Beneficiary" className="h-12 w-auto object-contain" />
            </div>
-           <p className="text-xs text-slate-400 uppercase tracking-widest pl-9">Admin Portal</p>
+           <p className="text-xs text-slate-400 uppercase tracking-widest text-center">Admin Portal</p>
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">
