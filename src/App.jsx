@@ -150,6 +150,44 @@ const CARRIER_CONFIG = {
   TransAmerica: { annualFee: 0, monthlyFactor: 0.45, hasTobacco: true },
 };
 
+// Carrier logo mapping (located in /logos folder)
+const CARRIER_LOGOS = {
+  Aflac: "/logos/aflac.png",
+  "American Amicable": "/logos/amam.png",
+  CICA: "/logos/cica.png",
+  Corebridge: "/logos/corebridge.png",
+  GTL: "/logos/gtl.png",
+  SBLI: "/logos/sbli.png",
+  TransAmerica: "/logos/trans.png",
+};
+
+// CarrierLogo component for displaying carrier logos
+const CarrierLogo = ({ carrier, size = "md", className = "" }) => {
+  const sizeClasses = {
+    xs: "h-4 max-w-[40px]",
+    sm: "h-6 max-w-[60px]",
+    md: "h-8 max-w-[80px]",
+    lg: "h-10 max-w-[100px]",
+    xl: "h-12 max-w-[120px]",
+  };
+  
+  const logoSrc = CARRIER_LOGOS[carrier];
+  
+  if (!logoSrc) {
+    // Fallback to text if no logo available
+    return <span className={`font-bold ${className}`}>{carrier}</span>;
+  }
+  
+  return (
+    <img
+      src={logoSrc}
+      alt={`${carrier} logo`}
+      className={`object-contain ${sizeClasses[size] || sizeClasses.md} ${className}`}
+      title={carrier}
+    />
+  );
+};
+
 // Rate tables: cost per $1000 of death benefit (from rating.xlsx)
 // Aflac: ages 45-80, smoker/non-smoker
 const AFLAC_RATES = {
@@ -1544,14 +1582,8 @@ const CustomerForm = ({ onComplete }) => {
                 : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
             }`}
           >
-            <div>
-              <h3
-                className={`font-bold text-base ${
-                  data.carrier === c ? "text-blue-700" : "text-slate-700"
-                }`}
-              >
-                {c}
-              </h3>
+            <div className="flex items-center justify-center min-h-[32px]">
+              <CarrierLogo carrier={c} size="md" />
             </div>
             <div
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
@@ -1775,8 +1807,8 @@ const CustomerForm = ({ onComplete }) => {
           {hasCarrierRates && selectedCarrierQuote && (
             <div className="p-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-green-700">{data.carrier} Quote</p>
+              <div className="flex items-center gap-2">
+                  <CarrierLogo carrier={data.carrier} size="sm" />
                   <p className="text-2xl font-bold text-green-700">${selectedCarrierQuote.toFixed(2)}<span className="text-sm">/mo</span></p>
                 </div>
                 <div className="text-right text-xs text-green-600">
@@ -1816,9 +1848,9 @@ const CustomerForm = ({ onComplete }) => {
                     }`}
                     disabled={!quote}
                   >
-                    <p className={`text-xs font-bold truncate ${isSelected ? "text-blue-700" : "text-slate-700"}`}>
-                      {carrier.replace("America", "")}
-                    </p>
+                    <div className="flex items-center justify-center min-h-[24px] mb-1">
+                      <CarrierLogo carrier={carrier} size="xs" />
+                    </div>
                     {quote ? (
                       <p className={`text-sm font-bold ${isSelected ? "text-blue-600" : "text-green-600"}`}>
                         ${quote.toFixed(0)}
@@ -3499,12 +3531,10 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                   </div>
                   <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2 flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase">
+                      <p className="text-xs font-bold text-slate-400 uppercase mb-1">
                         Carrier
                       </p>
-                      <p className="text-lg font-bold text-slate-800">
-                        {selectedApp.carrier || "American Amicable"}
-                      </p>
+                      <CarrierLogo carrier={selectedApp.carrier || "American Amicable"} size="lg" />
                     </div>
                     <div className="text-right">
                       <p className="text-xs font-bold text-slate-400 uppercase">
