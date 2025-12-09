@@ -1653,7 +1653,7 @@ const CustomerForm = ({ onComplete }) => {
                 : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
             }`}
           >
-            <div className="flex items-center justify-center min-h-[32px]">
+            <div className="flex items-center justify-center min-h-[72px]">
               <CarrierLogo carrier={c} size="md" />
             </div>
             <div
@@ -1975,7 +1975,7 @@ const CustomerForm = ({ onComplete }) => {
                     }`}
                     disabled={!quote}
                   >
-                    <div className="flex items-center justify-center min-h-[40px] mb-2">
+                    <div className="flex items-center justify-center min-h-[56px] mb-2">
                       <CarrierLogo carrier={carrier} size="sm" />
                     </div>
                     {quote ? (
