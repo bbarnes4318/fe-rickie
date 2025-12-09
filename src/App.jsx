@@ -785,6 +785,25 @@ const CustomerForm = ({ onComplete }) => {
             </div>
           </div>
         </div>
+
+        {/* Coverage Amount */}
+        <div className="mt-4">
+          <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">Coverage Amount (Face Value) <span className="text-red-500">*</span></label>
+          <div className="flex items-center gap-4">
+            <input 
+              type="range" 
+              min="5000" 
+              max="50000" 
+              step="1000" 
+              value={data.faceAmount} 
+              onChange={(e) => update('faceAmount', parseInt(e.target.value))} 
+              className="flex-1 h-3 bg-white rounded-lg appearance-none cursor-pointer accent-blue-600 border border-slate-200" 
+            />
+            <div className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 min-w-32 text-center">
+              ${data.faceAmount.toLocaleString()}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -793,7 +812,13 @@ const CustomerForm = ({ onComplete }) => {
           {data.carrier && CARRIERS[data.carrier].map((policy) => (
             <button
               key={policy}
-              onClick={() => update('planType', policy)}
+              onClick={() => {
+                update('planType', policy);
+                // Auto-set premium if we have a calculated quote
+                if (selectedCarrierQuote) {
+                  update('monthlyPremium', selectedCarrierQuote.toFixed(2));
+                }
+              }}
               className={`p-4 rounded-lg border-2 text-sm font-bold transition-all ${data.planType === policy ? 'border-blue-600 bg-blue-600 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
             >
               {policy}
@@ -1163,7 +1188,15 @@ const CustomerForm = ({ onComplete }) => {
   const nextStep = () => {
     // Validation logic per step
     if (step === 1 && !data.carrier) { alert("Please select a carrier."); return; }
-    if (step === 2 && (!data.planType || !data.monthlyPremium)) { alert("Please select a policy and enter a premium."); return; }
+    if (step === 2) {
+      if (!data.planType) { alert("Please select a policy type."); return; }
+      if (!data.dob || !data.age) { alert("Please enter date of birth."); return; }
+      if (!data.gender) { alert("Please select gender."); return; }
+      if (data.tobacco === null) { alert("Please answer the tobacco question."); return; }
+      // Premium check - allow if monthlyPremium is set OR if we're on a carrier without rate tables
+      const hasRates = ['Aflac', 'SBLI', 'CICA', 'GTL', 'TransAmerica'].includes(data.carrier);
+      if (hasRates && !data.monthlyPremium) { alert("Please select a carrier from the quote comparison or enter a premium manually."); return; }
+    }
     if (step === 7 && (!data.accountNum || !data.routing || !data.draftDate)) { alert("Please complete all banking details including Draft Date."); return; }
     setStep(Math.min(totalSteps, step + 1));
   };
