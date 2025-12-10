@@ -58,5 +58,15 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to update application');
     return res.json();
+  },
+
+  // Delete application
+  async deleteApplication(id) {
+    const res = await fetch(`${API_BASE}/applications/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to delete application');
+    return res.json();
   }
 };

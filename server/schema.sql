@@ -81,6 +81,12 @@ CREATE TABLE applications (
   draft_schedule VARCHAR(50),
   draft_date VARCHAR(50),
   
+  -- Agent Dialer / Phone App tracking
+  annual_premium DECIMAL(10,2),
+  last_call_date TIMESTAMP,
+  last_disposition VARCHAR(100),
+  call_notes TEXT,
+  
   -- Metadata
   risk_score INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW(),

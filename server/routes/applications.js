@@ -75,6 +75,11 @@ router.get('/', authenticateToken, async (req, res) => {
       accountNum: row.account_num,
       draftSchedule: row.draft_schedule,
       draftDate: row.draft_date,
+      // Agent Dialer tracking
+      annualPremium: row.annual_premium,
+      lastCallDate: row.last_call_date,
+      lastDisposition: row.last_disposition,
+      callNotes: row.call_notes,
       // Meta
       riskScore: row.risk_score || 0
     }));
@@ -139,22 +144,55 @@ router.post('/', async (req, res) => {
 // PUT update application
 router.put('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { status, plan, premium } = req.body;
+  const { 
+    status, 
+    plan, 
+    planType,
+    premium, 
+    carrier,
+    annualPremium,
+    lastCallDate,
+    lastDisposition,
+    callNotes
+  } = req.body;
   
   try {
     await pool.query(`
       UPDATE applications 
       SET status = COALESCE($1, status),
-          plan_type = COALESCE($2, plan_type),
-          monthly_premium = COALESCE($3, monthly_premium),
+          plan_type = COALESCE($2, COALESCE($3, plan_type)),
+          monthly_premium = COALESCE($4, monthly_premium),
+          carrier = COALESCE($5, carrier),
+          annual_premium = COALESCE($6, annual_premium),
+          last_call_date = COALESCE($7, last_call_date),
+          last_disposition = COALESCE($8, last_disposition),
+          call_notes = COALESCE($9, call_notes),
           updated_at = NOW()
-      WHERE app_id = $4
-    `, [status, plan, premium, id]);
+      WHERE app_id = $10
+    `, [status, plan, planType, premium, carrier, annualPremium, lastCallDate, lastDisposition, callNotes, id]);
     
     res.json({ success: true });
   } catch (error) {
     console.error('Error updating application:', error);
     res.status(500).json({ error: 'Failed to update application' });
+  }
+});
+
+// DELETE application
+router.delete('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const result = await pool.query('DELETE FROM applications WHERE app_id = $1 RETURNING *', [id]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+    
+    res.json({ success: true, message: 'Application deleted' });
+  } catch (error) {
+    console.error('Error deleting application:', error);
+    res.status(500).json({ error: 'Failed to delete application' });
   }
 });
 

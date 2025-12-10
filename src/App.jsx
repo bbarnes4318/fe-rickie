@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { api } from "./api";
+import CallPopApp from './CallPopApp'; 
 import {
   User,
   MapPin,
@@ -43,6 +44,7 @@ import {
   Copy,
   ExternalLink,
   Printer,
+  Trash2,
 } from "lucide-react";
 
 // --- Constants & Data ---
@@ -2858,11 +2860,13 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
 
   const StatusBadge = ({ status }) => {
     const styles = {
+      Lead: "bg-cyan-100 text-cyan-700 border-cyan-200",
       Submitted: "bg-blue-100 text-blue-700 border-blue-200",
       Underwriting: "bg-indigo-100 text-indigo-700 border-indigo-200",
       Issued: "bg-green-100 text-green-700 border-green-200",
       Paid: "bg-emerald-100 text-emerald-700 border-emerald-200",
       "Not Taken": "bg-slate-100 text-slate-500 border-slate-200",
+      Declined: "bg-red-100 text-red-600 border-red-200",
       Lapsed: "bg-red-50 text-red-600 border-red-200",
       // Legacy statuses for backwards compatibility
       Approved: "bg-green-100 text-green-700 border-green-200",
@@ -2903,62 +2907,86 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
 
     const counts = {
       applications: filtered.length,
+      leads: filtered.filter((s) => s.status === "Lead").length,
       submitted: filtered.filter((s) => s.status === "Submitted").length,
       underwriting: filtered.filter((s) => s.status === "Underwriting").length,
       issued: filtered.filter((s) => s.status === "Issued").length,
       paid: filtered.filter((s) => s.status === "Paid").length,
       notTaken: filtered.filter((s) => s.status === "Not Taken").length,
+      declined: filtered.filter((s) => s.status === "Declined").length,
       lapsed: filtered.filter((s) => s.status === "Lapsed").length,
     };
 
-    const activeCount = counts.issued + counts.paid;
-    const retentionBase = activeCount + counts.notTaken + counts.lapsed;
-    const retentionRate =
-      retentionBase > 0 ? ((activeCount / retentionBase) * 100).toFixed(1) : 0;
+    // Apps to Issue % = Paid applications / Submitted applications
+    // (How many submitted apps converted to Paid status)
+    const totalSubmittedApps = counts.submitted + counts.underwriting + counts.issued + counts.paid + counts.notTaken + counts.declined + counts.lapsed;
     const appsToIssue =
-      counts.applications > 0
-        ? ((activeCount / counts.applications) * 100).toFixed(1)
+      totalSubmittedApps > 0
+        ? ((counts.paid / totalSubmittedApps) * 100).toFixed(1)
         : 0;
 
-    return { counts, retentionRate, appsToIssue };
+    // Retention % = Active Paid / (All that ever reached Paid status)
+    // Lapsed means it was Paid but no longer active
+    const everPaid = counts.paid + counts.lapsed;
+    const retentionRate =
+      everPaid > 0 ? ((counts.paid / everPaid) * 100).toFixed(1) : 100;
+
+    // Premium = Sum of annual premiums for all Paid applications (monthly × 12)
+    const paidApps = filtered.filter((s) => s.status === "Paid");
+    const totalAnnualPremium = paidApps.reduce(
+      (sum, s) => sum + (parseFloat(s.premium || s.monthlyPremium || 0) * 12),
+      0
+    );
+
+    // Conversion % = leads that became Submitted (Sales Made) / total leads
+    const conversionRate =
+      counts.leads > 0
+        ? ((counts.submitted / counts.leads) * 100).toFixed(1)
+        : 0;
+
+    return { counts, retentionRate, appsToIssue, conversionRate, totalAnnualPremium };
   }, [submissions, timeFilter]);
 
   // --- Renderers ---
 
   const renderOverview = () => (
     <div className="animate-fade-in space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         {[
           {
-            label: "Total Apps",
-            val: submissions.length,
-            icon: FileText,
+            label: "Leads",
+            val: analyticsData.counts.leads,
+            icon: Users,
+            color: "cyan",
+          },
+          {
+            label: "Apps to Issue",
+            val: `${analyticsData.appsToIssue}%`,
+            icon: TrendingUp,
             color: "blue",
           },
           {
-            label: "Issued/Paid",
-            val: analyticsData.counts.issued + analyticsData.counts.paid,
+            label: "Retention",
+            val: `${analyticsData.retentionRate}%`,
             icon: Shield,
             color: "green",
           },
           {
-            label: "Underwriting",
-            val: analyticsData.counts.underwriting,
+            label: "Premium",
+            val: `$${analyticsData.totalAnnualPremium.toLocaleString()}`,
+            icon: DollarSign,
+            color: "emerald",
+          },
+          {
+            label: "Conversion %",
+            val: `${analyticsData.conversionRate}%`,
             icon: Activity,
             color: "orange",
           },
           {
-            label: "Avg Premium",
-            val:
-              submissions.length > 0
-                ? `$${(
-                    submissions.reduce(
-                      (sum, s) => sum + parseFloat(s.premium || 0),
-                      0
-                    ) / submissions.length
-                  ).toFixed(2)}`
-                : "$0.00",
-            icon: DollarSign,
+            label: "Paid",
+            val: analyticsData.counts.paid,
+            icon: CheckCircle,
             color: "purple",
           },
         ].map((stat, i) => (
@@ -3659,6 +3687,23 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                     <Printer size={18} /> Print
                   </button>
                   <button
+                    onClick={async () => {
+                      if (window.confirm(`Are you sure you want to delete the application for ${selectedApp.name || selectedApp.firstName + ' ' + selectedApp.lastName}? This cannot be undone.`)) {
+                        try {
+                          await api.deleteApplication(selectedApp.id);
+                          setSelectedApp(null);
+                          // Refresh the list by triggering a re-fetch
+                          window.location.reload();
+                        } catch (err) {
+                          alert('Failed to delete application: ' + err.message);
+                        }
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-bold rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 size={18} /> Delete
+                  </button>
+                  <button
                     onClick={() => setSelectedApp(null)}
                     className="p-2 hover:bg-slate-100 text-slate-400 hover:text-red-500 rounded-full transition-colors"
                   >
@@ -3669,22 +3714,16 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
 
               <div className="p-8 space-y-8 bg-slate-50/50 flex-1">
                 {/* Top Row: Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <p className="text-xs font-bold text-slate-400 uppercase">
-                      Risk Score
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-4 rounded-xl border-2 border-emerald-200 shadow-sm">
+                    <p className="text-xs font-bold text-emerald-600 uppercase">
+                      Coverage Amount
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span
-                        className={`text-2xl font-bold ${
-                          selectedApp.riskScore > 50
-                            ? "text-red-600"
-                            : "text-green-600"
-                        }`}
-                      >
-                        {selectedApp.riskScore || "Pending"}
+                      <span className="text-2xl font-bold text-emerald-700">
+                        ${(selectedApp.faceAmount || 0).toLocaleString()}
                       </span>
-                      <Activity size={16} className="text-slate-400" />
+                      <Shield size={16} className="text-emerald-500" />
                     </div>
                   </div>
                   <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -3693,29 +3732,38 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-2xl font-bold text-slate-800">
-                        ${parseFloat(selectedApp.premium).toFixed(2)}
+                        ${parseFloat(selectedApp.premium || 0).toFixed(2)}
                       </span>
                       <DollarSign size={16} className="text-slate-400" />
                     </div>
                   </div>
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase mb-1">
-                        Carrier
-                      </p>
-                      <CarrierLogo
-                        carrier={selectedApp.carrier || "American Amicable"}
-                        size="lg"
-                      />
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200 shadow-sm">
+                    <p className="text-xs font-bold text-blue-600 uppercase">
+                      Annual Premium
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-2xl font-bold text-blue-700">
+                        ${(selectedApp.annualPremium || (parseFloat(selectedApp.premium || 0) * 12)).toFixed(2)}
+                      </span>
+                      <DollarSign size={16} className="text-blue-500" />
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs font-bold text-slate-400 uppercase">
-                        Plan
-                      </p>
-                      <p className="text-lg font-bold text-blue-600">
-                        {selectedApp.plan}
-                      </p>
-                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <p className="text-xs font-bold text-slate-400 uppercase mb-1">
+                      Carrier
+                    </p>
+                    <CarrierLogo
+                      carrier={selectedApp.carrier || "American Amicable"}
+                      size="lg"
+                    />
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <p className="text-xs font-bold text-slate-400 uppercase">
+                      Plan Type
+                    </p>
+                    <p className="text-xl font-bold text-blue-600 mt-1">
+                      {selectedApp.plan || selectedApp.planType || 'N/A'}
+                    </p>
                   </div>
                 </div>
 
@@ -4269,7 +4317,7 @@ export default function App() {
       const newApp = {
         ...data,
         name: `${data.firstName} ${data.lastName}`.trim(),
-        status: "Pending",
+        status: "Lead",
       };
 
       await api.createApplication(newApp);
@@ -4300,7 +4348,7 @@ export default function App() {
   if (view === "home") {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 bg-white rounded-2xl shadow-2xl overflow-hidden min-h-[500px]">
+        <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-3 bg-white rounded-2xl shadow-2xl overflow-hidden min-h-[500px]">
           {/* Left: Customer Side */}
           <div
             className="p-10 flex flex-col justify-center items-center text-center border-r border-slate-100 group hover:bg-blue-50 transition-colors cursor-pointer"
@@ -4319,6 +4367,25 @@ export default function App() {
               Start App
             </button>
           </div>
+          {/* Center: Call Center / Agent Dialer */}
+          <div
+            className="p-10 flex flex-col justify-center items-center text-center border-r border-slate-100 group hover:bg-cyan-900 hover:text-white transition-colors cursor-pointer relative"
+            onClick={() => setView("callpop")}
+          >
+            <div className="absolute top-4 right-4 px-2 py-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold rounded-full">NEW</div>
+            <div className="w-20 h-20 bg-cyan-100 rounded-full flex items-center justify-center mb-6 text-cyan-600 group-hover:bg-cyan-800 group-hover:text-white group-hover:scale-110 transition-transform">
+              <Phone size={40} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 group-hover:text-white mb-2">
+              Call Center
+            </h2>
+            <p className="text-slate-500 group-hover:text-slate-300">
+              Full-featured agent dialer with 3-way calling and screen pop.
+            </p>
+            <button className="mt-6 px-6 py-2 bg-cyan-600 text-white rounded-full font-bold shadow-lg hover:shadow-cyan-500/30 transition-shadow">
+              Open Dialer
+            </button>
+          </div>
           {/* Right: Admin Side */}
           <div
             className="p-10 flex flex-col justify-center items-center text-center group hover:bg-slate-900 hover:text-white transition-colors cursor-pointer"
@@ -4328,7 +4395,7 @@ export default function App() {
               <LayoutDashboard size={40} />
             </div>
             <h2 className="text-2xl font-bold text-slate-800 group-hover:text-white mb-2">
-              Agent Dashboard
+              Admin Dashboard
             </h2>
             <p className="text-slate-500 group-hover:text-slate-400">
               Login to the AI-powered backend to manage submissions and risks.
@@ -4340,6 +4407,10 @@ export default function App() {
         </div>
       </div>
     );
+  }
+
+  if (view === "callpop") {
+    return <CallPopApp />;
   }
 
   if (view === "app") {
