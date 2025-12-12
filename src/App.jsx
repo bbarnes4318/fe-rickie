@@ -9,8 +9,11 @@ import {
   BrainCircuit, X, LogOut, Mail, Phone, Zap, AlertOctagon, BarChart3,
   Target, Save, RefreshCw, Copy, ExternalLink, Printer, Trash2, ArrowRight,
   ArrowDown, ArrowDownRight, GitBranch, Layers, ChevronDown, TrendingDown,
-  CircleDot, GitMerge, Banknote, XCircle, Clock, CheckCircle2, Eye
+  CircleDot, GitMerge, Banknote, XCircle, Clock, CheckCircle2, Eye,
+  MessageCircle, PhoneCall, Bot, Send, Headphones, History, Tag, Plus,
+  Star, AlertCircle, UserCheck, PhoneOutgoing, MessageSquare, CalendarClock
 } from "lucide-react";
+
 
 // ═══════════════════════════════════════════════════════════════════
 // CONSTANTS & CONFIGURATION
@@ -1286,6 +1289,15 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission, onDeleteSub
   const [timeFilter, setTimeFilter] = useState("YTD");
   const [notification, setNotification] = useState(null);
   const [prevSubmissionCount, setPrevSubmissionCount] = useState(0);
+  
+  // ═══════════════════════════════════════════════════════════════
+  // CRM STATE MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════
+  const [selectedCrmCustomer, setSelectedCrmCustomer] = useState(null);
+  const [customerNotes, setCustomerNotes] = useState({});
+  const [newNote, setNewNote] = useState("");
+  const [crmSearchTerm, setCrmSearchTerm] = useState("");
+
 
   // ═══════════════════════════════════════════════════════════════
   // NEW APPLICATION NOTIFICATION SYSTEM
@@ -1874,94 +1886,449 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission, onDeleteSub
   );
 
   // ═══════════════════════════════════════════════════════════════
-  // RENDER: CUSTOMERS DIRECTORY
+  // RENDER: AI-POWERED CRM
   // ═══════════════════════════════════════════════════════════════
+  
+  // Health Score Calculation (based on actual customer data)
+  const calculateHealthScore = (customer) => {
+    let score = 100;
+    const custSubmissions = submissions.filter(s => customer.submissionIds.includes(s.id));
+    
+    // Deduct for non-active statuses
+    custSubmissions.forEach(sub => {
+      if (sub.status === "Lapsed") score -= 30;
+      else if (sub.status === "Not Taken") score -= 20;
+      else if (sub.status === "Declined") score -= 25;
+      else if (sub.status === "Lead") score -= 5;
+    });
+    
+    // Bonus for multiple policies
+    if (customer.policies > 1) score += 10;
+    
+    // Bonus for high LTV
+    if (customer.ltv > 2000) score += 10;
+    else if (customer.ltv > 1000) score += 5;
+    
+    return Math.max(0, Math.min(100, score));
+  };
+  
+  // Retention Risk Classification
+  const getRetentionRisk = (healthScore) => {
+    if (healthScore >= 80) return { level: "low", label: "Low Risk", class: "retention-low" };
+    if (healthScore >= 50) return { level: "medium", label: "Medium", class: "retention-medium" };
+    return { level: "high", label: "High Risk", class: "retention-high" };
+  };
+  
+  // Health Score Ring Component
+  const HealthScoreRing = ({ score }) => {
+    const circumference = 2 * Math.PI * 20;
+    const offset = circumference - (score / 100) * circumference;
+    const color = score >= 80 ? "#10b981" : score >= 50 ? "#f59e0b" : "#ef4444";
+    
+    return (
+      <div className="health-score-ring">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle cx="26" cy="26" r="20" fill="none" stroke="#e2e8f0" strokeWidth="4" />
+          <circle
+            cx="26" cy="26" r="20" fill="none" stroke={color} strokeWidth="4"
+            strokeDasharray={circumference} strokeDashoffset={offset}
+            strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.5s ease" }}
+          />
+        </svg>
+        <span className="score-value" style={{ color }}>{score}</span>
+      </div>
+    );
+  };
+  
+  // Filter customers by search
+  const filteredCrmCustomers = customers.filter(c => 
+    c.name?.toLowerCase().includes(crmSearchTerm.toLowerCase()) ||
+    c.phone?.includes(crmSearchTerm) ||
+    c.email?.toLowerCase().includes(crmSearchTerm.toLowerCase())
+  );
+  
+  // Get customer's submissions for timeline
+  const getCustomerSubmissions = (customer) => {
+    return submissions.filter(s => customer.submissionIds.includes(s.id));
+  };
+  
+  // Add note handler
+  const handleAddNote = () => {
+    if (!newNote.trim() || !selectedCrmCustomer) return;
+    const now = new Date().toISOString();
+    setCustomerNotes(prev => ({
+      ...prev,
+      [selectedCrmCustomer.id]: [
+        ...(prev[selectedCrmCustomer.id] || []),
+        { text: newNote, timestamp: now }
+      ]
+    }));
+    setNewNote("");
+  };
+  
+  // AI Insights calculations
+  const atRiskCustomers = customers.filter(c => calculateHealthScore(c) < 50);
+  const readyToUpsell = customers.filter(c => {
+    const score = calculateHealthScore(c);
+    return score >= 80 && c.policies === 1 && c.ltv > 500;
+  });
+  
   const renderCustomers = () => (
     <div className="animate-fade-in h-full flex flex-col">
-      <div className="card-flat flex-1 flex flex-col overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <div className="flex items-center gap-2">
-            <Users className="text-cyan-600" size={24} />
-            <h3 className="font-bold text-slate-800 text-lg">Customer Directory</h3>
+      <div className="crm-container flex-1 rounded-2xl overflow-hidden border border-slate-200 shadow-lg">
+        {/* Left Sidebar - Customer List */}
+        <div className="crm-sidebar">
+          {/* Header */}
+          <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg">
+                  <Users className="text-white" size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800">Customer CRM</h3>
+                  <p className="text-xs text-slate-500">{customers.length} total customers</p>
+                </div>
+              </div>
+              <button className="btn-accent py-2 px-3 text-xs">
+                <Plus size={14} /> Add
+              </button>
+            </div>
+            
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search customers..."
+                value={crmSearchTerm}
+                onChange={(e) => setCrmSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500"
+              />
+            </div>
           </div>
-          <button className="btn-accent py-2"><Download size={16} /> Export CSV</button>
+          
+          {/* AI Insights Mini Panel */}
+          <div className="p-3 bg-gradient-to-r from-slate-900 to-slate-800">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="ai-pulse-indicator" />
+              <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">AI Insights</span>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1 bg-white/10 rounded-lg px-3 py-2">
+                <div className="text-lg font-black text-white">{atRiskCustomers.length}</div>
+                <div className="text-xs text-slate-400">At Risk</div>
+              </div>
+              <div className="flex-1 bg-white/10 rounded-lg px-3 py-2">
+                <div className="text-lg font-black text-emerald-400">{readyToUpsell.length}</div>
+                <div className="text-xs text-slate-400">Upsell Ready</div>
+              </div>
+              <div className="flex-1 bg-white/10 rounded-lg px-3 py-2">
+                <div className="text-lg font-black text-cyan-400">{customers.filter(c => calculateHealthScore(c) >= 80).length}</div>
+                <div className="text-xs text-slate-400">Healthy</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Customer List */}
+          <div className="flex-1 overflow-auto scrollbar-thin">
+            {filteredCrmCustomers.length === 0 ? (
+              <div className="p-8 text-center text-slate-400">
+                <Users size={40} className="mx-auto mb-3 opacity-40" />
+                <p className="text-sm">No customers found</p>
+              </div>
+            ) : (
+              filteredCrmCustomers.map((cust) => {
+                const healthScore = calculateHealthScore(cust);
+                const risk = getRetentionRisk(healthScore);
+                const isSelected = selectedCrmCustomer?.id === cust.id;
+                
+                return (
+                  <div
+                    key={cust.id}
+                    onClick={() => setSelectedCrmCustomer(cust)}
+                    className={`customer-card ${isSelected ? "customer-card-selected" : ""}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <HealthScoreRing score={healthScore} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-slate-800 truncate">{cust.name}</span>
+                          <span className={`retention-badge ${risk.class}`}>
+                            {risk.level === "high" && <AlertCircle size={10} />}
+                            {risk.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <Phone size={10} /> {cust.phone}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FileText size={10} /> {cust.policies} {cust.policies === 1 ? "policy" : "policies"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="stat-pill">
+                            <DollarSign size={10} /> ${cust.ltv.toFixed(0)} LTV
+                          </span>
+                          <StatusBadge status={cust.status} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
-        <div className="flex-1 overflow-auto scrollbar-thin">
-          {customers.length === 0 ? (
-            <div className="p-10 text-center text-slate-400">
-              <Users size={48} className="mx-auto mb-4 opacity-50" />
-              <p>No customers yet. Submit an application to see customers here.</p>
+        
+        {/* Right Panel - Customer Detail */}
+        <div className="crm-detail-panel">
+          {!selectedCrmCustomer ? (
+            <div className="crm-empty-state">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center mb-6">
+                <UserCheck size={40} className="text-slate-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-700 mb-2">Select a Customer</h3>
+              <p className="text-slate-500 max-w-sm">
+                Choose a customer from the list to view their profile, communication history, and AI-powered retention insights.
+              </p>
+              
+              {/* SignalWire Integration Banner */}
+              <div className="mt-8 signalwire-banner max-w-md">
+                <div className="status-dot" />
+                <div className="flex-1">
+                  <div className="font-bold text-sm">SignalWire Integration Ready</div>
+                  <div className="text-xs text-blue-200">Voice & SMS automation pending configuration</div>
+                </div>
+                <Bot size={24} className="text-blue-200" />
+              </div>
             </div>
           ) : (
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500 font-semibold uppercase text-xs tracking-wider sticky top-0 z-10">
-                <tr>
-                  <th className="px-6 py-4">Customer ID</th>
-                  <th className="px-6 py-4">Name</th>
-                  <th className="px-6 py-4">Contact</th>
-                  <th className="px-6 py-4">Policies</th>
-                  <th className="px-6 py-4">LTV</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {customers.map((cust) => (
-                  <tr 
-                    key={cust.id} 
-                    className="hover:bg-cyan-50/30 transition-colors group cursor-pointer"
-                    onClick={() => {
-                        const app = submissions.find(s => s.id === cust.submissionIds[0]);
-                        if(app) setSelectedApp(app);
-                    }}
+            <div className="flex-1 overflow-auto scrollbar-thin animate-slide-in-right">
+              {/* Customer Profile Header */}
+              <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-2xl font-black shadow-xl">
+                      {selectedCrmCustomer.name?.split(" ").map(n => n[0]).join("") || "?"}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold mb-1">{selectedCrmCustomer.name}</h2>
+                      <div className="flex items-center gap-4 text-sm text-slate-300">
+                        <span className="flex items-center gap-1"><Phone size={14} /> {selectedCrmCustomer.phone}</span>
+                        <span className="flex items-center gap-1"><Mail size={14} /> {selectedCrmCustomer.email}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedCrmCustomer(null)}
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                   >
-                    <td className="px-6 py-4 font-mono text-slate-500">{cust.id}</td>
-                    <td className="px-6 py-4 font-bold text-slate-800 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-                        {cust.name?.split(" ").map((n) => n[0]).join("") || "?"}
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                {/* Quick Stats */}
+                <div className="grid grid-cols-4 gap-4 mt-6">
+                  {[
+                    { label: "Health Score", value: calculateHealthScore(selectedCrmCustomer), icon: Heart, color: "cyan" },
+                    { label: "Policies", value: selectedCrmCustomer.policies, icon: FileText, color: "emerald" },
+                    { label: "Lifetime Value", value: `$${selectedCrmCustomer.ltv.toFixed(0)}`, icon: DollarSign, color: "purple" },
+                    { label: "Status", value: selectedCrmCustomer.status, icon: Activity, color: "amber" },
+                  ].map((stat, idx) => (
+                    <div key={idx} className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <stat.icon size={16} className={`text-${stat.color}-400`} />
+                        <span className="text-xs text-slate-400 uppercase tracking-wider">{stat.label}</span>
                       </div>
-                      {cust.name}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500">
-                      <div className="flex items-center gap-2"><Phone size={12} /> {cust.phone}</div>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-800">{cust.policies}</td>
-                    <td className="px-6 py-4 font-medium text-slate-800">${cust.ltv.toFixed(2)}</td>
-                    <td className="px-6 py-4"><StatusBadge status={cust.status} /></td>
-                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm(`Are you sure you want to delete ${cust.name} and all their applications?`)) {
-                               cust.submissionIds.forEach(id => onDeleteSubmission(id));
-                               if (selectedApp && cust.submissionIds.includes(selectedApp.id)) {
-                                   setSelectedApp(null);
-                               }
-                            }
-                          }}
-                          className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-all"
-                          title="Delete Customer"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                        <button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            const app = submissions.find(s => s.id === cust.submissionIds[0]);
-                            if(app) setSelectedApp(app); 
-                          }} 
-                          className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-cyan-600"
-                          title="View Details"
-                        >
-                          <Eye size={18} />
-                        </button>
+                      <div className="text-xl font-bold">{stat.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Communication Hub */}
+                <div className="comm-hub animate-fade-in-up stagger-1">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Bot className="text-purple-600" size={20} />
+                    <h3 className="font-bold text-slate-800">AI Communication Hub</h3>
+                    <span className="ml-auto text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">SignalWire Ready</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-4 gap-3">
+                    <button className="comm-action-btn comm-btn-call" onClick={() => alert("SignalWire Voice Call integration coming soon!")}>
+                      <PhoneOutgoing size={24} />
+                      <span>Call Now</span>
+                    </button>
+                    <button className="comm-action-btn comm-btn-sms" onClick={() => alert("SignalWire SMS integration coming soon!")}>
+                      <MessageSquare size={24} />
+                      <span>Send SMS</span>
+                    </button>
+                    <button className="comm-action-btn comm-btn-email" onClick={() => window.open(`mailto:${selectedCrmCustomer.email}`)}>
+                      <Mail size={24} />
+                      <span>Email</span>
+                    </button>
+                    <button className="comm-action-btn comm-btn-schedule" onClick={() => alert("Schedule follow-up coming soon!")}>
+                      <CalendarClock size={24} />
+                      <span>Schedule</span>
+                    </button>
+                  </div>
+                  
+                  {/* SignalWire Status */}
+                  <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                      <Zap size={16} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-slate-700">SignalWire Integration</div>
+                      <div className="text-xs text-slate-500">Configure API keys to enable AI Voice & SMS automation</div>
+                    </div>
+                    <button className="text-xs font-bold text-blue-600 hover:text-blue-700 px-3 py-1.5 bg-white rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
+                      Configure
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Activity Timeline */}
+                <div className="bg-white rounded-xl border border-slate-100 p-5 animate-fade-in-up stagger-2">
+                  <div className="flex items-center gap-2 mb-4">
+                    <History className="text-cyan-600" size={20} />
+                    <h3 className="font-bold text-slate-800">Activity Timeline</h3>
+                  </div>
+                  
+                  <div className="activity-timeline">
+                    {getCustomerSubmissions(selectedCrmCustomer).slice(0, 5).map((sub, idx) => {
+                      const dotClass = sub.status === "Paid" ? "timeline-dot-success" :
+                                       sub.status === "Lapsed" || sub.status === "Declined" ? "timeline-dot-danger" :
+                                       sub.status === "Lead" ? "timeline-dot-warning" : "timeline-dot-primary";
+                      return (
+                        <div key={sub.id} className="timeline-item">
+                          <div className={`timeline-dot ${dotClass}`} />
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-medium text-slate-800 text-sm">
+                                {sub.status === "Lead" ? "Lead Created" :
+                                 sub.status === "Submitted" ? "Application Submitted" :
+                                 sub.status === "Paid" ? "Policy Paid" :
+                                 `Status: ${sub.status}`}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {sub.carrier} - {sub.plan || "Final Expense"} • ${parseFloat(sub.premium || 0).toFixed(2)}/mo
+                              </div>
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {new Date(sub.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    {getCustomerSubmissions(selectedCrmCustomer).length === 0 && (
+                      <div className="text-center text-slate-400 py-4 text-sm">
+                        No activity recorded yet
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Notes Section */}
+                <div className="bg-white rounded-xl border border-slate-100 p-5 animate-fade-in-up stagger-3">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Tag className="text-amber-600" size={20} />
+                    <h3 className="font-bold text-slate-800">Notes & Follow-ups</h3>
+                  </div>
+                  
+                  {/* Add Note */}
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      type="text"
+                      placeholder="Add a note..."
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && handleAddNote()}
+                      className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500"
+                    />
+                    <button onClick={handleAddNote} className="btn-accent py-2 px-4">
+                      <Send size={16} />
+                    </button>
+                  </div>
+                  
+                  {/* Notes List */}
+                  <div className="space-y-3 max-h-48 overflow-auto scrollbar-thin">
+                    {(customerNotes[selectedCrmCustomer.id] || []).slice().reverse().map((note, idx) => (
+                      <div key={idx} className="note-card pl-5">
+                        <p className="text-sm text-slate-700">{note.text}</p>
+                        <p className="text-xs text-amber-700 mt-1">
+                          {new Date(note.timestamp).toLocaleString("en-US", { 
+                            month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
+                          })}
+                        </p>
+                      </div>
+                    ))}
+                    
+                    {(!customerNotes[selectedCrmCustomer.id] || customerNotes[selectedCrmCustomer.id].length === 0) && (
+                      <div className="text-center text-slate-400 py-4 text-sm">
+                        No notes yet. Add your first note above.
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Policy Overview */}
+                <div className="bg-white rounded-xl border border-slate-100 p-5 animate-fade-in-up stagger-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Shield className="text-emerald-600" size={20} />
+                    <h3 className="font-bold text-slate-800">Policy Overview</h3>
+                  </div>
+                  
+                  <div className="grid gap-3">
+                    {getCustomerSubmissions(selectedCrmCustomer).map((sub) => (
+                      <div 
+                        key={sub.id} 
+                        className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-100 hover:border-cyan-200 transition-colors cursor-pointer"
+                        onClick={() => setSelectedApp(sub)}
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
+                          {CARRIER_LOGOS[sub.carrier] ? (
+                            <img src={CARRIER_LOGOS[sub.carrier]} alt={sub.carrier} className="h-8 w-auto object-contain" />
+                          ) : (
+                            <Shield className="text-slate-400" size={20} />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-bold text-slate-800">{sub.carrier || "Unknown Carrier"}</div>
+                          <div className="text-sm text-slate-500">{sub.plan || "Final Expense"} • ${parseFloat(sub.faceAmount || 0).toLocaleString()} Coverage</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-cyan-600">${parseFloat(sub.premium || 0).toFixed(2)}/mo</div>
+                          <StatusBadge status={sub.status} />
+                        </div>
+                        <ChevronRight className="text-slate-400" size={20} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Delete Customer */}
+                <div className="flex justify-end">
+                  <button 
+                    onClick={() => {
+                      if (window.confirm(`Are you sure you want to delete ${selectedCrmCustomer.name} and all their applications?`)) {
+                        selectedCrmCustomer.submissionIds.forEach(id => onDeleteSubmission(id));
+                        setSelectedCrmCustomer(null);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={16} />
+                    Delete Customer
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
