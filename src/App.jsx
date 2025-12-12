@@ -1698,54 +1698,54 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
           </div>
 
           {/* Right Column - Metrics & Insights */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Key Conversion Metrics */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
-              <h3 className="font-bold flex items-center gap-2 mb-6">
-                <Target className="text-cyan-400" size={20} />
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 text-white">
+              <h3 className="font-bold flex items-center gap-2 mb-4 text-sm uppercase tracking-wider text-slate-400">
+                <Target className="text-cyan-400" size={18} />
                 Key Conversion Rates
               </h3>
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {/* Lead to Application */}
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-400 text-sm">Lead → Application</span>
-                    <span className="text-xl font-bold">{leadToApp}%</span>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-slate-400 text-xs">Lead → Application</span>
+                    <span className="text-lg font-bold">{leadToApp}%</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700" style={{ width: `${leadToApp}%` }}></div>
                   </div>
                 </div>
 
                 {/* Application to Issued */}
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-400 text-sm">Application → Issued</span>
-                    <span className="text-xl font-bold">{appToIssued}%</span>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-slate-400 text-xs">Application → Issued</span>
+                    <span className="text-lg font-bold">{appToIssued}%</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-700" style={{ width: `${appToIssued}%` }}></div>
                   </div>
                 </div>
 
                 {/* Issued to Paid */}
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-400 text-sm">Issued → Paid</span>
-                    <span className="text-xl font-bold">{issuedToPaid}%</span>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-slate-400 text-xs">Issued → Paid</span>
+                    <span className="text-lg font-bold">{issuedToPaid}%</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-emerald-500 to-green-600 rounded-full transition-all duration-700" style={{ width: `${issuedToPaid}%` }}></div>
                   </div>
                 </div>
 
                 {/* Retention Rate */}
-                <div className="pt-4 mt-4 border-t border-slate-700">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-400 text-sm">Overall Retention</span>
-                    <span className="text-xl font-bold text-green-400">{analyticsData.retentionRate}%</span>
+                <div className="pt-3 mt-3 border-t border-slate-700">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-slate-400 text-xs">Overall Retention</span>
+                    <span className="text-lg font-bold text-green-400">{analyticsData.retentionRate}%</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-700" style={{ width: `${analyticsData.retentionRate}%` }}></div>
                   </div>
                 </div>
@@ -1753,47 +1753,47 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
             </div>
 
             {/* Stage Breakdown */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-              <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <BarChart3 className="text-blue-600" size={20} />
-                Stage Breakdown ({timeFilter})
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm uppercase tracking-wider">
+                <BarChart3 className="text-blue-600" size={18} />
+                Breakdown ({timeFilter})
               </h3>
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
                 {[
                   { name: "Leads", count: funnelData.leads, color: "cyan", icon: CircleDot },
-                  { name: "Applications", count: funnelData.applications, color: "blue", icon: FileText },
-                  { name: "Underwriting", count: funnelData.underwriting, color: "purple", icon: Clock },
+                  { name: "Apps", count: funnelData.applications, color: "blue", icon: FileText },
+                  { name: "Undrwrt", count: funnelData.underwriting, color: "purple", icon: Clock },
                   { name: "Issued", count: funnelData.issued, color: "emerald", icon: CheckCircle2 },
-                  { name: "Rejected", count: funnelData.rejected, color: "red", icon: XCircle },
                   { name: "Paid", count: funnelData.paid, color: "green", icon: Banknote },
-                  { name: "Not Taken", count: funnelData.notTaken, color: "amber", icon: X },
+                  { name: "Reject", count: funnelData.rejected, color: "red", icon: XCircle },
+                  { name: "Pass", count: funnelData.notTaken, color: "amber", icon: X },
                   { name: "Lapsed", count: funnelData.lapsed, color: "red", icon: AlertTriangle },
                 ].map((item) => (
-                  <div key={item.name} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${COLOR_CLASSES[item.color]?.bg || 'bg-slate-100'} ${COLOR_CLASSES[item.color]?.text || 'text-slate-600'}`}>
-                        <item.icon size={16} />
+                  <div key={item.name} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors border border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-md ${COLOR_CLASSES[item.color]?.bg || 'bg-slate-100'} ${COLOR_CLASSES[item.color]?.text || 'text-slate-600'}`}>
+                        <item.icon size={14} />
                       </div>
-                      <span className="font-medium text-slate-700">{item.name}</span>
+                      <span className="text-xs font-semibold text-slate-700">{item.name}</span>
                     </div>
-                    <span className="text-lg font-bold text-slate-800">{item.count}</span>
+                    <span className="text-sm font-bold text-slate-800">{item.count}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Premium Revenue */}
-            <div className="bg-gradient-to-br from-emerald-600 to-green-700 rounded-2xl p-6 text-white">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="bg-gradient-to-br from-emerald-600 to-green-700 rounded-2xl p-5 text-white shadow-lg shadow-emerald-900/20">
+              <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-white/20 rounded-lg">
-                  <DollarSign size={20} />
+                  <DollarSign size={18} />
                 </div>
-                <span className="font-bold">Annual Premium Value</span>
+                <span className="font-bold text-sm uppercase tracking-wider">Annual Premium Value</span>
               </div>
-              <p className="text-4xl font-black mb-2">
+              <p className="text-3xl font-black tracking-tight">
                 ${analyticsData.totalPremium.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
-              <p className="text-emerald-200 text-sm">From Issued & Paid policies ({timeFilter})</p>
+              <p className="text-emerald-100 text-xs mt-1 opacity-80">From Issued & Paid policies ({timeFilter})</p>
             </div>
           </div>
         </div>
