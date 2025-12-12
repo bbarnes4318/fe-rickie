@@ -1267,12 +1267,47 @@ const CustomerForm = ({ onComplete }) => {
 // ADMIN DASHBOARD
 // ═══════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════
+// ADMIN DASHBOARD - FULLY RESTORED
+// ═══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// ADMIN DASHBOARD - FULLY RESTORED FROM App-old.jsx
+// ═══════════════════════════════════════════════════════════════════
+
 const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedApp, setSelectedApp] = useState(null);
   const [timeFilter, setTimeFilter] = useState("YTD");
+  const [notification, setNotification] = useState(null);
+  const [prevSubmissionCount, setPrevSubmissionCount] = useState(0);
 
+  // ═══════════════════════════════════════════════════════════════
+  // NEW APPLICATION NOTIFICATION SYSTEM
+  // ═══════════════════════════════════════════════════════════════
+  useEffect(() => {
+    if (submissions.length > prevSubmissionCount && prevSubmissionCount > 0) {
+      const newApp = submissions[0];
+      const audio = new Audio(
+        "data:audio/wav;base64,UklGRl4FAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YToFAACAgICAgICAgICAgICAgICA"
+      );
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+
+      setNotification({
+        title: "New Application!",
+        message: `${newApp.name || newApp.firstName + " " + newApp.lastName} submitted a new application`,
+        app: newApp,
+      });
+      setTimeout(() => setNotification(null), 10000);
+    }
+    setPrevSubmissionCount(submissions.length);
+  }, [submissions.length, prevSubmissionCount]);
+
+  // ═══════════════════════════════════════════════════════════════
+  // FILTERED SUBMISSIONS
+  // ═══════════════════════════════════════════════════════════════
   const filteredSubmissions = useMemo(() => {
     return submissions.filter(
       (sub) =>
@@ -1282,7 +1317,74 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
     );
   }, [submissions, searchTerm]);
 
-  // Sidebar Navigation Item
+  // ═══════════════════════════════════════════════════════════════
+  // CUSTOMERS DERIVED FROM SUBMISSIONS
+  // ═══════════════════════════════════════════════════════════════
+  const customers = useMemo(() => {
+    const customerMap = {};
+    submissions.forEach((sub) => {
+      const name = sub.name || `${sub.firstName || ""} ${sub.lastName || ""}`.trim();
+      if (!customerMap[name]) {
+        customerMap[name] = {
+          id: `CUST-${sub.id?.slice(-4) || Math.random().toString(36).slice(-4).toUpperCase()}`,
+          name,
+          email: sub.email || "N/A",
+          phone: sub.phone || "N/A",
+          policies: 0,
+          ltv: 0,
+          status: sub.status,
+        };
+      }
+      customerMap[name].policies += 1;
+      customerMap[name].ltv += parseFloat(sub.premium || 0) * 12;
+    });
+    return Object.values(customerMap);
+  }, [submissions]);
+
+  // ═══════════════════════════════════════════════════════════════
+  // FULL ANALYTICS DATA CALCULATION
+  // ═══════════════════════════════════════════════════════════════
+  const analyticsData = useMemo(() => {
+    const now = new Date();
+    const isWithin = (dateStr) => {
+      const d = new Date(dateStr);
+      if (timeFilter === "Daily") return d.toDateString() === now.toDateString();
+      if (timeFilter === "Weekly") return (now - d) / (1000 * 60 * 60 * 24) <= 7;
+      if (timeFilter === "Monthly") return (now - d) / (1000 * 60 * 60 * 24) <= 30;
+      if (timeFilter === "Quarterly") return (now - d) / (1000 * 60 * 60 * 24) <= 90;
+      if (timeFilter === "YTD") return d.getFullYear() === now.getFullYear();
+      return true;
+    };
+
+    const filtered = submissions.filter((s) => isWithin(s.date));
+
+    const counts = {
+      applications: filtered.length,
+      leads: filtered.filter((s) => s.status === "Lead").length,
+      submitted: filtered.filter((s) => s.status === "Submitted").length,
+      underwriting: filtered.filter((s) => s.status === "Underwriting").length,
+      issued: filtered.filter((s) => s.status === "Issued").length,
+      paid: filtered.filter((s) => s.status === "Paid").length,
+      notTaken: filtered.filter((s) => s.status === "Not Taken").length,
+      declined: filtered.filter((s) => s.status === "Declined").length,
+      lapsed: filtered.filter((s) => s.status === "Lapsed").length,
+    };
+
+    const activeCount = counts.issued + counts.paid;
+    const retentionBase = activeCount + counts.notTaken + counts.lapsed;
+    const retentionRate = retentionBase > 0 ? ((activeCount / retentionBase) * 100).toFixed(1) : 0;
+    const appsToIssue = counts.applications > 0 ? ((activeCount / counts.applications) * 100).toFixed(1) : 0;
+
+    const totalPremium = filtered
+      .filter((s) => s.status === "Paid" || s.status === "Issued")
+      .reduce((sum, s) => sum + parseFloat(s.premium || 0) * 12, 0);
+
+    return { counts, retentionRate, appsToIssue, totalPremium };
+  }, [submissions, timeFilter]);
+
+  // ═══════════════════════════════════════════════════════════════
+  // NAV ITEM COMPONENT
+  // ═══════════════════════════════════════════════════════════════
   const NavItem = ({ id, icon: Icon, label }) => (
     <button
       onClick={() => setActiveTab(id)}
@@ -1293,40 +1395,22 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
     </button>
   );
 
-  // Analytics calculations
-  const analytics = useMemo(() => {
-    const counts = {
-      total: submissions.length,
-      leads: submissions.filter(s => s.status === "Lead").length,
-      paid: submissions.filter(s => s.status === "Paid").length,
-      underwriting: submissions.filter(s => s.status === "Underwriting").length,
-    };
-
-    const totalPremium = submissions
-      .filter(s => s.status === "Paid")
-      .reduce((sum, s) => sum + parseFloat(s.premium || 0) * 12, 0);
-
-    const conversionRate = counts.total > 0
-      ? ((counts.paid / counts.total) * 100).toFixed(1)
-      : 0;
-
-    return { counts, totalPremium, conversionRate };
-  }, [submissions]);
-
-  // Overview Tab
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: OVERVIEW DASHBOARD
+  // ═══════════════════════════════════════════════════════════════
   const renderOverview = () => (
     <div className="space-y-6 animate-fade-in">
       {/* Metrics Row */}
       <div className="grid grid-cols-4 gap-5">
         {[
-          { label: "Total Leads", value: analytics.counts.total, icon: Users, color: "cyan" },
-          { label: "Conversion Rate", value: `${analytics.conversionRate}%`, icon: TrendingUp, color: "emerald" },
-          { label: "Annual Premium", value: `$${analytics.totalPremium.toLocaleString()}`, icon: DollarSign, color: "purple" },
-          { label: "Active Policies", value: analytics.counts.paid, icon: Shield, color: "blue" },
+          { label: "Total Apps", value: submissions.length, icon: FileText, color: "cyan" },
+          { label: "Issued/Paid", value: analyticsData.counts.issued + analyticsData.counts.paid, icon: Shield, color: "emerald" },
+          { label: "Underwriting", value: analyticsData.counts.underwriting, icon: Activity, color: "orange" },
+          { label: "Avg Premium", value: submissions.length > 0 ? `$${(submissions.reduce((sum, s) => sum + parseFloat(s.premium || 0), 0) / submissions.length).toFixed(2)}` : "$0.00", icon: DollarSign, color: "purple" },
         ].map((metric, i) => (
           <div key={i} className="metric-card group">
             <div className="flex justify-between items-start mb-3">
-              <div className={`p-3 rounded-xl ${COLOR_CLASSES[metric.color].bg} ${COLOR_CLASSES[metric.color].text} group-hover:scale-110 transition-transform`}>
+              <div className={`p-3 rounded-xl ${COLOR_CLASSES[metric.color]?.bg || 'bg-slate-50'} ${COLOR_CLASSES[metric.color]?.text || 'text-slate-600'} group-hover:scale-110 transition-transform`}>
                 <metric.icon size={22} />
               </div>
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{metric.label}</span>
@@ -1346,12 +1430,9 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
           <div className="flex-1">
             <h3 className="font-bold text-lg mb-2">AI Underwriting Insights</h3>
             <p className="text-white/80 text-sm max-w-2xl">
-              Analysis indicates 23% higher approval rates for Corebridge Guaranteed Issue products this month.
-              Consider recommending GI plans for clients with health concerns.
+              Today's analysis suggests a 15% increase in Graded Benefit qualifications due to recent health questionnaire trends in the Southeast region.
             </p>
-            <button className="mt-4 btn-white text-sm py-2">
-              View Full Report
-            </button>
+            <button className="mt-4 btn-white text-sm py-2">View Full Report</button>
           </div>
         </div>
       </div>
@@ -1360,10 +1441,7 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
       <div className="card-flat overflow-hidden">
         <div className="p-5 border-b border-slate-100 flex justify-between items-center">
           <h3 className="font-bold text-slate-800 text-lg">Recent Applications</h3>
-          <button
-            onClick={() => setActiveTab("applications")}
-            className="text-sm text-cyan-600 font-semibold hover:text-cyan-700 flex items-center gap-1"
-          >
+          <button onClick={() => setActiveTab("applications")} className="text-sm text-cyan-600 font-semibold hover:text-cyan-700 flex items-center gap-1">
             View All <ArrowRight size={16} />
           </button>
         </div>
@@ -1393,19 +1471,102 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
     </div>
   );
 
-  // Applications Tab
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: ANALYTICS WITH TIME FILTERS
+  // ═══════════════════════════════════════════════════════════════
+  const renderAnalytics = () => (
+    <div className="animate-fade-in space-y-6">
+      {/* Time Filter Header */}
+      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
+        <h3 className="font-bold text-slate-800 flex items-center gap-2 text-lg">
+          <BarChart3 className="text-cyan-600" /> Performance Metrics
+        </h3>
+        <div className="flex bg-slate-100 p-1 rounded-lg">
+          {["Daily", "Weekly", "Monthly", "Quarterly", "YTD"].map((period) => (
+            <button
+              key={period}
+              onClick={() => setTimeFilter(period)}
+              className={`px-4 py-2 text-sm font-bold rounded-md transition-all ${
+                timeFilter === period ? "bg-white text-cyan-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {period}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Status Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Applications", val: analyticsData.counts.applications, icon: FileText, color: "cyan" },
+          { label: "Leads", val: analyticsData.counts.leads, icon: Users, color: "blue" },
+          { label: "Underwriting", val: analyticsData.counts.underwriting, icon: Activity, color: "indigo" },
+          { label: "Issued", val: analyticsData.counts.issued, icon: CheckCircle, color: "green" },
+          { label: "Paid", val: analyticsData.counts.paid, icon: DollarSign, color: "emerald" },
+          { label: "Not Taken", val: analyticsData.counts.notTaken, icon: X, color: "orange" },
+          { label: "Declined", val: analyticsData.counts.declined, icon: AlertOctagon, color: "orange" },
+          { label: "Lapsed", val: analyticsData.counts.lapsed, icon: AlertTriangle, color: "orange" },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+            <div className="flex justify-between items-start mb-2">
+              <div className={`p-2 rounded-lg ${COLOR_CLASSES[stat.color]?.bg || 'bg-slate-50'} ${COLOR_CLASSES[stat.color]?.text || 'text-slate-600'}`}>
+                <stat.icon size={20} />
+              </div>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</span>
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800">{stat.val}</h3>
+          </div>
+        ))}
+      </div>
+
+      {/* Retention & Efficiency Card */}
+      <div className="bg-slate-900 text-white rounded-xl shadow-lg p-6 relative overflow-hidden">
+        <div className="relative z-10">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+            <Target className="text-cyan-400" /> Efficiency & Retention ({timeFilter})
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white/5 p-6 rounded-xl border border-white/10">
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-2xl font-bold">{analyticsData.retentionRate}%</span>
+                <span className="text-xs text-green-400 font-bold bg-green-400/10 px-2 py-1 rounded">Retention</span>
+              </div>
+              <p className="text-slate-300 font-medium">Retention Rate</p>
+              <p className="text-xs text-slate-500 mt-1">Active / (Active + Not Taken + Lapsed)</p>
+              <div className="w-full h-1.5 bg-slate-700 rounded-full mt-3 overflow-hidden">
+                <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${analyticsData.retentionRate}%` }}></div>
+              </div>
+            </div>
+            <div className="bg-white/5 p-6 rounded-xl border border-white/10">
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-2xl font-bold">{analyticsData.appsToIssue}%</span>
+                <span className="text-xs text-purple-400 font-bold bg-purple-400/10 px-2 py-1 rounded">Conversion</span>
+              </div>
+              <p className="text-slate-300 font-medium">Apps to Issue %</p>
+              <p className="text-xs text-slate-500 mt-1">Active / Total Applications</p>
+              <div className="w-full h-1.5 bg-slate-700 rounded-full mt-3 overflow-hidden">
+                <div className="h-full bg-purple-500 rounded-full" style={{ width: `${analyticsData.appsToIssue}%` }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="absolute right-0 top-0 w-64 h-64 bg-cyan-600/20 blur-3xl rounded-full"></div>
+      </div>
+    </div>
+  );
+
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: APPLICATIONS LIST
+  // ═══════════════════════════════════════════════════════════════
   const renderApplications = () => (
     <div className="animate-fade-in h-full flex flex-col">
       <div className="card-flat flex-1 flex flex-col overflow-hidden">
         <div className="p-5 border-b border-slate-100 flex justify-between items-center">
           <h3 className="font-bold text-slate-800 text-lg">All Applications</h3>
           <div className="flex gap-3">
-            <button className="btn-ghost py-2">
-              <Filter size={16} /> Filter
-            </button>
-            <button className="btn-ghost py-2">
-              <Download size={16} /> Export
-            </button>
+            <button className="btn-ghost py-2"><Filter size={16} /> Filter</button>
+            <button className="btn-ghost py-2"><Download size={16} /> Export</button>
           </div>
         </div>
         <div className="flex-1 overflow-auto scrollbar-thin">
@@ -1431,10 +1592,7 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                   <td className="px-6 py-4 font-medium">${parseFloat(row.premium || 0).toFixed(2)}</td>
                   <td className="px-6 py-4"><StatusBadge status={row.status} /></td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => setSelectedApp(row)}
-                      className="opacity-0 group-hover:opacity-100 p-2 hover:bg-slate-100 rounded-lg transition-all"
-                    >
+                    <button onClick={() => setSelectedApp(row)} className="opacity-0 group-hover:opacity-100 p-2 hover:bg-slate-100 rounded-lg transition-all">
                       <MoreHorizontal size={18} className="text-slate-400" />
                     </button>
                   </td>
@@ -1447,105 +1605,438 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
     </div>
   );
 
-  // Application Detail Modal
-  const renderDetailModal = () => (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-4xl bg-white h-full shadow-2xl overflow-y-auto scrollbar-thin animate-slide-right">
-        {/* Header */}
-        <div className="sticky top-0 z-20 bg-white border-b border-slate-100 px-8 py-6 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-cyan-50 rounded-xl">
-              <FileText size={28} className="text-cyan-600" />
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: CUSTOMERS DIRECTORY
+  // ═══════════════════════════════════════════════════════════════
+  const renderCustomers = () => (
+    <div className="animate-fade-in h-full flex flex-col">
+      <div className="card-flat flex-1 flex flex-col overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <div className="flex items-center gap-2">
+            <Users className="text-cyan-600" size={24} />
+            <h3 className="font-bold text-slate-800 text-lg">Customer Directory</h3>
+          </div>
+          <button className="btn-accent py-2"><Download size={16} /> Export CSV</button>
+        </div>
+        <div className="flex-1 overflow-auto scrollbar-thin">
+          {customers.length === 0 ? (
+            <div className="p-10 text-center text-slate-400">
+              <Users size={48} className="mx-auto mb-4 opacity-50" />
+              <p>No customers yet. Submit an application to see customers here.</p>
             </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-slate-900">{selectedApp.name}</h2>
-                <StatusBadge status={selectedApp.status} />
-              </div>
-              <p className="text-sm text-slate-500 font-mono">{selectedApp.id}</p>
+          ) : (
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-slate-500 font-semibold uppercase text-xs tracking-wider sticky top-0 z-10">
+                <tr>
+                  <th className="px-6 py-4">Customer ID</th>
+                  <th className="px-6 py-4">Name</th>
+                  <th className="px-6 py-4">Contact</th>
+                  <th className="px-6 py-4">Policies</th>
+                  <th className="px-6 py-4">LTV</th>
+                  <th className="px-6 py-4">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {customers.map((cust) => (
+                  <tr key={cust.id} className="hover:bg-cyan-50/30 transition-colors group">
+                    <td className="px-6 py-4 font-mono text-slate-500">{cust.id}</td>
+                    <td className="px-6 py-4 font-bold text-slate-800 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
+                        {cust.name?.split(" ").map((n) => n[0]).join("") || "?"}
+                      </div>
+                      {cust.name}
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">
+                      <div className="flex items-center gap-2"><Phone size={12} /> {cust.phone}</div>
+                    </td>
+                    <td className="px-6 py-4 font-medium text-slate-800">{cust.policies}</td>
+                    <td className="px-6 py-4 font-medium text-slate-800">${cust.ltv.toFixed(2)}</td>
+                    <td className="px-6 py-4"><StatusBadge status={cust.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: AI RISK CENTER
+  // ═══════════════════════════════════════════════════════════════
+  const renderAIRiskCenter = () => (
+    <div className="animate-fade-in space-y-6">
+      <div className="flex items-center justify-between bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <BrainCircuit className="text-purple-600" /> Risk Control Center
+          </h2>
+          <p className="text-slate-500 mt-1">Real-time fraud detection and underwriting analysis.</p>
+        </div>
+        <div className="flex gap-4">
+          <div className="text-right">
+            <p className="text-xs text-slate-400 uppercase font-bold">System Status</p>
+            <p className="text-green-600 font-bold flex items-center justify-end gap-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Online
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Risk Heatmap */}
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 className="font-bold text-slate-800 mb-4">Risk Distribution Heatmap</h3>
+            <div className="grid grid-cols-6 gap-2 h-40">
+              {[...Array(24)].map((_, i) => {
+                const risk = Math.random();
+                const color = risk > 0.8 ? "bg-red-500" : risk > 0.5 ? "bg-orange-400" : risk > 0.3 ? "bg-yellow-300" : "bg-green-400";
+                return <div key={i} className={`rounded-md ${color} opacity-80 hover:opacity-100 transition-opacity cursor-pointer`}></div>;
+              })}
             </div>
           </div>
-          <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
-            <X size={24} className="text-slate-400" />
-          </button>
+
+          {/* AI Alerts */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-4 bg-slate-50 border-b border-slate-100 font-bold text-slate-700">Recent AI Alerts</div>
+            <div className="divide-y divide-slate-100">
+              {[
+                { msg: "Velocity Check: Multiple applications from IP 192.168.1.1", time: "10 min ago", severity: "high" },
+                { msg: "Inconsistency: BMI does not match age/weight average", time: "45 min ago", severity: "medium" },
+                { msg: "Pattern Detected: Similar beneficiary across 3 applications", time: "2 hours ago", severity: "medium" },
+              ].map((alert, i) => (
+                <div key={i} className="p-4 flex items-start gap-4 hover:bg-slate-50">
+                  <div className={`p-2 rounded-lg ${alert.severity === "high" ? "bg-red-100 text-red-600" : "bg-orange-100 text-orange-600"}`}>
+                    <AlertOctagon size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-slate-800 text-sm">{alert.msg}</p>
+                    <p className="text-xs text-slate-400">{alert.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-8 space-y-6">
-          {/* Key Metrics */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-200">
-              <p className="text-xs font-bold text-emerald-600 uppercase">Coverage</p>
-              <p className="text-2xl font-bold text-emerald-700">${(selectedApp.faceAmount || 0).toLocaleString()}</p>
-            </div>
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-              <p className="text-xs font-bold text-slate-500 uppercase">Monthly</p>
-              <p className="text-2xl font-bold text-slate-800">${parseFloat(selectedApp.premium || 0).toFixed(2)}</p>
-            </div>
-            <div className="bg-cyan-50 p-5 rounded-2xl border border-cyan-200">
-              <p className="text-xs font-bold text-cyan-600 uppercase">Plan</p>
-              <p className="text-lg font-bold text-cyan-700">{selectedApp.plan}</p>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-center">
-              <CarrierLogo carrier={selectedApp.carrier} size="lg" />
-            </div>
+        {/* Auto-Decision Rate Card */}
+        <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white p-6 rounded-xl shadow-lg">
+          <div className="flex items-center gap-3 mb-4">
+            <Zap size={24} className="text-yellow-300" />
+            <h3 className="font-bold">Auto-Decision Rate</h3>
           </div>
-
-          {/* Data Sections */}
-          <div className="grid grid-cols-3 gap-6">
-            <div className="space-y-3">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-200">
-                <User size={18} className="text-cyan-500" /> Personal
-              </h3>
-              <DataField label="Full Name" value={`${selectedApp.firstName} ${selectedApp.lastName}`} />
-              <DataField label="Date of Birth" value={selectedApp.dob} />
-              <DataField label="Age" value={selectedApp.age} />
-              <DataField label="SSN" value={selectedApp.ssn} />
-              <DataField label="Gender" value={selectedApp.gender} />
-              <DataField label="Phone" value={selectedApp.phone} />
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-200">
-                <Heart size={18} className="text-red-500" /> Beneficiaries
-              </h3>
-              <DataField label="Primary" value={selectedApp.primaryBenName} />
-              <DataField label="Relationship" value={selectedApp.primaryBenRel} />
-              <DataField label="Contingent" value={selectedApp.contingentBenName} />
-              <DataField label="Relationship" value={selectedApp.contingentBenRel} />
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-200">
-                <CreditCard size={18} className="text-emerald-500" /> Payment
-              </h3>
-              <DataField label="Bank" value={selectedApp.bankName} />
-              <DataField label="Account Type" value={selectedApp.accountType} />
-              <DataField label="Routing" value={selectedApp.routing} />
-              <DataField label="Account" value={selectedApp.accountNum} />
-              <DataField label="Draft Date" value={selectedApp.draftDate} />
-            </div>
+          <div className="flex items-end gap-2 mb-2">
+            <span className="text-5xl font-bold">78%</span>
+            <span className="text-purple-200 mb-1">of apps</span>
           </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-slate-100">
-            <button className="flex-1 btn-accent">
-              <ExternalLink size={18} /> Open in Carrier Portal
-            </button>
-            <button className="btn-ghost">
-              <Printer size={18} /> Print
-            </button>
-            <button className="btn-ghost text-red-600 border-red-200 hover:bg-red-50">
-              <Trash2 size={18} /> Delete
-            </button>
+          <p className="text-sm text-purple-200">
+            System is automatically processing majority of standard immediate benefit applications.
+          </p>
+          <div className="mt-6 pt-4 border-t border-white/20">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-purple-200">Processing Speed</span>
+              <span className="font-bold">2.3s avg</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-purple-200">Accuracy Rate</span>
+              <span className="font-bold">99.2%</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: FULL APPLICATION DETAIL MODAL
+  // ═══════════════════════════════════════════════════════════════
+  const renderDetailModal = () => {
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "N/A";
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return `${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getDate().toString().padStart(2, "0")}/${d.getFullYear()}`;
+      } catch {
+        return dateStr;
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+        <div className="w-full max-w-5xl bg-white h-full shadow-2xl overflow-y-auto scrollbar-thin animate-slide-right flex flex-col">
+          {/* Header */}
+          <div className="sticky top-0 z-20 bg-white border-b border-slate-200 px-8 py-6 flex justify-between items-start shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-cyan-50 text-cyan-600 rounded-xl">
+                <FileText size={32} />
+              </div>
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    {selectedApp.name || selectedApp.firstName + " " + selectedApp.lastName}
+                  </h2>
+                  <StatusBadge status={selectedApp.status} />
+                  {/* Status Change Dropdown */}
+                  <select
+                    value={selectedApp.status}
+                    onChange={(e) => {
+                      const newStatus = e.target.value;
+                      const updated = { ...selectedApp, status: newStatus };
+                      onUpdateSubmission(updated);
+                      setSelectedApp(updated);
+                    }}
+                    className="ml-2 border border-slate-300 rounded-lg px-2 py-1 text-sm font-bold text-slate-700 cursor-pointer hover:border-cyan-400 focus:outline-none focus:border-cyan-500"
+                  >
+                    {APP_STATUSES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
+                  <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-600">ID: {selectedApp.id}</span>
+                  <span className="flex items-center gap-1"><Calendar size={14} /> {formatDate(selectedApp.date)}</span>
+                  <span className="flex items-center gap-1"><MapPin size={14} /> {selectedApp.state || "N/A"}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-lg hover:bg-slate-200 transition-colors">
+                <Printer size={18} /> Print
+              </button>
+              <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-slate-100 text-slate-400 hover:text-red-500 rounded-full transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-8 space-y-8 bg-slate-50/50 flex-1">
+            {/* Top Row: Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <p className="text-xs font-bold text-slate-400 uppercase">Coverage</p>
+                <p className="text-2xl font-bold text-emerald-600">${(selectedApp.faceAmount || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <p className="text-xs font-bold text-slate-400 uppercase">Monthly Premium</p>
+                <p className="text-2xl font-bold text-slate-800">${parseFloat(selectedApp.premium || 0).toFixed(2)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase mb-1">Carrier</p>
+                  <CarrierLogo carrier={selectedApp.carrier || "American Amicable"} size="lg" />
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-slate-400 uppercase">Plan</p>
+                  <p className="text-lg font-bold text-cyan-600">{selectedApp.plan}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Information Grid - 3 Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Column 1: Personal & Contact */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    <User size={20} className="text-cyan-500" /> Personal Information
+                  </h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    <DataField label="Full Name" value={`${selectedApp.firstName || selectedApp.name} ${selectedApp.middleName || ""} ${selectedApp.lastName || ""}`} />
+                    <DataField label="Date of Birth" value={formatDate(selectedApp.dob)} />
+                    <DataField label="Age" value={selectedApp.age} />
+                    <DataField label="State of Birth" value={selectedApp.stateOfBirth} />
+                    <DataField label="SSN" value={selectedApp.ssn} />
+                    <DataField label="Gender" value={selectedApp.gender} />
+                    <div className="grid grid-cols-2 gap-2">
+                      <DataField label="Height" value={selectedApp.height} />
+                      <DataField label="Weight" value={selectedApp.weight ? `${selectedApp.weight} lbs` : null} />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    <MapPin size={20} className="text-orange-500" /> Contact Details
+                  </h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    <DataField label="Address" value={selectedApp.address} />
+                    <div className="grid grid-cols-2 gap-2">
+                      <DataField label="City" value={selectedApp.city} />
+                      <DataField label="State" value={selectedApp.state} />
+                    </div>
+                    <DataField label="Zip Code" value={selectedApp.zip} />
+                    <DataField label="Phone" value={selectedApp.phone} />
+                  </div>
+                </div>
+
+                {/* Owner Section */}
+                {selectedApp.ownerName && (
+                  <div>
+                    <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                      <Users size={20} className="text-indigo-500" /> Policy Owner
+                    </h3>
+                    <div className="grid grid-cols-1 gap-2">
+                      <DataField label="Owner Name" value={selectedApp.ownerName} />
+                      <DataField label="Relationship" value={selectedApp.ownerRel} />
+                      <DataField label="Owner SSN" value={selectedApp.ownerSsn} />
+                      <DataField label="Owner Address" value={selectedApp.ownerAddress} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Column 2: Beneficiaries & Bank */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    <Heart size={20} className="text-red-500" /> Beneficiaries
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm relative overflow-hidden">
+                      <div className="absolute top-0 right-0 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase">Primary</div>
+                      <DataField label="Name" value={selectedApp.primaryBenName} />
+                      <div className="mt-2 text-xs text-slate-500 flex gap-2">
+                        <span className="font-bold">Rel:</span> {selectedApp.primaryBenRel || "N/A"}
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm relative overflow-hidden opacity-80">
+                      <div className="absolute top-0 right-0 bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase">Contingent</div>
+                      <DataField label="Name" value={selectedApp.contingentBenName} />
+                      <div className="mt-2 text-xs text-slate-500 flex gap-2">
+                        <span className="font-bold">Rel:</span> {selectedApp.contingentBenRel || "N/A"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    <CreditCard size={20} className="text-emerald-500" /> Banking & Payment
+                  </h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    <DataField label="Name on Account" value={selectedApp.accountName} />
+                    <DataField label="Account Type" value={selectedApp.accountType} />
+                    <DataField label="Bank Name" value={selectedApp.bankName} />
+                    <DataField label="Bank Address" value={selectedApp.bankAddress} />
+                    <DataField label="Routing Number" value={selectedApp.routing} />
+                    <DataField label="Account Number" value={selectedApp.accountNum} />
+                    <DataField label="Draft Schedule" value={selectedApp.draftSchedule === "ss_payment" ? "Social Security" : "Specific Date"} />
+                    <DataField label="Draft Date" value={selectedApp.draftDate} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3: Health & Status */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    <Stethoscope size={20} className="text-purple-500" /> Health & Underwriting
+                  </h3>
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
+                    <DataField label="Physician" value={selectedApp.physicianName} />
+                    <DataField label="Tobacco Use" value={selectedApp.tobacco === true ? "YES" : "NO"} />
+
+                    {/* Knockout Questions */}
+                    <div className="border-t border-slate-100 pt-3">
+                      <p className="text-xs font-bold text-red-600 uppercase mb-2">Knockout Questions (1-3)</p>
+                      <div className="space-y-1 text-sm">
+                        {[{ q: "Q1", val: selectedApp.q1 }, { q: "Q2", val: selectedApp.q2 }, { q: "Q3", val: selectedApp.q3 }].map(({ q, val }) => (
+                          <div key={q} className="flex justify-between">
+                            <span>{q}</span>
+                            <span className={val ? "text-red-600 font-bold" : "text-green-600"}>{val ? "YES" : "NO"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* ROP Questions */}
+                    <div className="border-t border-slate-100 pt-3">
+                      <p className="text-xs font-bold text-yellow-600 uppercase mb-2">ROP Questions (4-7)</p>
+                      <div className="space-y-1 text-sm">
+                        {[{ q: "Q4", val: selectedApp.q4 }, { q: "Q5", val: selectedApp.q5 }, { q: "Q6", val: selectedApp.q6 }, { q: "Q7a", val: selectedApp.q7a }, { q: "Q7b", val: selectedApp.q7b }, { q: "Q7c", val: selectedApp.q7c }, { q: "Q7d", val: selectedApp.q7d }].map(({ q, val }) => (
+                          <div key={q} className="flex justify-between">
+                            <span>{q}</span>
+                            <span className={val ? "text-yellow-600 font-bold" : "text-green-600"}>{val ? "YES" : "NO"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Graded Questions */}
+                    <div className="border-t border-slate-100 pt-3">
+                      <p className="text-xs font-bold text-blue-600 uppercase mb-2">Graded Questions (8)</p>
+                      <div className="space-y-1 text-sm">
+                        {[{ q: "Q8a", val: selectedApp.q8a }, { q: "Q8b", val: selectedApp.q8b }, { q: "Q8c", val: selectedApp.q8c }].map(({ q, val }) => (
+                          <div key={q} className="flex justify-between">
+                            <span>{q}</span>
+                            <span className={val ? "text-blue-600 font-bold" : "text-green-600"}>{val ? "YES" : "NO"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Coverage Options */}
+                <div>
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    <Shield size={20} className="text-purple-600" /> Coverage Options
+                  </h3>
+                  <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-bold text-slate-600">Willing to Accept</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${selectedApp.willingToAccept ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+                        {selectedApp.willingToAccept ? "YES" : "NO"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-bold text-slate-600">Existing Insurance</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${selectedApp.hasExisting ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
+                        {selectedApp.hasExisting ? "YES" : "NO"}
+                      </span>
+                    </div>
+                    {selectedApp.hasExisting && (
+                      <div className="flex justify-between items-center mt-2 pl-4 border-l-2 border-slate-200">
+                        <span className="text-sm text-slate-500">Will Replace?</span>
+                        <span className={`font-bold ${selectedApp.willReplace ? "text-red-600" : "text-slate-600"}`}>
+                          {selectedApp.willReplace ? "YES" : "NO"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Agent Actions */}
+                <div>
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    <Shield size={20} className="text-cyan-600" /> Agent Actions
+                  </h3>
+                  <div className="space-y-2">
+                    <button className="w-full py-3 bg-cyan-600 text-white font-bold rounded-lg shadow-md hover:bg-cyan-700 transition flex items-center justify-center gap-2">
+                      <ExternalLink size={18} /> Open Carrier Portal
+                    </button>
+                    <button className="w-full py-3 bg-white text-slate-700 border-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 transition flex items-center justify-center gap-2">
+                      <Zap size={18} /> Validate Data
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // MAIN RENDER
+  // ═══════════════════════════════════════════════════════════════
   return (
-    <div className="flex view-contained bg-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-slate-100 overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col shrink-0">
         <div className="p-6 border-b border-slate-700/50">
@@ -1554,14 +2045,16 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          <p className="text-xs font-bold text-slate-500 uppercase mb-3 px-4">Main</p>
+          <p className="text-xs font-bold text-slate-500 uppercase mb-3 px-4">Main Menu</p>
           <NavItem id="overview" icon={LayoutDashboard} label="Dashboard" />
-          <NavItem id="applications" icon={FileText} label="Applications" />
-          <NavItem id="customers" icon={Users} label="Customers" />
 
           <p className="text-xs font-bold text-slate-500 uppercase mt-6 mb-3 px-4">Analytics</p>
           <NavItem id="analytics" icon={PieChart} label="Performance" />
           <NavItem id="ai-risk" icon={BrainCircuit} label="AI Risk Center" />
+
+          <p className="text-xs font-bold text-slate-500 uppercase mt-6 mb-3 px-4">Management</p>
+          <NavItem id="applications" icon={FileText} label="Applications" />
+          <NavItem id="customers" icon={Users} label="Customers" />
         </nav>
 
         <div className="p-4 border-t border-slate-700/50">
@@ -1573,21 +2066,50 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        {/* New Application Notification Toast */}
+        {notification && (
+          <div className="fixed top-4 right-4 z-50 animate-bounce-in">
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-4 rounded-xl shadow-2xl min-w-80 border-2 border-white/20">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-white/20 rounded-full animate-pulse">
+                  <Bell size={24} className="text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg flex items-center gap-2">
+                    {notification.title}
+                    <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                  </h4>
+                  <p className="text-white/90 text-sm mt-1">{notification.message}</p>
+                  <button
+                    onClick={() => { setSelectedApp(notification.app); setNotification(null); }}
+                    className="mt-3 px-4 py-2 bg-white text-emerald-700 font-bold rounded-lg text-sm hover:bg-emerald-50 transition-colors"
+                  >
+                    View Application
+                  </button>
+                </div>
+                <button onClick={() => setNotification(null)} className="text-white/70 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-8 shrink-0">
+        <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-8 shrink-0 z-10">
           <div className="flex items-center gap-6">
             <h2 className="text-xl font-bold text-slate-800 capitalize">{activeTab.replace("-", " ")}</h2>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <div className="relative flex-1 max-w-md group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" size={18} />
               <input
-
-                              type="text"
-                placeholder="Search applications..."
+                type="text"
+                placeholder="Ask AI: 'Show pending apps...'"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 pr-4 py-2.5 w-80 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 focus:bg-white transition-all"
               />
+              <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-500 opacity-0 group-focus-within:opacity-100 transition-opacity" size={16} />
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -1601,13 +2123,15 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
           </div>
         </header>
 
-        {/* Content Area */}
+        {/* ═══════════════════════════════════════════════════════════
+            CONTENT AREA - CORRECT TAB ROUTING
+            ═══════════════════════════════════════════════════════════ */}
         <div className="flex-1 overflow-auto p-6 scrollbar-thin">
           {activeTab === "overview" && renderOverview()}
+          {activeTab === "analytics" && renderAnalytics()}
           {activeTab === "applications" && renderApplications()}
-          {activeTab === "customers" && renderOverview()}
-          {activeTab === "analytics" && renderOverview()}
-          {activeTab === "ai-risk" && renderOverview()}
+          {activeTab === "customers" && renderCustomers()}
+          {activeTab === "ai-risk" && renderAIRiskCenter()}
         </div>
       </main>
 
