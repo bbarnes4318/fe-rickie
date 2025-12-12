@@ -7,6 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Primary - Deep Navy (from American Amicable, TransAmerica, GTL)
         primary: {
           50: '#f0f4ff',
           100: '#e0e9ff',
@@ -20,6 +21,7 @@ export default {
           900: '#0f172a',
           950: '#0a1120',
         },
+        // Accent - Cyan/Teal (from CICA, Aflac)
         accent: {
           50: '#ecfeff',
           100: '#cffafe',
@@ -32,6 +34,7 @@ export default {
           800: '#155e75',
           900: '#164e63',
         },
+        // Secondary - Purple (from Corebridge, Aetna)
         secondary: {
           50: '#faf5ff',
           100: '#f3e8ff',
@@ -106,12 +109,12 @@ export default {
     },
   },
   safelist: [
-    { pattern: /bg-(cyan|emerald|purple|blue|orange|green|slate|red|yellow|indigo|violet)-(50|100|500|600)/ },
-    { pattern: /text-(cyan|emerald|purple|blue|orange|green|slate|red|yellow|indigo|violet)-(400|500|600|700|800)/ },
-    { pattern: /border-(cyan|emerald|purple|blue|orange|green|slate|red|yellow|indigo|violet)-(200|300|500)/ },
-    { pattern: /from-(cyan|emerald|purple|blue|indigo|violet)-(500|600)/ },
-    { pattern: /to-(cyan|emerald|purple|blue|indigo|violet)-(500|600|700)/ },
-    { pattern: /shadow-(cyan|purple|emerald)-500/ },
+    // Safelist for dynamic color usage
+    { pattern: /bg-(cyan|emerald|purple|blue|orange|green|slate|red|yellow|indigo|violet|amber)-(50|100|500|600)/ },
+    { pattern: /text-(cyan|emerald|purple|blue|orange|green|slate|red|yellow|indigo|violet|amber)-(400|500|600|700|800)/ },
+    { pattern: /border-(cyan|emerald|purple|blue|orange|green|slate|red|yellow|indigo|violet|amber)-(200|300|500)/ },
+    { pattern: /from-(cyan|emerald|purple|blue|indigo|violet|green|red|amber)-(500|600)/ },
+    { pattern: /to-(cyan|emerald|purple|blue|indigo|violet|green|red|amber)-(500|600|700)/ },
   ],
   plugins: [],
 }

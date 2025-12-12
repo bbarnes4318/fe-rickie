@@ -7,7 +7,9 @@ import {
   CreditCard, Shield, Stethoscope, LayoutDashboard, Search, Bell,
   PieChart, TrendingUp, Filter, MoreHorizontal, Download, Sparkles,
   BrainCircuit, X, LogOut, Mail, Phone, Zap, AlertOctagon, BarChart3,
-  Target, Save, RefreshCw, Copy, ExternalLink, Printer, Trash2, ArrowRight
+  Target, Save, RefreshCw, Copy, ExternalLink, Printer, Trash2, ArrowRight,
+  ArrowDown, ArrowDownRight, GitBranch, Layers, ChevronDown, TrendingDown,
+  CircleDot, GitMerge, Banknote, XCircle, Clock, CheckCircle2
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
@@ -335,6 +337,8 @@ const COLOR_CLASSES = {
   green: { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200', icon: 'text-green-500' },
   indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200', icon: 'text-indigo-500' },
   violet: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-200', icon: 'text-violet-500' },
+  amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', icon: 'text-amber-500' },
+  red: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200', icon: 'text-red-500' },
 };
 
 // Logo Component
@@ -1472,89 +1476,330 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
   );
 
   // ═══════════════════════════════════════════════════════════════
-  // RENDER: ANALYTICS WITH TIME FILTERS
+  // RENDER: PERFORMANCE PAGE - APPLICATION LIFECYCLE FUNNEL
   // ═══════════════════════════════════════════════════════════════
-  const renderAnalytics = () => (
-    <div className="animate-fade-in space-y-6">
-      {/* Time Filter Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
-        <h3 className="font-bold text-slate-800 flex items-center gap-2 text-lg">
-          <BarChart3 className="text-cyan-600" /> Performance Metrics
-        </h3>
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          {["Daily", "Weekly", "Monthly", "Quarterly", "YTD"].map((period) => (
-            <button
-              key={period}
-              onClick={() => setTimeFilter(period)}
-              className={`px-4 py-2 text-sm font-bold rounded-md transition-all ${
-                timeFilter === period ? "bg-white text-cyan-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              {period}
-            </button>
-          ))}
-        </div>
-      </div>
+  const renderAnalytics = () => {
+    // Calculate funnel metrics
+    const funnelData = {
+      leads: analyticsData.counts.leads,
+      applications: analyticsData.counts.submitted + analyticsData.counts.underwriting + analyticsData.counts.issued + analyticsData.counts.paid + analyticsData.counts.notTaken + analyticsData.counts.declined + analyticsData.counts.lapsed,
+      underwriting: analyticsData.counts.underwriting,
+      issued: analyticsData.counts.issued + analyticsData.counts.paid + analyticsData.counts.notTaken + analyticsData.counts.lapsed,
+      rejected: analyticsData.counts.declined,
+      paid: analyticsData.counts.paid,
+      notTaken: analyticsData.counts.notTaken,
+      lapsed: analyticsData.counts.lapsed,
+    };
 
-      {/* Status Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Applications", val: analyticsData.counts.applications, icon: FileText, color: "cyan" },
-          { label: "Leads", val: analyticsData.counts.leads, icon: Users, color: "blue" },
-          { label: "Underwriting", val: analyticsData.counts.underwriting, icon: Activity, color: "indigo" },
-          { label: "Issued", val: analyticsData.counts.issued, icon: CheckCircle, color: "green" },
-          { label: "Paid", val: analyticsData.counts.paid, icon: DollarSign, color: "emerald" },
-          { label: "Not Taken", val: analyticsData.counts.notTaken, icon: X, color: "orange" },
-          { label: "Declined", val: analyticsData.counts.declined, icon: AlertOctagon, color: "orange" },
-          { label: "Lapsed", val: analyticsData.counts.lapsed, icon: AlertTriangle, color: "orange" },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
-            <div className="flex justify-between items-start mb-2">
-              <div className={`p-2 rounded-lg ${COLOR_CLASSES[stat.color]?.bg || 'bg-slate-50'} ${COLOR_CLASSES[stat.color]?.text || 'text-slate-600'}`}>
-                <stat.icon size={20} />
-              </div>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</span>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-800">{stat.val}</h3>
-          </div>
-        ))}
-      </div>
+    // Calculate conversion rates
+    const leadToApp = funnelData.leads > 0 ? ((funnelData.applications / funnelData.leads) * 100).toFixed(1) : 0;
+    const appToIssued = funnelData.applications > 0 ? ((funnelData.issued / funnelData.applications) * 100).toFixed(1) : 0;
+    const issuedToPaid = funnelData.issued > 0 ? ((funnelData.paid / funnelData.issued) * 100).toFixed(1) : 0;
+    const paidToLapsed = funnelData.paid > 0 ? ((funnelData.lapsed / (funnelData.paid + funnelData.lapsed)) * 100).toFixed(1) : 0;
 
-      {/* Retention & Efficiency Card */}
-      <div className="bg-slate-900 text-white rounded-xl shadow-lg p-6 relative overflow-hidden">
-        <div className="relative z-10">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-            <Target className="text-cyan-400" /> Efficiency & Retention ({timeFilter})
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white/5 p-6 rounded-xl border border-white/10">
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-2xl font-bold">{analyticsData.retentionRate}%</span>
-                <span className="text-xs text-green-400 font-bold bg-green-400/10 px-2 py-1 rounded">Retention</span>
-              </div>
-              <p className="text-slate-300 font-medium">Retention Rate</p>
-              <p className="text-xs text-slate-500 mt-1">Active / (Active + Not Taken + Lapsed)</p>
-              <div className="w-full h-1.5 bg-slate-700 rounded-full mt-3 overflow-hidden">
-                <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${analyticsData.retentionRate}%` }}></div>
-              </div>
+    // Bar widths for funnel visualization (percentage of max width)
+    const maxWidth = 700;
+    const leadWidth = maxWidth;
+    const appWidth = funnelData.leads > 0 ? Math.max(300, (funnelData.applications / Math.max(funnelData.leads, 1)) * maxWidth) : 600;
+    const branchWidth = funnelData.applications > 0 ? Math.max(150, (funnelData.issued / Math.max(funnelData.applications, 1)) * appWidth / 3) : 180;
+
+    return (
+      <div className="animate-fade-in space-y-6">
+        {/* Header with Time Filter */}
+        <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl">
+              <Layers className="text-white" size={24} />
             </div>
-            <div className="bg-white/5 p-6 rounded-xl border border-white/10">
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-2xl font-bold">{analyticsData.appsToIssue}%</span>
-                <span className="text-xs text-purple-400 font-bold bg-purple-400/10 px-2 py-1 rounded">Conversion</span>
-              </div>
-              <p className="text-slate-300 font-medium">Apps to Issue %</p>
-              <p className="text-xs text-slate-500 mt-1">Active / Total Applications</p>
-              <div className="w-full h-1.5 bg-slate-700 rounded-full mt-3 overflow-hidden">
-                <div className="h-full bg-purple-500 rounded-full" style={{ width: `${analyticsData.appsToIssue}%` }}></div>
-              </div>
+            <div>
+              <h2 className="font-bold text-slate-800 text-xl">Application Lifecycle Funnel</h2>
+              <p className="text-sm text-slate-500">Track your final expense applications through each stage</p>
             </div>
           </div>
+          <div className="flex bg-slate-100 p-1 rounded-lg">
+            {["Daily", "Weekly", "Monthly", "Quarterly", "YTD"].map((period) => (
+              <button
+                key={period}
+                onClick={() => setTimeFilter(period)}
+                className={`px-4 py-2 text-sm font-bold rounded-md transition-all ${
+                  timeFilter === period ? "bg-white text-cyan-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {period}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="absolute right-0 top-0 w-64 h-64 bg-cyan-600/20 blur-3xl rounded-full"></div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Funnel Visualization - Main Column */}
+          <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <h3 className="font-bold text-slate-800 text-lg mb-8 flex items-center gap-2">
+              <GitMerge className="text-cyan-600" size={20} />
+              Conversion Funnel
+            </h3>
+
+            {/* Funnel Stages */}
+            <div className="space-y-4 pl-4">
+              {/* Stage 1: Lead */}
+              <div className="funnel-stage funnel-animate funnel-animate-delay-1">
+                <div className={`funnel-stage-bar funnel-lead text-white`} style={{ width: `${leadWidth}px` }}>
+                  <div className="flex items-center gap-3">
+                    <CircleDot size={22} />
+                    <span className="font-bold text-lg">Lead</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-black">{funnelData.leads}</span>
+                    <span className="text-cyan-100 text-sm">100%</span>
+                  </div>
+                </div>
+                <div className="funnel-connector text-cyan-500"></div>
+              </div>
+
+              {/* Arrow Indicator */}
+              <div className="flex items-center pl-8 py-1">
+                <ArrowDown className="text-slate-400" size={20} />
+                <span className="ml-3 text-sm text-slate-500 font-medium">Agent submits application</span>
+                <span className="ml-auto mr-20 text-sm font-bold text-cyan-600">{leadToApp}% conversion</span>
+              </div>
+
+              {/* Stage 2: Application */}
+              <div className="funnel-stage funnel-animate funnel-animate-delay-2">
+                <div className={`funnel-stage-bar funnel-application text-white`} style={{ width: `${appWidth}px` }}>
+                  <div className="flex items-center gap-3">
+                    <FileText size={22} />
+                    <span className="font-bold text-lg">Application</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-black">{funnelData.applications}</span>
+                    <span className="text-blue-100 text-sm">{leadToApp}%</span>
+                  </div>
+                </div>
+                <div className="funnel-connector text-blue-500"></div>
+              </div>
+
+              {/* Arrow Indicator - Branching */}
+              <div className="flex items-center pl-8 py-1">
+                <GitBranch className="text-slate-400" size={20} />
+                <span className="ml-3 text-sm text-slate-500 font-medium">Application reviewed</span>
+              </div>
+
+              {/* Stage 3: Branch - Issued / Rejected / Underwriting */}
+              <div className="funnel-branch funnel-animate funnel-animate-delay-3 justify-center gap-4 px-4">
+                {/* Issued Branch */}
+                <div className="relative group">
+                  <div className={`funnel-stage-bar funnel-issued text-white cursor-pointer`} style={{ width: '200px', height: '55px' }}>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={18} />
+                      <span className="font-bold">Issued</span>
+                    </div>
+                    <span className="text-2xl font-black">{funnelData.issued}</span>
+                  </div>
+                  <div className="funnel-connector text-emerald-500"></div>
+                </div>
+
+                {/* Rejected Branch */}
+                <div className="relative group">
+                  <div className={`funnel-stage-bar funnel-rejected text-white cursor-pointer`} style={{ width: '160px', height: '55px' }}>
+                    <div className="flex items-center gap-2">
+                      <XCircle size={18} />
+                      <span className="font-bold">Rejected</span>
+                    </div>
+                    <span className="text-2xl font-black">{funnelData.rejected}</span>
+                  </div>
+                </div>
+
+                {/* Underwriting Branch */}
+                <div className="relative group">
+                  <div className={`funnel-stage-bar funnel-underwriting text-white cursor-pointer`} style={{ width: '180px', height: '55px' }}>
+                    <div className="flex items-center gap-2">
+                      <Clock size={18} />
+                      <span className="font-bold">Underwriting</span>
+                    </div>
+                    <span className="text-2xl font-black">{funnelData.underwriting}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Arrow Indicator - After Issued */}
+              <div className="flex items-center pl-8 py-1">
+                <ArrowDown className="text-slate-400" size={20} />
+                <span className="ml-3 text-sm text-slate-500 font-medium">Customer pays first premium & commissions paid</span>
+                <span className="ml-auto mr-20 text-sm font-bold text-emerald-600">{issuedToPaid}% paid</span>
+              </div>
+
+              {/* Stage 4: Branch - Paid / Not Taken */}
+              <div className="funnel-branch funnel-animate funnel-animate-delay-4 justify-center gap-6 px-4">
+                {/* Paid */}
+                <div className="relative group">
+                  <div className={`funnel-stage-bar funnel-paid text-white cursor-pointer`} style={{ width: '240px', height: '55px' }}>
+                    <div className="flex items-center gap-2">
+                      <Banknote size={18} />
+                      <span className="font-bold">Paid</span>
+                    </div>
+                    <span className="text-2xl font-black">{funnelData.paid}</span>
+                  </div>
+                  <div className="funnel-connector text-green-600"></div>
+                </div>
+
+                {/* Not Taken */}
+                <div className="relative group">
+                  <div className={`funnel-stage-bar funnel-not-taken text-white cursor-pointer`} style={{ width: '200px', height: '55px' }}>
+                    <div className="flex items-center gap-2">
+                      <X size={18} />
+                      <span className="font-bold">Not Taken</span>
+                    </div>
+                    <span className="text-2xl font-black">{funnelData.notTaken}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Arrow Indicator - After Paid */}
+              <div className="flex items-center pl-8 py-1">
+                <TrendingDown className="text-slate-400" size={20} />
+                <span className="ml-3 text-sm text-slate-500 font-medium">Policy payment missed in future</span>
+                <span className="ml-auto mr-20 text-sm font-bold text-red-500">{paidToLapsed}% lapsed</span>
+              </div>
+
+              {/* Stage 5: Lapsed */}
+              <div className="funnel-stage funnel-animate funnel-animate-delay-5 justify-center">
+                <div className={`funnel-stage-bar funnel-lapsed text-white`} style={{ width: '180px', height: '50px' }}>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={18} />
+                    <span className="font-bold">Lapsed</span>
+                  </div>
+                  <span className="text-2xl font-black">{funnelData.lapsed}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-4">Stage Legend</p>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { name: "Lead", color: "bg-cyan-500" },
+                  { name: "Application", color: "bg-blue-500" },
+                  { name: "Underwriting", color: "bg-purple-500" },
+                  { name: "Issued", color: "bg-emerald-500" },
+                  { name: "Rejected", color: "bg-red-500" },
+                  { name: "Paid", color: "bg-green-600" },
+                  { name: "Not Taken", color: "bg-amber-500" },
+                  { name: "Lapsed", color: "bg-red-600" },
+                ].map((item) => (
+                  <div key={item.name} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg">
+                    <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+                    <span className="text-sm font-medium text-slate-600">{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Metrics & Insights */}
+          <div className="space-y-6">
+            {/* Key Conversion Metrics */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
+              <h3 className="font-bold flex items-center gap-2 mb-6">
+                <Target className="text-cyan-400" size={20} />
+                Key Conversion Rates
+              </h3>
+              <div className="space-y-5">
+                {/* Lead to Application */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-400 text-sm">Lead → Application</span>
+                    <span className="text-xl font-bold">{leadToApp}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700" style={{ width: `${leadToApp}%` }}></div>
+                  </div>
+                </div>
+
+                {/* Application to Issued */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-400 text-sm">Application → Issued</span>
+                    <span className="text-xl font-bold">{appToIssued}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-700" style={{ width: `${appToIssued}%` }}></div>
+                  </div>
+                </div>
+
+                {/* Issued to Paid */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-400 text-sm">Issued → Paid</span>
+                    <span className="text-xl font-bold">{issuedToPaid}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-green-600 rounded-full transition-all duration-700" style={{ width: `${issuedToPaid}%` }}></div>
+                  </div>
+                </div>
+
+                {/* Retention Rate */}
+                <div className="pt-4 mt-4 border-t border-slate-700">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-400 text-sm">Overall Retention</span>
+                    <span className="text-xl font-bold text-green-400">{analyticsData.retentionRate}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-700" style={{ width: `${analyticsData.retentionRate}%` }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stage Breakdown */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+              <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <BarChart3 className="text-blue-600" size={20} />
+                Stage Breakdown ({timeFilter})
+              </h3>
+              <div className="space-y-3">
+                {[
+                  { name: "Leads", count: funnelData.leads, color: "cyan", icon: CircleDot },
+                  { name: "Applications", count: funnelData.applications, color: "blue", icon: FileText },
+                  { name: "Underwriting", count: funnelData.underwriting, color: "purple", icon: Clock },
+                  { name: "Issued", count: funnelData.issued, color: "emerald", icon: CheckCircle2 },
+                  { name: "Rejected", count: funnelData.rejected, color: "red", icon: XCircle },
+                  { name: "Paid", count: funnelData.paid, color: "green", icon: Banknote },
+                  { name: "Not Taken", count: funnelData.notTaken, color: "amber", icon: X },
+                  { name: "Lapsed", count: funnelData.lapsed, color: "red", icon: AlertTriangle },
+                ].map((item) => (
+                  <div key={item.name} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${COLOR_CLASSES[item.color]?.bg || 'bg-slate-100'} ${COLOR_CLASSES[item.color]?.text || 'text-slate-600'}`}>
+                        <item.icon size={16} />
+                      </div>
+                      <span className="font-medium text-slate-700">{item.name}</span>
+                    </div>
+                    <span className="text-lg font-bold text-slate-800">{item.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Premium Revenue */}
+            <div className="bg-gradient-to-br from-emerald-600 to-green-700 rounded-2xl p-6 text-white">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <DollarSign size={20} />
+                </div>
+                <span className="font-bold">Annual Premium Value</span>
+              </div>
+              <p className="text-4xl font-black mb-2">
+                ${analyticsData.totalPremium.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-emerald-200 text-sm">From Issued & Paid policies ({timeFilter})</p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // ═══════════════════════════════════════════════════════════════
   // RENDER: APPLICATIONS LIST
