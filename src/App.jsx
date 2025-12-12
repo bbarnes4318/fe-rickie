@@ -9,7 +9,7 @@ import {
   BrainCircuit, X, LogOut, Mail, Phone, Zap, AlertOctagon, BarChart3,
   Target, Save, RefreshCw, Copy, ExternalLink, Printer, Trash2, ArrowRight,
   ArrowDown, ArrowDownRight, GitBranch, Layers, ChevronDown, TrendingDown,
-  CircleDot, GitMerge, Banknote, XCircle, Clock, CheckCircle2
+  CircleDot, GitMerge, Banknote, XCircle, Clock, CheckCircle2, Eye
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1279,7 +1279,7 @@ const CustomerForm = ({ onComplete }) => {
 // ADMIN DASHBOARD - FULLY RESTORED FROM App-old.jsx
 // ═══════════════════════════════════════════════════════════════════
 
-const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
+const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission, onDeleteSubmission }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedApp, setSelectedApp] = useState(null);
@@ -1337,10 +1337,12 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
           policies: 0,
           ltv: 0,
           status: sub.status,
+          submissionIds: [],
         };
       }
       customerMap[name].policies += 1;
       customerMap[name].ltv += parseFloat(sub.premium || 0) * 12;
+      customerMap[name].submissionIds.push(sub.id);
     });
     return Object.values(customerMap);
   }, [submissions]);
@@ -1457,6 +1459,7 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
               <th className="px-6 py-4">Plan</th>
               <th className="px-6 py-4">Premium</th>
               <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -1467,6 +1470,11 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                 <td className="px-6 py-4 text-slate-600">{row.plan}</td>
                 <td className="px-6 py-4 font-medium">${parseFloat(row.premium || 0).toFixed(2)}</td>
                 <td className="px-6 py-4"><StatusBadge status={row.status} /></td>
+                <td className="px-6 py-4">
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedApp(row); }} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-cyan-600 transition-colors">
+                    <Eye size={18} />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -1829,7 +1837,7 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredSubmissions.map((row) => (
-                <tr key={row.id} className="hover:bg-cyan-50/30 transition-colors group">
+                <tr key={row.id} className="hover:bg-cyan-50/30 transition-colors group cursor-pointer" onClick={() => setSelectedApp(row)}>
                   <td className="px-6 py-4 font-mono text-slate-500 text-xs">{row.id}</td>
                   <td className="px-6 py-4 font-semibold text-slate-800">{row.name}</td>
                   <td className="px-6 py-4 text-slate-500">{row.date}</td>
@@ -1837,9 +1845,24 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                   <td className="px-6 py-4 font-medium">${parseFloat(row.premium || 0).toFixed(2)}</td>
                   <td className="px-6 py-4"><StatusBadge status={row.status} /></td>
                   <td className="px-6 py-4">
-                    <button onClick={() => setSelectedApp(row)} className="opacity-0 group-hover:opacity-100 p-2 hover:bg-slate-100 rounded-lg transition-all">
-                      <MoreHorizontal size={18} className="text-slate-400" />
-                    </button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm("Are you sure you want to delete this application?")) {
+                            onDeleteSubmission(row.id);
+                            if (selectedApp?.id === row.id) setSelectedApp(null);
+                          }
+                        }}
+                        className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                        title="Delete Application"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedApp(row); }} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-cyan-600" title="View Details">
+                        <Eye size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1879,11 +1902,19 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                   <th className="px-6 py-4">Policies</th>
                   <th className="px-6 py-4">LTV</th>
                   <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {customers.map((cust) => (
-                  <tr key={cust.id} className="hover:bg-cyan-50/30 transition-colors group">
+                  <tr 
+                    key={cust.id} 
+                    className="hover:bg-cyan-50/30 transition-colors group cursor-pointer"
+                    onClick={() => {
+                        const app = submissions.find(s => s.id === cust.submissionIds[0]);
+                        if(app) setSelectedApp(app);
+                    }}
+                  >
                     <td className="px-6 py-4 font-mono text-slate-500">{cust.id}</td>
                     <td className="px-6 py-4 font-bold text-slate-800 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
@@ -1897,6 +1928,36 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                     <td className="px-6 py-4 font-medium text-slate-800">{cust.policies}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">${cust.ltv.toFixed(2)}</td>
                     <td className="px-6 py-4"><StatusBadge status={cust.status} /></td>
+                     <td className="px-6 py-4">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`Are you sure you want to delete ${cust.name} and all their applications?`)) {
+                               cust.submissionIds.forEach(id => onDeleteSubmission(id));
+                               if (selectedApp && cust.submissionIds.includes(selectedApp.id)) {
+                                   setSelectedApp(null);
+                               }
+                            }
+                          }}
+                          className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-all"
+                          title="Delete Customer"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            const app = submissions.find(s => s.id === cust.submissionIds[0]);
+                            if(app) setSelectedApp(app); 
+                          }} 
+                          className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-cyan-600"
+                          title="View Details"
+                        >
+                          <Eye size={18} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1998,11 +2059,18 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
   // RENDER: FULL APPLICATION DETAIL MODAL
   // ═══════════════════════════════════════════════════════════════
   const renderDetailModal = () => {
-    const formatDate = (dateStr) => {
+    const formatDate = (dateStr, keepTime = false) => {
       if (!dateStr) return "N/A";
+      if (keepTime && dateStr.includes(",")) return dateStr;
       try {
         const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
+        if (isNaN(d.getTime())) return dateStr; // Invalid date
+        if (keepTime) {
+          return d.toLocaleString("en-US", { 
+            year: 'numeric', month: '2-digit', day: '2-digit', 
+            hour: '2-digit', minute: '2-digit' 
+          });
+        }
         return `${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getDate().toString().padStart(2, "0")}/${d.getFullYear()}`;
       } catch {
         return dateStr;
@@ -2042,7 +2110,7 @@ const AdminDashboard = ({ submissions, onLogout, onUpdateSubmission }) => {
                 </div>
                 <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
                   <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-600">ID: {selectedApp.id}</span>
-                  <span className="flex items-center gap-1"><Calendar size={14} /> {formatDate(selectedApp.date)}</span>
+                  <span className="flex items-center gap-1"><Calendar size={14} /> {formatDate(selectedApp.date, true)}</span>
                   <span className="flex items-center gap-1"><MapPin size={14} /> {selectedApp.state || "N/A"}</span>
                 </div>
               </div>
@@ -2629,6 +2697,15 @@ export default function App() {
         ...data,
         name: `${data.firstName} ${data.lastName}`.trim(),
         status: "Lead",
+        date: new Date().toLocaleString("en-US", { 
+          timeZone: "America/New_York",
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true 
+        }),
       };
 
       await api.createApplication(newApp);
@@ -2652,6 +2729,16 @@ export default function App() {
       );
     } catch (error) {
       console.error("Failed to update application:", error);
+    }
+  };
+
+  const handleDeleteSubmission = async (id) => {
+    try {
+      await api.deleteApplication(id);
+      setSubmissions((prev) => prev.filter((sub) => sub.id !== id));
+    } catch (error) {
+      console.error("Failed to delete application:", error);
+      alert("Failed to delete application");
     }
   };
 
@@ -2691,6 +2778,7 @@ export default function App() {
         submissions={submissions}
         onLogout={handleLogout}
         onUpdateSubmission={handleUpdateSubmission}
+        onDeleteSubmission={handleDeleteSubmission}
       />
     );
   }
