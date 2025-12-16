@@ -155,6 +155,10 @@ const CARRIERS = {
   SBLI: ["Level", "Modified"],
   CICA: ["Level", "Guaranteed Issue"],
   GTL: ["Graded"],
+  AHL: ["Level", "Graded"],
+  "Royal Neighbors": ["Level", "Graded"],
+  Gerber: ["Guaranteed Issue"],
+  "Mutual of Omaha": ["Level", "Graded"],
 };
 
 const CARRIER_CONFIG = {
@@ -174,6 +178,10 @@ const CARRIER_CONFIG = {
     monthlyFactor: 0.088,
     hasTobacco: true,
   },
+  AHL: { annualFee: 120, monthlyFactor: 0.0875, hasTobacco: true },
+  "Royal Neighbors": { annualFee: 30, monthlyFactor: 0.087, hasTobacco: true },
+  Gerber: { annualFee: 11, monthlyFactor: 0.083334, hasTobacco: false },
+  "Mutual of Omaha": { annualFee: 36, monthlyFactor: 0.089, hasTobacco: true },
 };
 
 const CARRIER_LOGOS = {
@@ -184,6 +192,10 @@ const CARRIER_LOGOS = {
   GTL: "/logos/gtl.png",
   SBLI: "/logos/sbli.png",
   TransAmerica: "/logos/trans.png",
+  AHL: "/logos/ahl.png",
+  "Royal Neighbors": "/logos/royal.png",
+  Gerber: "/logos/gerber.png",
+  "Mutual of Omaha": "/logos/mutual.png",
 };
 
 const HEIGHT_OPTIONS = [];
@@ -292,7 +304,6 @@ const AFLAC_RATES = {
   80: { maleNS: 173.43, maleSm: 238.57, femaleNS: 127.72, femaleSm: 173.43 },
 };
 
-
 const SBLI_RATES = {
   50: { maleNS: 38.9, maleSm: 52.9, femaleNS: 30.85, femaleSm: 41.8 },
   51: { maleNS: 40.35, maleSm: 55.05, femaleNS: 32.05, femaleSm: 43.25 },
@@ -331,7 +342,6 @@ const SBLI_RATES = {
   84: { maleNS: 273.2, maleSm: 383.1, femaleNS: 225.1, femaleSm: 297.15 },
   85: { maleNS: 289.9, maleSm: 407.4, femaleNS: 238.6, femaleSm: 315.8 },
 };
-
 
 const CICA_RATES = {
   45: { male: 32.38, female: 30.03 },
@@ -376,7 +386,6 @@ const CICA_RATES = {
   84: { male: 316.55, female: 230.58 },
   85: { male: 339.5, female: 246.72 },
 };
-
 
 const GTL_RATES = {
   40: { male: 55, female: 40 },
@@ -430,7 +439,6 @@ const GTL_RATES = {
   88: { male: 440, female: 330 },
   89: { male: 450, female: 360 },
 };
-
 
 const TRANSAMERICA_RATES = {
   18: { maleNS: 20.44, maleSm: 24.37, femaleNS: 18.69, femaleSm: 19.25 },
@@ -503,7 +511,6 @@ const TRANSAMERICA_RATES = {
   85: { maleNS: 287.46, maleSm: 427.27, femaleNS: 233.96, femaleSm: 319.53 },
 };
 
-
 const AMAM_RATES = {
   50: { maleNS: 32.96, maleSm: 43.12, femaleNS: 27.3, femaleSm: 32.55 },
   51: { maleNS: 34.9, maleSm: 45.03, femaleNS: 29.36, femaleSm: 33.62 },
@@ -543,39 +550,503 @@ const AMAM_RATES = {
   85: { maleNS: 248.49, maleSm: 289.69, femaleNS: 185.66, femaleSm: 236.13 },
 };
 
-
 const COREBRIDGE_RATES = {
-  50: { male: { 5000: 31.43, 10000: 60.85, 15000: 90.27, 20000: 119.7, 25000: 149.12 }, female: { 5000: 21.94, 10000: 41.88, 15000: 61.81, 20000: 86.79, 25000: 107.98 } },
-  51: { male: { 5000: 32.08, 10000: 62.17, 15000: 92.25, 20000: 137.28, 25000: 171.1 }, female: { 5000: 22.82, 10000: 43.63, 15000: 64.45, 20000: 96.04, 25000: 119.55 } },
-  52: { male: { 5000: 32.59, 10000: 63.18, 15000: 93.77, 20000: 139.58, 25000: 173.98 }, female: { 5000: 23.45, 10000: 44.9, 15000: 66.35, 20000: 98.93, 25000: 123.16 } },
-  53: { male: { 5000: 33.01, 10000: 64.02, 15000: 95.02, 20000: 141.45, 25000: 176.31 }, female: { 5000: 24.12, 10000: 46.24, 15000: 68.36, 20000: 101.98, 25000: 126.98 } },
-  54: { male: { 5000: 33.45, 10000: 64.9, 15000: 96.35, 20000: 141.51, 25000: 176.39 }, female: { 5000: 25.38, 10000: 48.76, 15000: 72.15, 20000: 108.02, 25000: 134.52 } },
-  55: { male: { 5000: 34.36, 10000: 66.72, 15000: 99.08, 20000: 147.18, 25000: 183.48 }, female: { 5000: 26.3, 10000: 50.61, 15000: 74.91, 20000: 112.02, 25000: 139.53 } },
-  56: { male: { 5000: 35.33, 10000: 68.65, 15000: 101.98, 20000: 151.42, 25000: 188.78 }, female: { 5000: 27.33, 10000: 52.67, 15000: 78, 20000: 116.51, 25000: 145.14 } },
-  57: { male: { 5000: 36.24, 10000: 70.49, 15000: 104.73, 20000: 155.37, 25000: 193.71 }, female: { 5000: 28.13, 10000: 54.26, 15000: 80.39, 20000: 120.03, 25000: 149.54 } },
-  58: { male: { 5000: 37.09, 10000: 72.17, 15000: 107.26, 20000: 159.02, 25000: 198.27 }, female: { 5000: 28.95, 10000: 55.89, 15000: 82.84, 20000: 123.6, 25000: 154 } },
-  59: { male: { 5000: 37.6, 10000: 73.2, 15000: 108.8, 20000: 161.26, 25000: 201.07 }, female: { 5000: 29.7, 10000: 57.4, 15000: 85.09, 20000: 126.88, 25000: 158.11 } },
-  60: { male: { 5000: 38.05, 10000: 74.09, 15000: 110.14, 20000: 162.51, 25000: 202.64 }, female: { 5000: 30.3, 10000: 58.61, 15000: 86.91, 20000: 129.49, 25000: 161.36 } },
-  61: { male: { 5000: 40.78, 10000: 79.56, 15000: 118.34, 20000: 174.2, 25000: 217.25 }, female: { 5000: 32.08, 10000: 62.17, 15000: 92.25, 20000: 137.28, 25000: 171.1 } },
-  62: { male: { 5000: 43.59, 10000: 85.18, 15000: 126.77, 20000: 186.3, 25000: 232.37 }, female: { 5000: 31.83, 10000: 61.67, 15000: 91.5, 20000: 135.87, 25000: 169.34 } },
-  63: { male: { 5000: 46.38, 10000: 90.77, 15000: 135.15, 20000: 198.3, 25000: 247.38 }, female: { 5000: 33.71, 10000: 65.42, 15000: 97.13, 20000: 144.35, 25000: 179.94 } },
-  64: { male: { 5000: 49.01, 10000: 96.02, 15000: 143.03, 20000: 209.76, 25000: 261.7 }, female: { 5000: 35.12, 10000: 68.23, 15000: 101.34, 20000: 150.49, 25000: 187.61 } },
-  65: { male: { 5000: 50.42, 10000: 98.83, 15000: 147.24, 20000: 217.26, 25000: 271.07 }, female: { 5000: 37.11, 10000: 72.22, 15000: 107.32, 20000: 159.21, 25000: 198.51 } },
-  66: { male: { 5000: 52.43, 10000: 102.87, 15000: 153.3, 20000: 226.21, 25000: 282.27 }, female: { 5000: 39.01, 10000: 76.01, 15000: 113.02, 20000: 167.45, 25000: 208.81 } },
-  67: { male: { 5000: 54.1, 10000: 106.2, 15000: 158.3, 20000: 233.99, 25000: 291.98 }, female: { 5000: 40.57, 10000: 79.15, 15000: 117.72, 20000: 174.31, 25000: 217.38 } },
-  68: { male: { 5000: 55.76, 10000: 109.52, 15000: 163.27, 20000: 241.31, 25000: 301.14 }, female: { 5000: 42.03, 10000: 82.06, 15000: 122.09, 20000: 180.66, 25000: 225.33 } },
-  69: { male: { 5000: 57.27, 10000: 112.54, 15000: 167.81, 20000: 247.75, 25000: 309.18 }, female: { 5000: 43.39, 10000: 84.78, 15000: 126.17, 20000: 186.49, 25000: 232.61 } },
-  70: { male: { 5000: 58.68, 10000: 115.36, 15000: 172.04, 20000: 253.35, 25000: 316.19 }, female: { 5000: 44.74, 10000: 87.47, 15000: 130.2, 20000: 192.47, 25000: 240.09 } },
-  71: { male: { 5000: 63.98, 10000: 125.96, 15000: 187.94, 20000: 276.47, 25000: 345.09 }, female: { 5000: 49.06, 10000: 96.12, 15000: 143.19, 20000: 211.31, 25000: 263.64 } },
-  72: { male: { 5000: 69.17, 10000: 136.33, 15000: 203.5, 20000: 298.98, 25000: 373.23 }, female: { 5000: 53.17, 10000: 104.34, 15000: 155.51, 20000: 229.26, 25000: 286.08 } },
-  73: { male: { 5000: 74.04, 10000: 146.08, 15000: 218.11, 20000: 320.36, 25000: 399.94 }, female: { 5000: 57.11, 10000: 112.22, 15000: 167.33, 20000: 246.5, 25000: 307.62 } },
-  74: { male: { 5000: 78.58, 10000: 155.17, 15000: 231.75, 20000: 340.17, 25000: 424.71 }, female: { 5000: 60.74, 10000: 119.48, 15000: 178.22, 20000: 262.07, 25000: 327.09 } },
-  75: { male: { 5000: 82.47, 10000: 162.95, 15000: 243.42, 20000: 357.15, 25000: 445.94 }, female: { 5000: 63.98, 10000: 125.96, 15000: 187.94, 20000: 276.47, 25000: 345.09 } },
-  76: { male: { 5000: 96.25, 10000: 190.49, 15000: 284.74, 20000: 405.68, 25000: 506.6 }, female: { 5000: 73.17, 10000: 144.35, 15000: 215.52, 20000: 316.29, 25000: 394.86 } },
-  77: { male: { 5000: 109.5, 10000: 217, 15000: 324.5, 20000: 436.15, 25000: 544.69 }, female: { 5000: 81.83, 10000: 161.67, 15000: 241.5, 20000: 353.8, 25000: 441.75 } },
-  78: { male: { 5000: 112.9, 10000: 223.8, 15000: 334.71, 20000: 451.99, 25000: 564.49 }, female: { 5000: 89.93, 10000: 177.87, 15000: 265.8, 20000: 389.71, 25000: 486.64 } },
-  79: { male: { 5000: 113.13, 10000: 224.27, 15000: 335.4, 20000: 452.43, 25000: 565.04 }, female: { 5000: 97.5, 10000: 193.01, 15000: 288.51, 20000: 424.12, 25000: 529.64 } },
-  80: { male: { 5000: 113.36, 10000: 224.71, 15000: 336.07, 20000: 452.9, 25000: 565.62 }, female: { 5000: 104.21, 10000: 206.42, 15000: 308.62, 20000: 447.41, 25000: 558.76 } },
+  50: {
+    male: {
+      5000: 31.43,
+      10000: 60.85,
+      15000: 90.27,
+      20000: 119.7,
+      25000: 149.12,
+    },
+    female: {
+      5000: 21.94,
+      10000: 41.88,
+      15000: 61.81,
+      20000: 86.79,
+      25000: 107.98,
+    },
+  },
+  51: {
+    male: {
+      5000: 32.08,
+      10000: 62.17,
+      15000: 92.25,
+      20000: 137.28,
+      25000: 171.1,
+    },
+    female: {
+      5000: 22.82,
+      10000: 43.63,
+      15000: 64.45,
+      20000: 96.04,
+      25000: 119.55,
+    },
+  },
+  52: {
+    male: {
+      5000: 32.59,
+      10000: 63.18,
+      15000: 93.77,
+      20000: 139.58,
+      25000: 173.98,
+    },
+    female: {
+      5000: 23.45,
+      10000: 44.9,
+      15000: 66.35,
+      20000: 98.93,
+      25000: 123.16,
+    },
+  },
+  53: {
+    male: {
+      5000: 33.01,
+      10000: 64.02,
+      15000: 95.02,
+      20000: 141.45,
+      25000: 176.31,
+    },
+    female: {
+      5000: 24.12,
+      10000: 46.24,
+      15000: 68.36,
+      20000: 101.98,
+      25000: 126.98,
+    },
+  },
+  54: {
+    male: {
+      5000: 33.45,
+      10000: 64.9,
+      15000: 96.35,
+      20000: 141.51,
+      25000: 176.39,
+    },
+    female: {
+      5000: 25.38,
+      10000: 48.76,
+      15000: 72.15,
+      20000: 108.02,
+      25000: 134.52,
+    },
+  },
+  55: {
+    male: {
+      5000: 34.36,
+      10000: 66.72,
+      15000: 99.08,
+      20000: 147.18,
+      25000: 183.48,
+    },
+    female: {
+      5000: 26.3,
+      10000: 50.61,
+      15000: 74.91,
+      20000: 112.02,
+      25000: 139.53,
+    },
+  },
+  56: {
+    male: {
+      5000: 35.33,
+      10000: 68.65,
+      15000: 101.98,
+      20000: 151.42,
+      25000: 188.78,
+    },
+    female: {
+      5000: 27.33,
+      10000: 52.67,
+      15000: 78,
+      20000: 116.51,
+      25000: 145.14,
+    },
+  },
+  57: {
+    male: {
+      5000: 36.24,
+      10000: 70.49,
+      15000: 104.73,
+      20000: 155.37,
+      25000: 193.71,
+    },
+    female: {
+      5000: 28.13,
+      10000: 54.26,
+      15000: 80.39,
+      20000: 120.03,
+      25000: 149.54,
+    },
+  },
+  58: {
+    male: {
+      5000: 37.09,
+      10000: 72.17,
+      15000: 107.26,
+      20000: 159.02,
+      25000: 198.27,
+    },
+    female: {
+      5000: 28.95,
+      10000: 55.89,
+      15000: 82.84,
+      20000: 123.6,
+      25000: 154,
+    },
+  },
+  59: {
+    male: {
+      5000: 37.6,
+      10000: 73.2,
+      15000: 108.8,
+      20000: 161.26,
+      25000: 201.07,
+    },
+    female: {
+      5000: 29.7,
+      10000: 57.4,
+      15000: 85.09,
+      20000: 126.88,
+      25000: 158.11,
+    },
+  },
+  60: {
+    male: {
+      5000: 38.05,
+      10000: 74.09,
+      15000: 110.14,
+      20000: 162.51,
+      25000: 202.64,
+    },
+    female: {
+      5000: 30.3,
+      10000: 58.61,
+      15000: 86.91,
+      20000: 129.49,
+      25000: 161.36,
+    },
+  },
+  61: {
+    male: {
+      5000: 40.78,
+      10000: 79.56,
+      15000: 118.34,
+      20000: 174.2,
+      25000: 217.25,
+    },
+    female: {
+      5000: 32.08,
+      10000: 62.17,
+      15000: 92.25,
+      20000: 137.28,
+      25000: 171.1,
+    },
+  },
+  62: {
+    male: {
+      5000: 43.59,
+      10000: 85.18,
+      15000: 126.77,
+      20000: 186.3,
+      25000: 232.37,
+    },
+    female: {
+      5000: 31.83,
+      10000: 61.67,
+      15000: 91.5,
+      20000: 135.87,
+      25000: 169.34,
+    },
+  },
+  63: {
+    male: {
+      5000: 46.38,
+      10000: 90.77,
+      15000: 135.15,
+      20000: 198.3,
+      25000: 247.38,
+    },
+    female: {
+      5000: 33.71,
+      10000: 65.42,
+      15000: 97.13,
+      20000: 144.35,
+      25000: 179.94,
+    },
+  },
+  64: {
+    male: {
+      5000: 49.01,
+      10000: 96.02,
+      15000: 143.03,
+      20000: 209.76,
+      25000: 261.7,
+    },
+    female: {
+      5000: 35.12,
+      10000: 68.23,
+      15000: 101.34,
+      20000: 150.49,
+      25000: 187.61,
+    },
+  },
+  65: {
+    male: {
+      5000: 50.42,
+      10000: 98.83,
+      15000: 147.24,
+      20000: 217.26,
+      25000: 271.07,
+    },
+    female: {
+      5000: 37.11,
+      10000: 72.22,
+      15000: 107.32,
+      20000: 159.21,
+      25000: 198.51,
+    },
+  },
+  66: {
+    male: {
+      5000: 52.43,
+      10000: 102.87,
+      15000: 153.3,
+      20000: 226.21,
+      25000: 282.27,
+    },
+    female: {
+      5000: 39.01,
+      10000: 76.01,
+      15000: 113.02,
+      20000: 167.45,
+      25000: 208.81,
+    },
+  },
+  67: {
+    male: {
+      5000: 54.1,
+      10000: 106.2,
+      15000: 158.3,
+      20000: 233.99,
+      25000: 291.98,
+    },
+    female: {
+      5000: 40.57,
+      10000: 79.15,
+      15000: 117.72,
+      20000: 174.31,
+      25000: 217.38,
+    },
+  },
+  68: {
+    male: {
+      5000: 55.76,
+      10000: 109.52,
+      15000: 163.27,
+      20000: 241.31,
+      25000: 301.14,
+    },
+    female: {
+      5000: 42.03,
+      10000: 82.06,
+      15000: 122.09,
+      20000: 180.66,
+      25000: 225.33,
+    },
+  },
+  69: {
+    male: {
+      5000: 57.27,
+      10000: 112.54,
+      15000: 167.81,
+      20000: 247.75,
+      25000: 309.18,
+    },
+    female: {
+      5000: 43.39,
+      10000: 84.78,
+      15000: 126.17,
+      20000: 186.49,
+      25000: 232.61,
+    },
+  },
+  70: {
+    male: {
+      5000: 58.68,
+      10000: 115.36,
+      15000: 172.04,
+      20000: 253.35,
+      25000: 316.19,
+    },
+    female: {
+      5000: 44.74,
+      10000: 87.47,
+      15000: 130.2,
+      20000: 192.47,
+      25000: 240.09,
+    },
+  },
+  71: {
+    male: {
+      5000: 63.98,
+      10000: 125.96,
+      15000: 187.94,
+      20000: 276.47,
+      25000: 345.09,
+    },
+    female: {
+      5000: 49.06,
+      10000: 96.12,
+      15000: 143.19,
+      20000: 211.31,
+      25000: 263.64,
+    },
+  },
+  72: {
+    male: {
+      5000: 69.17,
+      10000: 136.33,
+      15000: 203.5,
+      20000: 298.98,
+      25000: 373.23,
+    },
+    female: {
+      5000: 53.17,
+      10000: 104.34,
+      15000: 155.51,
+      20000: 229.26,
+      25000: 286.08,
+    },
+  },
+  73: {
+    male: {
+      5000: 74.04,
+      10000: 146.08,
+      15000: 218.11,
+      20000: 320.36,
+      25000: 399.94,
+    },
+    female: {
+      5000: 57.11,
+      10000: 112.22,
+      15000: 167.33,
+      20000: 246.5,
+      25000: 307.62,
+    },
+  },
+  74: {
+    male: {
+      5000: 78.58,
+      10000: 155.17,
+      15000: 231.75,
+      20000: 340.17,
+      25000: 424.71,
+    },
+    female: {
+      5000: 60.74,
+      10000: 119.48,
+      15000: 178.22,
+      20000: 262.07,
+      25000: 327.09,
+    },
+  },
+  75: {
+    male: {
+      5000: 82.47,
+      10000: 162.95,
+      15000: 243.42,
+      20000: 357.15,
+      25000: 445.94,
+    },
+    female: {
+      5000: 63.98,
+      10000: 125.96,
+      15000: 187.94,
+      20000: 276.47,
+      25000: 345.09,
+    },
+  },
+  76: {
+    male: {
+      5000: 96.25,
+      10000: 190.49,
+      15000: 284.74,
+      20000: 405.68,
+      25000: 506.6,
+    },
+    female: {
+      5000: 73.17,
+      10000: 144.35,
+      15000: 215.52,
+      20000: 316.29,
+      25000: 394.86,
+    },
+  },
+  77: {
+    male: {
+      5000: 109.5,
+      10000: 217,
+      15000: 324.5,
+      20000: 436.15,
+      25000: 544.69,
+    },
+    female: {
+      5000: 81.83,
+      10000: 161.67,
+      15000: 241.5,
+      20000: 353.8,
+      25000: 441.75,
+    },
+  },
+  78: {
+    male: {
+      5000: 112.9,
+      10000: 223.8,
+      15000: 334.71,
+      20000: 451.99,
+      25000: 564.49,
+    },
+    female: {
+      5000: 89.93,
+      10000: 177.87,
+      15000: 265.8,
+      20000: 389.71,
+      25000: 486.64,
+    },
+  },
+  79: {
+    male: {
+      5000: 113.13,
+      10000: 224.27,
+      15000: 335.4,
+      20000: 452.43,
+      25000: 565.04,
+    },
+    female: {
+      5000: 97.5,
+      10000: 193.01,
+      15000: 288.51,
+      20000: 424.12,
+      25000: 529.64,
+    },
+  },
+  80: {
+    male: {
+      5000: 113.36,
+      10000: 224.71,
+      15000: 336.07,
+      20000: 452.9,
+      25000: 565.62,
+    },
+    female: {
+      5000: 104.21,
+      10000: 206.42,
+      15000: 308.62,
+      20000: 447.41,
+      25000: 558.76,
+    },
+  },
 };
 
 // Modified/Graded Rate Tables
@@ -803,9 +1274,289 @@ const AMAM_ROP_RATES = {
   85: { maleNS: 381.41, maleSm: 487.35, femaleNS: 295.31, femaleSm: 448.38 },
 };
 
+// AHL Level Rates (ages 50-85, tobacco differentiated)
+const AHL_RATES = {
+  50: { maleNS: 36.98, maleSm: 49.24, femaleNS: 28.46, femaleSm: 42.91 },
+  51: { maleNS: 38.83, maleSm: 51.1, femaleNS: 29.31, femaleSm: 44.81 },
+  52: { maleNS: 40.77, maleSm: 53.21, femaleNS: 30.19, femaleSm: 47.08 },
+  53: { maleNS: 42.41, maleSm: 55.52, femaleNS: 31.1, femaleSm: 49.5 },
+  54: { maleNS: 44.1, maleSm: 57.99, femaleNS: 32.03, femaleSm: 51.97 },
+  55: { maleNS: 45.42, maleSm: 60.61, femaleNS: 32.99, femaleSm: 54.47 },
+  56: { maleNS: 45.88, maleSm: 63.38, femaleNS: 33.98, femaleSm: 57.01 },
+  57: { maleNS: 46.34, maleSm: 66.31, femaleNS: 35, femaleSm: 59.64 },
+  58: { maleNS: 47.26, maleSm: 69.43, femaleNS: 36.05, femaleSm: 62.39 },
+  59: { maleNS: 48.68, maleSm: 72.76, femaleNS: 37.49, femaleSm: 65.31 },
+  60: { maleNS: 50.63, maleSm: 76.33, femaleNS: 38.99, femaleSm: 68.42 },
+  61: { maleNS: 53.46, maleSm: 80.18, femaleNS: 40.03, femaleSm: 71.74 },
+  62: { maleNS: 56.23, maleSm: 84.34, femaleNS: 41.44, femaleSm: 75.28 },
+  63: { maleNS: 59.02, maleSm: 88.85, femaleNS: 43.17, femaleSm: 79 },
+  64: { maleNS: 61.9, maleSm: 93.75, femaleNS: 45.18, femaleSm: 82.89 },
+  65: { maleNS: 64.92, maleSm: 99.09, femaleNS: 47.45, femaleSm: 86.91 },
+  66: { maleNS: 68.16, maleSm: 104.9, femaleNS: 49.97, femaleSm: 91.04 },
+  67: { maleNS: 71.7, maleSm: 111.25, femaleNS: 52.73, femaleSm: 95.26 },
+  68: { maleNS: 75.59, maleSm: 118.17, femaleNS: 55.76, femaleSm: 99.57 },
+  69: { maleNS: 79.91, maleSm: 125.74, femaleNS: 59.08, femaleSm: 103.98 },
+  70: { maleNS: 84.74, maleSm: 134.02, femaleNS: 62.74, femaleSm: 108.55 },
+  71: { maleNS: 90.14, maleSm: 143.09, femaleNS: 66.79, femaleSm: 113.36 },
+  72: { maleNS: 96.19, maleSm: 153.04, femaleNS: 71.3, femaleSm: 118.51 },
+  73: { maleNS: 102.97, maleSm: 163.96, femaleNS: 76.35, femaleSm: 124.15 },
+  74: { maleNS: 110.54, maleSm: 175.98, femaleNS: 82.04, femaleSm: 130.45 },
+  75: { maleNS: 118.98, maleSm: 189.22, femaleNS: 88.48, femaleSm: 137.59 },
+  76: { maleNS: 128.37, maleSm: 203.82, femaleNS: 95.78, femaleSm: 145.75 },
+  77: { maleNS: 138.79, maleSm: 219.93, femaleNS: 104.09, femaleSm: 155.11 },
+  78: { maleNS: 150.31, maleSm: 237.73, femaleNS: 113.55, femaleSm: 165.8 },
+  79: { maleNS: 163.01, maleSm: 257.39, femaleNS: 124.32, femaleSm: 177.87 },
+  80: { maleNS: 176.97, maleSm: 279.13, femaleNS: 136.58, femaleSm: 191.29 },
+  81: { maleNS: 191.13, maleSm: 303.14, femaleNS: 148.87, femaleSm: 205.86 },
+  82: { maleNS: 206.42, maleSm: 329.65, femaleNS: 160.78, femaleSm: 221.2 },
+  83: { maleNS: 222.93, maleSm: 358.87, femaleNS: 172.04, femaleSm: 236.65 },
+  84: { maleNS: 240.77, maleSm: 391.04, femaleNS: 184.08, femaleSm: 251.23 },
+  85: { maleNS: 260.03, maleSm: 426.39, femaleNS: 195.12, femaleSm: 263.57 },
+};
 
+// AHL Graded Rates (ages 50-80, tobacco differentiated)
+const AHL_GRADED_RATES = {
+  50: { maleNS: 57.44, maleSm: 81.81, femaleNS: 46.87, femaleSm: 73.42 },
+  51: { maleNS: 62.64, maleSm: 86.58, femaleNS: 48.81, femaleSm: 78.28 },
+  52: { maleNS: 69.05, maleSm: 91.35, femaleNS: 50.75, femaleSm: 83.14 },
+  53: { maleNS: 74.6, maleSm: 96.12, femaleNS: 52.68, femaleSm: 88 },
+  54: { maleNS: 79.59, maleSm: 100.89, femaleNS: 54.62, femaleSm: 92.86 },
+  55: { maleNS: 83.45, maleSm: 105.66, femaleNS: 56.56, femaleSm: 97.72 },
+  56: { maleNS: 86.13, maleSm: 111.5, femaleNS: 58.44, femaleSm: 102.91 },
+  57: { maleNS: 88.12, maleSm: 117.34, femaleNS: 60.33, femaleSm: 108.1 },
+  58: { maleNS: 89.47, maleSm: 123.18, femaleNS: 62.21, femaleSm: 113.3 },
+  59: { maleNS: 90.23, maleSm: 129.02, femaleNS: 64.1, femaleSm: 118.49 },
+  60: { maleNS: 90.45, maleSm: 134.86, femaleNS: 65.98, femaleSm: 123.68 },
+  61: { maleNS: 91.31, maleSm: 143.12, femaleNS: 68.49, femaleSm: 131.61 },
+  62: { maleNS: 92.18, maleSm: 151.37, femaleNS: 71.01, femaleSm: 139.53 },
+  63: { maleNS: 93.04, maleSm: 159.63, femaleNS: 73.51, femaleSm: 147.46 },
+  64: { maleNS: 93.91, maleSm: 167.88, femaleNS: 76.04, femaleSm: 155.38 },
+  65: { maleNS: 94.77, maleSm: 176.14, femaleNS: 78.55, femaleSm: 163.31 },
+  66: { maleNS: 101.51, maleSm: 187.24, femaleNS: 83.74, femaleSm: 171.92 },
+  67: { maleNS: 108.25, maleSm: 198.34, femaleNS: 88.94, femaleSm: 180.53 },
+  68: { maleNS: 114.98, maleSm: 209.44, femaleNS: 94.13, femaleSm: 189.13 },
+  69: { maleNS: 121.72, maleSm: 220.54, femaleNS: 99.33, femaleSm: 197.74 },
+  70: { maleNS: 128.46, maleSm: 231.64, femaleNS: 104.52, femaleSm: 206.35 },
+  71: { maleNS: 138.46, maleSm: 248.95, femaleNS: 111.76, femaleSm: 215.85 },
+  72: { maleNS: 148.46, maleSm: 266.26, femaleNS: 118.99, femaleSm: 225.35 },
+  73: { maleNS: 158.46, maleSm: 283.56, femaleNS: 126.23, femaleSm: 234.84 },
+  74: { maleNS: 168.46, maleSm: 300.87, femaleNS: 133.46, femaleSm: 244.34 },
+  75: { maleNS: 178.46, maleSm: 318.18, femaleNS: 140.7, femaleSm: 253.84 },
+  76: { maleNS: 193.2, maleSm: 351.84, femaleNS: 153.14, femaleSm: 274.87 },
+  77: { maleNS: 207.95, maleSm: 385.51, femaleNS: 165.58, femaleSm: 295.89 },
+  78: { maleNS: 222.69, maleSm: 419.17, femaleNS: 178.02, femaleSm: 316.92 },
+  79: { maleNS: 237.44, maleSm: 452.84, femaleNS: 190.46, femaleSm: 337.94 },
+  80: { maleNS: 252.18, maleSm: 486.5, femaleNS: 202.9, femaleSm: 358.97 },
+};
 
-const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmount, planType = "Level") => {
+// Royal Neighbors Level Rates (ages 50-85, tobacco differentiated)
+const ROYAL_NEIGHBORS_RATES = {
+  50: { maleNS: 42.58, maleSm: 56.54, femaleNS: 35.7, femaleSm: 50.35 },
+  51: { maleNS: 44.1, maleSm: 58.64, femaleNS: 36.59, femaleSm: 51.66 },
+  52: { maleNS: 45.62, maleSm: 60.74, femaleNS: 37.49, femaleSm: 52.97 },
+  53: { maleNS: 47.2, maleSm: 62.9, femaleNS: 38.38, femaleSm: 54.34 },
+  54: { maleNS: 48.72, maleSm: 65, femaleNS: 39.27, femaleSm: 55.65 },
+  55: { maleNS: 50.24, maleSm: 67.1, femaleNS: 40.16, femaleSm: 56.96 },
+  56: { maleNS: 51.14, maleSm: 68.57, femaleNS: 40.32, femaleSm: 57.33 },
+  57: { maleNS: 51.98, maleSm: 70.09, femaleNS: 40.48, femaleSm: 57.7 },
+  58: { maleNS: 52.87, maleSm: 71.56, femaleNS: 40.64, femaleSm: 58.07 },
+  59: { maleNS: 53.71, maleSm: 73.08, femaleNS: 40.79, femaleSm: 58.43 },
+  60: { maleNS: 54.6, maleSm: 74.55, femaleNS: 40.95, femaleSm: 58.8 },
+  61: { maleNS: 56.6, maleSm: 78.12, femaleNS: 42.42, femaleSm: 60.95 },
+  62: { maleNS: 58.59, maleSm: 81.69, femaleNS: 43.89, femaleSm: 63.11 },
+  63: { maleNS: 60.59, maleSm: 85.26, femaleNS: 45.36, femaleSm: 65.21 },
+  64: { maleNS: 62.58, maleSm: 88.83, femaleNS: 46.83, femaleSm: 67.36 },
+  65: { maleNS: 64.58, maleSm: 92.4, femaleNS: 48.3, femaleSm: 69.51 },
+  66: { maleNS: 68.25, maleSm: 98.7, femaleNS: 50.82, femaleSm: 73.03 },
+  67: { maleNS: 71.93, maleSm: 105, femaleNS: 53.34, femaleSm: 76.55 },
+  68: { maleNS: 75.6, maleSm: 111.3, femaleNS: 55.86, femaleSm: 80.12 },
+  69: { maleNS: 79.28, maleSm: 117.6, femaleNS: 58.38, femaleSm: 83.63 },
+  70: { maleNS: 82.95, maleSm: 123.9, femaleNS: 60.9, femaleSm: 87.15 },
+  71: { maleNS: 91.14, maleSm: 134.61, femaleNS: 66.47, femaleSm: 93.35 },
+  72: { maleNS: 99.33, maleSm: 145.32, femaleNS: 72.03, femaleSm: 99.54 },
+  73: { maleNS: 107.52, maleSm: 156.03, femaleNS: 77.6, femaleSm: 105.74 },
+  74: { maleNS: 115.71, maleSm: 166.74, femaleNS: 83.16, femaleSm: 111.93 },
+  75: { maleNS: 123.9, maleSm: 177.45, femaleNS: 88.73, femaleSm: 118.13 },
+  76: { maleNS: 133.88, maleSm: 188.79, femaleNS: 95.76, femaleSm: 126.42 },
+  77: { maleNS: 143.85, maleSm: 200.13, femaleNS: 102.8, femaleSm: 134.72 },
+  78: { maleNS: 153.83, maleSm: 211.47, femaleNS: 109.83, femaleSm: 143.01 },
+  79: { maleNS: 163.8, maleSm: 222.81, femaleNS: 116.87, femaleSm: 151.31 },
+  80: { maleNS: 173.78, maleSm: 234.15, femaleNS: 123.9, femaleSm: 159.6 },
+  81: { maleNS: 187.32, maleSm: 252.63, femaleNS: 132.72, femaleSm: 171.36 },
+  82: { maleNS: 200.87, maleSm: 271.11, femaleNS: 141.54, femaleSm: 183.12 },
+  83: { maleNS: 214.41, maleSm: 289.59, femaleNS: 150.36, femaleSm: 194.88 },
+  84: { maleNS: 227.96, maleSm: 308.07, femaleNS: 159.18, femaleSm: 206.64 },
+  85: { maleNS: 241.5, maleSm: 326.55, femaleNS: 168, femaleSm: 218.4 },
+};
+
+// Royal Neighbors Graded Rates (ages 50-85, tobacco differentiated)
+const ROYAL_NEIGHBORS_GRADED_RATES = {
+  50: { maleNS: 63.89, maleSm: 75.92, femaleNS: 50.09, femaleSm: 56.28 },
+  51: { maleNS: 65.42, maleSm: 77.86, femaleNS: 51.19, femaleSm: 58.01 },
+  52: { maleNS: 66.94, maleSm: 79.8, femaleNS: 52.29, femaleSm: 59.75 },
+  53: { maleNS: 68.46, maleSm: 81.69, femaleNS: 53.34, femaleSm: 61.43 },
+  54: { maleNS: 69.98, maleSm: 83.63, femaleNS: 54.44, femaleSm: 63.16 },
+  55: { maleNS: 71.51, maleSm: 85.58, femaleNS: 55.55, femaleSm: 64.89 },
+  56: { maleNS: 72.56, maleSm: 87.15, femaleNS: 55.86, femaleSm: 65.57 },
+  57: { maleNS: 73.55, maleSm: 88.73, femaleNS: 56.23, femaleSm: 66.26 },
+  58: { maleNS: 74.6, maleSm: 90.3, femaleNS: 56.54, femaleSm: 66.89 },
+  59: { maleNS: 75.6, maleSm: 91.88, femaleNS: 56.91, femaleSm: 67.57 },
+  60: { maleNS: 76.65, maleSm: 93.45, femaleNS: 57.23, femaleSm: 68.25 },
+  61: { maleNS: 80.43, maleSm: 97.23, femaleNS: 59.75, femaleSm: 71.72 },
+  62: { maleNS: 84.21, maleSm: 101.01, femaleNS: 62.27, femaleSm: 75.18 },
+  63: { maleNS: 87.99, maleSm: 104.79, femaleNS: 64.79, femaleSm: 78.65 },
+  64: { maleNS: 91.77, maleSm: 108.57, femaleNS: 67.31, femaleSm: 82.11 },
+  65: { maleNS: 95.55, maleSm: 112.35, femaleNS: 69.83, femaleSm: 85.58 },
+  66: { maleNS: 102.69, maleSm: 120.49, femaleNS: 74.55, femaleSm: 90.93 },
+  67: { maleNS: 109.83, maleSm: 128.63, femaleNS: 79.28, femaleSm: 96.29 },
+  68: { maleNS: 116.97, maleSm: 136.71, femaleNS: 84, femaleSm: 101.64 },
+  69: { maleNS: 124.11, maleSm: 144.85, femaleNS: 88.73, femaleSm: 107 },
+  70: { maleNS: 131.25, maleSm: 152.99, femaleNS: 93.45, femaleSm: 112.35 },
+  71: { maleNS: 143.22, maleSm: 168.05, femaleNS: 102.48, femaleSm: 122.43 },
+  72: { maleNS: 155.19, maleSm: 183.12, femaleNS: 111.51, femaleSm: 132.51 },
+  73: { maleNS: 167.16, maleSm: 198.24, femaleNS: 120.54, femaleSm: 142.59 },
+  74: { maleNS: 179.13, maleSm: 213.31, femaleNS: 129.57, femaleSm: 152.67 },
+  75: { maleNS: 191.1, maleSm: 228.38, femaleNS: 138.6, femaleSm: 162.75 },
+  76: { maleNS: 205.8, maleSm: 242.34, femaleNS: 150.15, femaleSm: 174.3 },
+  77: { maleNS: 220.5, maleSm: 256.31, femaleNS: 161.7, femaleSm: 185.85 },
+  78: { maleNS: 235.2, maleSm: 270.27, femaleNS: 173.25, femaleSm: 197.4 },
+  79: { maleNS: 249.9, maleSm: 284.24, femaleNS: 184.8, femaleSm: 208.95 },
+  80: { maleNS: 264.6, maleSm: 298.2, femaleNS: 196.35, femaleSm: 220.5 },
+  81: { maleNS: 285.18, maleSm: 319.83, femaleNS: 210, femaleSm: 236.25 },
+  82: { maleNS: 305.76, maleSm: 341.46, femaleNS: 223.65, femaleSm: 252 },
+  83: { maleNS: 326.34, maleSm: 363.09, femaleNS: 237.3, femaleSm: 267.75 },
+  84: { maleNS: 346.92, maleSm: 384.72, femaleNS: 250.95, femaleSm: 283.5 },
+  85: { maleNS: 367.5, maleSm: 406.35, femaleNS: 264.6, femaleSm: 299.25 },
+};
+
+// Gerber Guaranteed Issue Rates (ages 50-80, gender only)
+const GERBER_GI_RATES = {
+  50: { male: 41.47, female: 30.64 },
+  51: { male: 42.89, female: 31.72 },
+  52: { male: 44.33, female: 32.82 },
+  53: { male: 45.78, female: 33.94 },
+  54: { male: 47.25, female: 35.08 },
+  55: { male: 48.74, female: 36.24 },
+  56: { male: 50.25, female: 37.42 },
+  57: { male: 51.78, female: 38.62 },
+  58: { male: 53.33, female: 39.84 },
+  59: { male: 54.9, female: 41.08 },
+  60: { male: 56.49, female: 42.34 },
+  61: { male: 61.38, female: 45.3 },
+  62: { male: 66.31, female: 48.3 },
+  63: { male: 71.27, female: 51.33 },
+  64: { male: 76.27, female: 54.4 },
+  65: { male: 81.31, female: 57.5 },
+  66: { male: 88.2, female: 61.62 },
+  67: { male: 95.15, female: 65.78 },
+  68: { male: 102.15, female: 69.98 },
+  69: { male: 109.2, female: 74.22 },
+  70: { male: 116.3, female: 78.5 },
+  71: { male: 127.8, female: 84.7 },
+  72: { male: 139.4, female: 90.98 },
+  73: { male: 151.1, female: 97.34 },
+  74: { male: 162.9, female: 103.78 },
+  75: { male: 174.8, female: 110.3 },
+  76: { male: 188.9, female: 118.3 },
+  77: { male: 203.2, female: 126.42 },
+  78: { male: 217.7, female: 134.66 },
+  79: { male: 232.4, female: 143.02 },
+  80: { male: 271.7, female: 176.7 },
+};
+
+// Mutual of Omaha Level Rates (ages 45-85, tobacco differentiated)
+const MUTUAL_OF_OMAHA_RATES = {
+  45: { maleNS: 26.86, maleSm: 37.1, femaleNS: 21.8, femaleSm: 29.28 },
+  46: { maleNS: 27.5, maleSm: 37.62, femaleNS: 22.27, femaleSm: 29.66 },
+  47: { maleNS: 28.24, maleSm: 38.29, femaleNS: 22.69, femaleSm: 29.91 },
+  48: { maleNS: 29.06, maleSm: 39.03, femaleNS: 23.2, femaleSm: 30.71 },
+  49: { maleNS: 29.99, maleSm: 39.88, femaleNS: 23.91, femaleSm: 31.14 },
+  50: { maleNS: 30.87, maleSm: 39.4, femaleNS: 23.71, femaleSm: 31.84 },
+  51: { maleNS: 31.73, maleSm: 40.75, femaleNS: 24.57, femaleSm: 33.45 },
+  52: { maleNS: 32.44, maleSm: 42.21, femaleNS: 25.41, femaleSm: 34.69 },
+  53: { maleNS: 33.18, maleSm: 46.07, femaleNS: 26.11, femaleSm: 36.18 },
+  54: { maleNS: 34.87, maleSm: 47.94, femaleNS: 26.83, femaleSm: 37.6 },
+  55: { maleNS: 36.79, maleSm: 50.08, femaleNS: 27.53, femaleSm: 39.79 },
+  56: { maleNS: 38.42, maleSm: 52.53, femaleNS: 28.52, femaleSm: 41.07 },
+  57: { maleNS: 39.98, maleSm: 54.89, femaleNS: 30.09, femaleSm: 42.65 },
+  58: { maleNS: 41.59, maleSm: 57.35, femaleNS: 31.04, femaleSm: 43.93 },
+  59: { maleNS: 43.41, maleSm: 60.13, femaleNS: 32.02, femaleSm: 45.4 },
+  60: { maleNS: 45.57, maleSm: 63.41, femaleNS: 33.33, femaleSm: 47.17 },
+  61: { maleNS: 48.55, maleSm: 67.5, femaleNS: 35.18, femaleSm: 49.75 },
+  62: { maleNS: 51.53, maleSm: 72.49, femaleNS: 36.92, femaleSm: 52.33 },
+  63: { maleNS: 53.95, maleSm: 76.13, femaleNS: 38.78, femaleSm: 54.9 },
+  64: { maleNS: 56.6, maleSm: 81.34, femaleNS: 40.63, femaleSm: 57.48 },
+  65: { maleNS: 59.86, maleSm: 86.1, femaleNS: 42.48, femaleSm: 60.06 },
+  66: { maleNS: 63.65, maleSm: 92.38, femaleNS: 45.21, femaleSm: 64.06 },
+  67: { maleNS: 67.39, maleSm: 98.68, femaleNS: 47.93, femaleSm: 67.86 },
+  68: { maleNS: 71.5, maleSm: 104.97, femaleNS: 50.66, femaleSm: 71.9 },
+  69: { maleNS: 75.94, maleSm: 110.4, femaleNS: 53.49, femaleSm: 75.56 },
+  70: { maleNS: 80.23, maleSm: 117.03, femaleNS: 56.22, femaleSm: 80.08 },
+  71: { maleNS: 84.95, maleSm: 125.62, femaleNS: 59.55, femaleSm: 85.19 },
+  72: { maleNS: 90.77, maleSm: 132.83, femaleNS: 62.08, femaleSm: 91.53 },
+  73: { maleNS: 96.92, maleSm: 142.57, femaleNS: 67.8, femaleSm: 96.99 },
+  74: { maleNS: 102.99, maleSm: 150.16, femaleNS: 72.56, femaleSm: 102.99 },
+  75: { maleNS: 108.73, maleSm: 159.26, femaleNS: 77.76, femaleSm: 108.71 },
+  76: { maleNS: 116.67, maleSm: 176.22, femaleNS: 84.32, femaleSm: 119.01 },
+  77: { maleNS: 124.64, maleSm: 191.87, femaleNS: 90.23, femaleSm: 128.46 },
+  78: { maleNS: 133.63, maleSm: 205.46, femaleNS: 95.77, femaleSm: 138.54 },
+  79: { maleNS: 141.93, maleSm: 217.08, femaleNS: 101.36, femaleSm: 147.19 },
+  80: { maleNS: 153.4, maleSm: 228.16, femaleNS: 107, femaleSm: 148.24 },
+  81: { maleNS: 164.88, maleSm: 242.26, femaleNS: 115.74, femaleSm: 161.61 },
+  82: { maleNS: 176.36, maleSm: 264.29, femaleNS: 124.44, femaleSm: 176.8 },
+  83: { maleNS: 188.56, maleSm: 282.36, femaleNS: 132.7, femaleSm: 188.27 },
+  84: { maleNS: 200.76, maleSm: 298.41, femaleNS: 140.84, femaleSm: 198.17 },
+  85: { maleNS: 212.96, maleSm: 314.31, femaleNS: 149.1, femaleSm: 212.52 },
+};
+
+// Mutual of Omaha Graded Rates (ages 45-80, tobacco differentiated but same values)
+const MUTUAL_OF_OMAHA_GRADED_RATES = {
+  45: { maleNS: 37.89, maleSm: 37.89, femaleNS: 28.56, femaleSm: 28.56 },
+  46: { maleNS: 38.9, maleSm: 38.9, femaleNS: 28.9, femaleSm: 28.9 },
+  47: { maleNS: 39.8, maleSm: 39.8, femaleNS: 29.13, femaleSm: 29.13 },
+  48: { maleNS: 41.37, maleSm: 41.37, femaleNS: 30.25, femaleSm: 30.25 },
+  49: { maleNS: 42.38, maleSm: 42.38, femaleNS: 30.7, femaleSm: 30.7 },
+  50: { maleNS: 43.5, maleSm: 43.5, femaleNS: 31.26, femaleSm: 31.26 },
+  51: { maleNS: 44.51, maleSm: 44.51, femaleNS: 32.83, femaleSm: 32.83 },
+  52: { maleNS: 46.65, maleSm: 46.65, femaleNS: 33.96, femaleSm: 33.96 },
+  53: { maleNS: 48.78, maleSm: 48.78, femaleNS: 35.53, femaleSm: 35.53 },
+  54: { maleNS: 49.9, maleSm: 49.9, femaleNS: 37.1, femaleSm: 37.1 },
+  55: { maleNS: 51.48, maleSm: 51.48, femaleNS: 39.23, femaleSm: 39.23 },
+  56: { maleNS: 51.93, maleSm: 51.93, femaleNS: 40.81, femaleSm: 40.81 },
+  57: { maleNS: 54.06, maleSm: 54.06, femaleNS: 42.94, femaleSm: 42.94 },
+  58: { maleNS: 55.18, maleSm: 55.18, femaleNS: 45.07, femaleSm: 45.07 },
+  59: { maleNS: 57.32, maleSm: 57.32, femaleNS: 46.65, femaleSm: 46.65 },
+  60: { maleNS: 59.45, maleSm: 59.45, femaleNS: 48.78, femaleSm: 48.78 },
+  61: { maleNS: 62.6, maleSm: 62.6, femaleNS: 50.35, femaleSm: 50.35 },
+  62: { maleNS: 64.73, maleSm: 64.73, femaleNS: 53.05, femaleSm: 53.05 },
+  63: { maleNS: 66.86, maleSm: 66.86, femaleNS: 54.62, femaleSm: 54.62 },
+  64: { maleNS: 69, maleSm: 69, femaleNS: 56.19, femaleSm: 56.19 },
+  65: { maleNS: 71.58, maleSm: 71.58, femaleNS: 57.77, femaleSm: 57.77 },
+  66: { maleNS: 75.29, maleSm: 75.29, femaleNS: 60.46, femaleSm: 60.46 },
+  67: { maleNS: 80.68, maleSm: 80.68, femaleNS: 63.16, femaleSm: 63.16 },
+  68: { maleNS: 85.96, maleSm: 85.96, femaleNS: 67.87, femaleSm: 67.87 },
+  69: { maleNS: 89.55, maleSm: 89.55, femaleNS: 71.58, femaleSm: 71.58 },
+  70: { maleNS: 93.03, maleSm: 93.03, femaleNS: 75.29, femaleSm: 75.29 },
+  71: { maleNS: 96.96, maleSm: 96.96, femaleNS: 81.13, femaleSm: 81.13 },
+  72: { maleNS: 101.23, maleSm: 101.23, femaleNS: 87.53, femaleSm: 87.53 },
+  73: { maleNS: 105.72, maleSm: 105.72, femaleNS: 93.37, femaleSm: 93.37 },
+  74: { maleNS: 113.47, maleSm: 113.47, femaleNS: 97.64, femaleSm: 97.64 },
+  75: { maleNS: 121.11, maleSm: 121.11, femaleNS: 104.6, femaleSm: 104.6 },
+  76: { maleNS: 128.75, maleSm: 128.75, femaleNS: 111.68, femaleSm: 111.68 },
+  77: { maleNS: 136.5, maleSm: 136.5, femaleNS: 118.64, femaleSm: 118.64 },
+  78: { maleNS: 144.14, maleSm: 144.14, femaleNS: 123.25, femaleSm: 123.25 },
+  79: { maleNS: 151.77, maleSm: 151.77, femaleNS: 127.74, femaleSm: 127.74 },
+  80: { maleNS: 159.52, maleSm: 159.52, femaleNS: 132.23, femaleSm: 132.23 },
+};
+
+const calculateMonthlyPremium = (
+  carrier,
+  age,
+  gender,
+  tobacco,
+  faceAmount,
+  planType = "Level"
+) => {
   const config = CARRIER_CONFIG[carrier];
   if (!config) return null;
 
@@ -817,8 +1568,12 @@ const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmount, plan
   const getRateWithTobacco = (table) => {
     if (!table) return null;
     return isMale
-      ? isSmoker ? table.maleSm : table.maleNS
-      : isSmoker ? table.femaleSm : table.femaleNS;
+      ? isSmoker
+        ? table.maleSm
+        : table.maleNS
+      : isSmoker
+      ? table.femaleSm
+      : table.femaleNS;
   };
 
   // Helper function to get rate from table without tobacco (male/female only)
@@ -897,6 +1652,48 @@ const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmount, plan
       return genderRates[closestAmount];
     }
 
+    case "AHL":
+      if (planType === "Graded") {
+        rateTable = AHL_GRADED_RATES[age];
+      } else {
+        rateTable = AHL_RATES[age];
+      }
+      rate = getRateWithTobacco(rateTable);
+      break;
+
+    case "Royal Neighbors":
+      if (planType === "Graded") {
+        rateTable = ROYAL_NEIGHBORS_GRADED_RATES[age];
+      } else {
+        rateTable = ROYAL_NEIGHBORS_RATES[age];
+      }
+      rate = getRateWithTobacco(rateTable);
+      break;
+
+    case "Gerber":
+      rateTable = GERBER_GI_RATES[age];
+      rate = getRateNoTobacco(rateTable);
+      break;
+
+    case "Mutual of Omaha": {
+      if (planType === "Graded") {
+        rateTable = MUTUAL_OF_OMAHA_GRADED_RATES[age];
+        if (!rateTable) return null;
+        rate = getRateWithTobacco(rateTable);
+        if (!rate) return null;
+        // Graded plan uses different fee (12 instead of 36)
+        const units = faceAmount / 1000;
+        const annualBase = rate * units;
+        const totalAnnual = annualBase + 12; // Special graded fee
+        const withFactor = totalAnnual + totalAnnual * 0.089;
+        return Math.round((withFactor / 12) * 100) / 100;
+      } else {
+        rateTable = MUTUAL_OF_OMAHA_RATES[age];
+        rate = getRateWithTobacco(rateTable);
+      }
+      break;
+    }
+
     default:
       return null;
   }
@@ -912,7 +1709,6 @@ const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmount, plan
 
   return Math.round(monthlyPremium * 100) / 100;
 };
-
 
 // ═══════════════════════════════════════════════════════════════════
 // DESIGN SYSTEM COMPONENTS
@@ -1153,11 +1949,11 @@ const StepIndicator = ({ currentStep, totalSteps, labels = [] }) => (
 // Carrier Logo Component
 const CarrierLogo = ({ carrier, size = "md", className = "" }) => {
   const sizeClasses = {
-    xs: "h-6 max-w-[70px]",
-    sm: "h-8 max-w-[100px]",
-    md: "h-10 max-w-[120px]",
-    lg: "h-12 max-w-[140px]",
-    xl: "h-16 max-w-[180px]",
+    xs: "h-8 max-w-[100px]",
+    sm: "h-12 max-w-[140px]",
+    md: "h-14 max-w-[160px]",
+    lg: "h-16 max-w-[200px]",
+    xl: "h-20 max-w-[240px]",
   };
 
   const logoSrc = CARRIER_LOGOS[carrier];
@@ -1329,6 +2125,8 @@ const Login = ({ onLogin }) => {
 const CustomerForm = ({ onComplete }) => {
   const [step, setStep] = useState(1);
   const [data, setData] = useState(INITIAL_DATA);
+  const [sortMethod, setSortMethod] = useState("lowest");
+  const [filterPlanType, setFilterPlanType] = useState("All");
   const totalSteps = 8;
 
   const update = (field, val) => setData((prev) => ({ ...prev, [field]: val }));
@@ -1523,7 +2321,7 @@ const CustomerForm = ({ onComplete }) => {
   // Step 2: Policy & Premium Configuration
   const renderPolicySelect = () => {
     const age = parseInt(data.age);
-    
+
     // Calculate quotes using default/first plan type for each carrier (for comparison grid)
     const carrierQuotes =
       age && data.gender
@@ -1584,94 +2382,138 @@ const CustomerForm = ({ onComplete }) => {
               data.faceAmount,
               CARRIERS["American Amicable"][0] // Level
             ),
+            AHL: calculateMonthlyPremium(
+              "AHL",
+              age,
+              data.gender,
+              data.tobacco,
+              data.faceAmount,
+              CARRIERS["AHL"][0] // Level
+            ),
+            "Royal Neighbors": calculateMonthlyPremium(
+              "Royal Neighbors",
+              age,
+              data.gender,
+              data.tobacco,
+              data.faceAmount,
+              CARRIERS["Royal Neighbors"][0] // Level
+            ),
+            Gerber: calculateMonthlyPremium(
+              "Gerber",
+              age,
+              data.gender,
+              data.tobacco,
+              data.faceAmount,
+              CARRIERS["Gerber"][0] // Guaranteed Issue
+            ),
+            "Mutual of Omaha": calculateMonthlyPremium(
+              "Mutual of Omaha",
+              age,
+              data.gender,
+              data.tobacco,
+              data.faceAmount,
+              CARRIERS["Mutual of Omaha"][0] // Level
+            ),
           }
         : {};
 
     // Calculate quote for selected carrier + plan type
-    const selectedCarrierQuote = (data.carrier && age && data.gender)
-      ? calculateMonthlyPremium(
-          data.carrier,
-          age,
-          data.gender,
-          data.tobacco,
-          data.faceAmount,
-          data.planType || CARRIERS[data.carrier][0]
-        )
-      : null;
+    const selectedCarrierQuote =
+      data.carrier && age && data.gender
+        ? calculateMonthlyPremium(
+            data.carrier,
+            age,
+            data.gender,
+            data.tobacco,
+            data.faceAmount,
+            data.planType || CARRIERS[data.carrier][0]
+          )
+        : null;
 
     return (
       <div className="animate-slide-up">
-        <SectionTitle
-          icon={FileText}
-          title="Configure Your Policy"
-          subtitle="Set your coverage amount and view quotes"
-        />
-
-        {/* Customer Info Bar */}
-        <div className="card-dark p-3 mb-3">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            <Input
-              type="date"
-              label="Date of Birth"
-              value={data.dob}
-              onChange={handleDobChange}
-              required
-              dark
-            />
-            <div>
-              <label className="label-dark">Age</label>
-              <div className="mt-1 p-2 bg-slate-700/50 border border-slate-600 rounded-lg font-bold text-center text-lg text-white">
-                {data.age || "-"}
+        {/* Clean Policy Control Bar */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 p-1">
+          <div className="flex flex-wrap lg:flex-nowrap items-center divide-x divide-slate-100">
+            
+            {/* 1. Date of Birth Section */}
+            <div className="px-4 py-2 flex-shrink-0 flex items-center gap-3">
+              <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                <Calendar size={18} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">Birth Date</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={data.dob}
+                    onChange={handleDobChange}
+                    className="border-none p-0 text-sm font-semibold text-slate-700 focus:ring-0 w-32 font-mono"
+                  />
+                  {data.age && (
+                    <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-md">
+                      {data.age} yrs
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-            <div>
-              <label className="label-dark">Gender</label>
-              <div className="flex gap-2 mt-1">
-                {["Male", "Female"].map((g) => (
+
+            {/* 2. Gender Selection */}
+            <div className="px-4 py-2 flex-shrink-0">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Gender</label>
+              <div className="flex gap-1">
+                 {["Male", "Female"].map((g) => (
                   <button
                     key={g}
                     onClick={() => update("gender", g)}
-                    className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all border ${
                       data.gender === g
-                        ? "bg-cyan-500 text-white shadow-lg glow-cyan"
-                        : "bg-slate-700/50 text-slate-300 hover:bg-slate-600"
+                        ? "bg-slate-800 text-white border-slate-800 shadow-sm"
+                        : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    {g[0]}
+                    {g}
                   </button>
                 ))}
               </div>
             </div>
-            <div>
-              <label className="label-dark">Tobacco Use</label>
-              <div className="flex gap-2 mt-1">
-                {[
-                  { val: true, label: "Yes" },
-                  { val: false, label: "No" },
-                ].map(({ val, label }) => (
-                  <button
-                    key={label}
-                    onClick={() => update("tobacco", val)}
-                    className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
-                      data.tobacco === val
-                        ? val
-                          ? "bg-amber-500 text-white"
-                          : "bg-emerald-500 text-white"
-                        : "bg-slate-700/50 text-slate-300 hover:bg-slate-600"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+
+            {/* 3. Tobacco Selection */}
+            <div className="px-4 py-2 flex-shrink-0">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Tobacco</label>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => update("tobacco", false)}
+                  className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all border ${
+                    !data.tobacco
+                       ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                      : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => update("tobacco", true)}
+                  className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all border ${
+                    data.tobacco
+                      ? "bg-slate-800 text-white border-slate-800 shadow-sm"
+                      : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  Yes
+                </button>
               </div>
             </div>
-            <div>
-              <label className="label-dark">
-                Coverage:{" "}
-                <span className="text-cyan-400 font-bold">
+
+            {/* 4. Coverage Slider */}
+            <div className="px-6 py-2 flex-grow min-w-[300px]">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Coverage Amount</label>
+                <span className="text-lg font-bold text-slate-800 tracking-tight">
                   ${data.faceAmount.toLocaleString()}
                 </span>
-              </label>
+              </div>
               <input
                 type="range"
                 min="5000"
@@ -1679,130 +2521,257 @@ const CustomerForm = ({ onComplete }) => {
                 step="1000"
                 value={data.faceAmount}
                 onChange={(e) => update("faceAmount", parseInt(e.target.value))}
-                className="w-full mt-2 h-2 bg-slate-700 rounded-full appearance-none cursor-pointer accent-cyan-500"
+                className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-slate-800 hover:accent-cyan-600 transition-colors"
               />
             </div>
           </div>
         </div>
 
-        {/* Policy Type Selection */}
-        <div className="mb-3">
-          <label className="label mb-2 block">Select Policy Type</label>
-          <div className="flex flex-wrap gap-2">
-            {data.carrier &&
-              CARRIERS[data.carrier].map((policy) => {
-                // Calculate quote for this specific plan type
-                const planQuote = age && data.gender
-                  ? calculateMonthlyPremium(
-                      data.carrier,
-                      age,
-                      data.gender,
-                      data.tobacco,
-                      data.faceAmount,
-                      policy
-                    )
-                  : null;
-                
-                return (
-                  <button
-                    key={policy}
-                    onClick={() => {
-                      update("planType", policy);
-                      if (planQuote) {
-                        update("monthlyPremium", planQuote.toFixed(2));
-                      }
-                    }}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-all flex flex-col items-center ${
-                      data.planType === policy
-                        ? "bg-cyan-500 text-white shadow-lg glow-cyan scale-105"
-                        : "bg-white border-2 border-slate-200 text-slate-600 hover:border-cyan-300"
-                    }`}
-                  >
-                    <span>{policy}</span>
-                    {planQuote && (
-                      <span className={`text-xs mt-1 ${data.planType === policy ? "text-cyan-100" : "text-cyan-600 font-bold"}`}>
-                        ${planQuote.toFixed(2)}/mo
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-          </div>
-        </div>
-
-
-        {/* Premium Display */}
-        {selectedCarrierQuote && (
-          <div className="bg-gradient-to-br from-emerald-50 to-cyan-50 rounded-xl p-4 border border-emerald-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
-                  Estimated Monthly Premium
-                </p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-emerald-700">
-                    ${data.monthlyPremium || selectedCarrierQuote.toFixed(2)}
-                  </span>
-                  <span className="text-emerald-600 font-medium">/month</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <CarrierLogo carrier={data.carrier} size="lg" />
-                <p className="text-sm text-emerald-600 mt-2">
-                  {data.planType || "Select a plan"}
-                </p>
+        {/* Policy Type + Premium Display - Combined Row */}
+        {data.carrier && (
+          <div className="mb-3 flex flex-wrap gap-3 items-stretch">
+            {/* Policy Type Selection */}
+            <div className="flex-1 min-w-[200px]">
+              <label className="label mb-1 block text-sm">Policy Type</label>
+              <div className="flex gap-2">
+                {CARRIERS[data.carrier].map((policy) => {
+                  const planQuote =
+                    age && data.gender
+                      ? calculateMonthlyPremium(
+                          data.carrier,
+                          age,
+                          data.gender,
+                          data.tobacco,
+                          data.faceAmount,
+                          policy
+                        )
+                      : null;
+                  return (
+                    <button
+                      key={policy}
+                      onClick={() => {
+                        update("planType", policy);
+                        if (planQuote) {
+                          update("monthlyPremium", planQuote.toFixed(2));
+                        }
+                      }}
+                      className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all flex flex-col items-center ${
+                        data.planType === policy
+                          ? "bg-cyan-500 text-white shadow-lg glow-cyan"
+                          : "bg-white border-2 border-slate-200 text-slate-600 hover:border-cyan-300"
+                      }`}
+                    >
+                      <span>{policy}</span>
+                      {planQuote && (
+                        <span
+                          className={`text-xs ${
+                            data.planType === policy
+                              ? "text-cyan-100"
+                              : "text-cyan-600 font-bold"
+                          }`}
+                        >
+                          ${planQuote.toFixed(2)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Premium Display - Compact */}
+            {selectedCarrierQuote && (
+              <div className="bg-gradient-to-br from-emerald-50 to-cyan-50 rounded-xl px-4 py-2 border border-emerald-200 flex items-center gap-4">
+                <div>
+                  <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">
+                    Monthly Premium
+                  </p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-emerald-700">
+                      ${data.monthlyPremium || selectedCarrierQuote.toFixed(2)}
+                    </span>
+                    <span className="text-emerald-600 text-sm">/mo</span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <CarrierLogo carrier={data.carrier} size="sm" />
+                  <p className="text-xs text-emerald-600 mt-1">
+                    {data.planType || "Select plan"}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Carrier Quote Comparison */}
+        {/* Carrier Quote Comparison - Professional Grid */}
         {data.age && data.gender && (
-          <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={20} className="text-cyan-600" />
-              <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                Compare All Carriers
-              </span>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
-              {Object.keys(CARRIERS).map((carrier) => {
-                const quote = carrierQuotes[carrier];
-                const isSelected = data.carrier === carrier;
-                return (
-                  <button
-                    key={carrier}
-                    onClick={() => {
-                      update("carrier", carrier);
-                      update("planType", "");
-                      if (quote) update("monthlyPremium", quote.toFixed(2));
-                    }}
-                    disabled={!quote}
-                    className={`relative p-2 rounded-lg border-2 text-center transition-all group ${
-                      isSelected
-                        ? "border-cyan-500 bg-cyan-50 shadow-md"
-                        : quote
-                        ? "border-slate-200 bg-white hover:border-cyan-300 hover:shadow-md"
-                        : "border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed"
-                    }`}
+          <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Header & Controls */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={18} className="text-cyan-400" />
+                  <span className="text-sm font-semibold text-white">
+                    Compare Rates
+                  </span>
+                </div>
+
+                {/* Sort & Filter Controls */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Plan Filter */}
+                  <select
+                    value={filterPlanType}
+                    onChange={(e) => setFilterPlanType(e.target.value)}
+                    className="bg-slate-700 text-white text-xs font-medium border-none rounded-lg py-1.5 pl-2 pr-6 focus:ring-1 focus:ring-cyan-500"
                   >
-                    <div className="h-6 flex items-center justify-center mb-1">
-                      <CarrierLogo carrier={carrier} size="xs" />
-                    </div>
-                    {quote ? (
-                      <p
-                        className={`text-lg font-bold ${
-                          isSelected ? "text-cyan-700" : "text-slate-700"
+                    <option value="All">All Plans</option>
+                    <option value="Level">Level</option>
+                    <option value="Graded">Graded</option>
+                    <option value="Modified">Modified</option>
+                    <option value="Guaranteed Issue">Guaranteed Issue</option>
+                  </select>
+
+                  {/* Sort Control */}
+                  <div className="flex bg-slate-900/50 p-0.5 rounded-lg border border-slate-600/50">
+                    <button
+                      onClick={() => setSortMethod("lowest")}
+                      className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${
+                        sortMethod === "lowest"
+                          ? "bg-cyan-600 text-white shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                      title="Lowest Price"
+                    >
+                      Lowest
+                    </button>
+                    <button
+                      onClick={() => setSortMethod("highest")}
+                      className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${
+                        sortMethod === "highest"
+                          ? "bg-cyan-600 text-white shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                      title="Highest Price"
+                    >
+                      Highest
+                    </button>
+                    <button
+                      onClick={() => setSortMethod("alpha")}
+                      className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${
+                        sortMethod === "alpha"
+                          ? "bg-cyan-600 text-white shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                      title="Alphabetical"
+                    >
+                      A-Z
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Carrier Grid - Premium 2-Row Layout */}
+            <div className="p-4 bg-slate-50/50">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {Object.keys(CARRIERS)
+                  .filter((carrier) => {
+                    // Filter logic
+                    if (filterPlanType === "All") return true;
+                    return CARRIERS[carrier].includes(filterPlanType);
+                  })
+                  .sort((a, b) => {
+                    // Sort logic
+                    if (sortMethod === "alpha") return a.localeCompare(b);
+                    
+                    const quoteA = carrierQuotes[a] || (sortMethod === "lowest" ? 999999 : -1);
+                    const quoteB = carrierQuotes[b] || (sortMethod === "lowest" ? 999999 : -1);
+                    
+                    if (sortMethod === "lowest") return quoteA - quoteB;
+                    if (sortMethod === "highest") return quoteB - quoteA;
+                    return 0;
+                  })
+                  .map((carrier) => {
+                    // Determine which plan type to use for the quote
+                    // If filtering by specific plan, use that plan. Otherwise use default logic or current selection.
+                    let displayQuote = carrierQuotes[carrier];
+                    
+                    // Re-calculate if a specific filter is applied, to show THAT plan's price
+                    if (filterPlanType !== "All" && CARRIERS[carrier].includes(filterPlanType)) {
+                        const calculated = calculateMonthlyPremium(
+                            carrier, 
+                            age, 
+                            data.gender, 
+                            data.tobacco, 
+                            data.faceAmount, 
+                            filterPlanType
+                        );
+                        if (calculated) displayQuote = calculated;
+                    }
+
+                    const isSelected = data.carrier === carrier;
+                    const isLowest = displayQuote && Object.keys(CARRIERS).every(c => {
+                         const cQuote = carrierQuotes[c]; // This comparison logic for "lowest badge" is simplified
+                         return !cQuote || displayQuote <= cQuote;
+                    });
+                  
+                    return (
+                      <button
+                        key={carrier}
+                        onClick={() => {
+                          update("carrier", carrier);
+                          // If filtering, auto-select that plan type
+                          update("planType", filterPlanType !== "All" ? filterPlanType : "");
+                          if (displayQuote) update("monthlyPremium", displayQuote.toFixed(2));
+                        }}
+                        disabled={!displayQuote}
+                        className={`relative group flex flex-col items-center justify-between p-2 h-24 rounded-xl transition-all duration-200 ${
+                          isSelected
+                            ? "bg-cyan-50 border-2 border-cyan-500 shadow-sm z-10"
+                            : displayQuote
+                            ? "bg-white border border-slate-200 hover:border-cyan-300 hover:shadow-md hover:-translate-y-0.5"
+                            : "bg-slate-50 border border-slate-100 opacity-40 grayscale cursor-not-allowed"
                         }`}
                       >
-                        ${quote.toFixed(0)}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-slate-400">N/A</p>
-                    )}
-                  </button>
-                );
-              })}
+                         {/* Selected Checkmark */}
+                        {isSelected && (
+                        <div className="absolute top-1 right-1 text-cyan-500">
+                          <CheckCircle size={14} fill="currentColor" className="text-white" />
+                        </div>
+                        )}
+
+                        {/* Lowest Price Badge - Only show if sorting by lowest or default */}
+                        {sortMethod === "lowest" && isLowest && !isSelected && (
+                          <div className="absolute -top-1.5 -right-1 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-px rounded-full shadow-sm z-20">
+                            BEST
+                          </div>
+                        )}
+                        
+                        {/* Logo Container - No Inversion */}
+                        <div className="flex-1 flex items-center justify-center w-full px-1">
+                          <CarrierLogo carrier={carrier} size="md" />
+                        </div>
+                        
+                        {/* Price Tag - Smaller Font */}
+                        {displayQuote ? (
+                          <div className="w-full text-center mt-1 pt-1 border-t border-slate-100">
+                            <div className="flex items-baseline justify-center gap-0.5">
+                              <span className="text-[10px] text-slate-400 font-medium">$</span>
+                              <span className={`text-base font-bold tracking-tight ${isSelected ? "text-cyan-700" : "text-slate-700"}`}>
+                                {displayQuote.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full text-center mt-auto">
+                            <span className="text-[10px] text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded-full">N/A</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+              </div>
             </div>
           </div>
         )}
@@ -1965,7 +2934,9 @@ const CustomerForm = ({ onComplete }) => {
               <Heart size={16} className="text-white" fill="currentColor" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-sm">Primary Beneficiary</h3>
+              <h3 className="font-bold text-slate-800 text-sm">
+                Primary Beneficiary
+              </h3>
               <p className="text-xs text-slate-500">Required</p>
             </div>
           </div>
@@ -2174,7 +3145,9 @@ const CustomerForm = ({ onComplete }) => {
             <h2 className="text-2xl font-bold">
               {data.planType || "Not Selected"}
             </h2>
-            <p className="text-slate-400 text-sm mt-1">Based on your health profile</p>
+            <p className="text-slate-400 text-sm mt-1">
+              Based on your health profile
+            </p>
           </div>
           <div className="text-right">
             <p className="text-slate-400 text-sm">Coverage Amount</p>
@@ -2267,7 +3240,9 @@ const CustomerForm = ({ onComplete }) => {
       </div>
 
       <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-        <h3 className="font-bold text-slate-700 mb-3 text-sm">Draft Schedule</h3>
+        <h3 className="font-bold text-slate-700 mb-3 text-sm">
+          Draft Schedule
+        </h3>
         <YesNo
           label="Would you like your draft to coincide with your Social Security payment schedule?"
           value={data.draftSchedule === "ss_payment"}
