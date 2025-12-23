@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-Closed Application Guide | AmerBen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+            --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-400: #60a5fa;
+            --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+            --emerald-50: #ecfdf5; --emerald-100: #d1fae5; --emerald-500: #10b981;
+            --emerald-600: #059669; --emerald-700: #047857;
+            --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-500: #f59e0b;
+            --amber-700: #b45309;
+            --red-50: #fef2f2; --red-100: #fee2e2; --red-500: #ef4444;
+            --red-600: #dc2626; --red-700: #b91c1c;
+        }
+        
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--slate-50);
+            color: var(--slate-900);
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .app { display: flex; height: 100vh; width: 100%; overflow: hidden; }
+        
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px;
+            background: white;
+            border-right: 1px solid var(--slate-200);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+        }
+        .sidebar-header {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            background: var(--slate-900);
+            color: white;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .sidebar-header svg { color: var(--blue-400); }
+        .sidebar-header span { font-weight: 700; font-size: 14px; letter-spacing: -0.3px; }
+        
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 12px 8px; }
+        .sidebar-section-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--slate-400); padding: 8px 8px 4px; margin-top: 8px;
+        }
+        .sidebar-section-title:first-child { margin-top: 0; }
+        
+        .phase-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 8px; border-radius: 6px; font-size: 12px;
+            font-weight: 500; color: var(--slate-400); transition: all 0.15s;
+            cursor: pointer;
+        }
+        .phase-item:hover { background: var(--slate-50); }
+        .phase-item.active { background: var(--blue-50); color: var(--blue-700); }
+        .phase-item.completed { color: var(--emerald-600); }
+        .phase-item svg { width: 12px; height: 12px; }
+        
+        .quick-handle {
+            width: 100%; text-align: left;
+            padding: 8px; margin-bottom: 4px;
+            background: var(--slate-50); border: 1px solid var(--slate-200);
+            border-radius: 6px; font-size: 11px; font-weight: 600;
+            color: var(--slate-600); cursor: pointer; transition: all 0.15s;
+        }
+        .quick-handle:hover { background: var(--slate-100); border-color: var(--slate-300); }
+        
+        .sidebar-footer {
+            padding: 8px; border-top: 1px solid var(--slate-100);
+            background: var(--slate-50); flex-shrink: 0;
+        }
+        .reset-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 8px; background: transparent; border: none;
+            font-size: 10px; font-weight: 700; color: var(--slate-400);
+            cursor: pointer; transition: color 0.15s;
+        }
+        .reset-btn:hover { color: var(--slate-600); }
+        .reset-btn svg { width: 12px; height: 12px; }
+        
+        /* MAIN CONTENT */
+        .main { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
+        
+        .main-header {
+            height: 48px; background: white; border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; flex-shrink: 0;
+        }
+        .main-header h2 { font-size: 16px; font-weight: 700; color: var(--slate-800); }
+        .progress-info { display: flex; align-items: center; gap: 12px; }
+        .step-counter { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; }
+        .progress-bar { width: 80px; height: 4px; background: var(--slate-100); border-radius: 999px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--blue-600); transition: width 0.5s; }
+        
+        .content-area {
+            flex: 1; overflow-y: auto; padding: 16px;
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .content-area::-webkit-scrollbar { display: none; }
+        .content-wrapper { max-width: 800px; margin: 0 auto; }
+        
+        .main-footer {
+            height: 56px; background: white; border-top: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; flex-shrink: 0;
+        }
+        
+        .nav-btn {
+            display: flex; align-items: center; gap: 4px;
+            padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+            border: none; cursor: pointer; transition: all 0.15s;
+        }
+        .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .nav-btn.secondary { background: transparent; color: var(--slate-600); }
+        .nav-btn.secondary:hover:not(:disabled) { background: var(--slate-100); }
+        .nav-btn.primary {
+            background: var(--blue-600); color: white;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+        }
+        .nav-btn.primary:hover:not(:disabled) { background: var(--blue-700); transform: translateY(-1px); }
+        .nav-btn.success { background: var(--emerald-600); color: white; }
+        .nav-btn.success:hover { background: var(--emerald-700); }
+        .nav-btn svg { width: 16px; height: 16px; }
+        
+        /* SCREEN CONTENT */
+        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* CARDS */
+        .script-card {
+            background: white; border-radius: 8px; padding: 12px;
+            margin-bottom: 12px; position: relative; border: 1px solid var(--slate-200);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .script-card.warning { border-left: 4px solid var(--amber-500); background: var(--amber-50); }
+        .script-card.success { border-left: 4px solid var(--emerald-500); background: var(--emerald-50); }
+        .script-card.critical { border-left: 4px solid var(--red-600); background: var(--red-50); }
+        
+        .script-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .script-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--slate-500);
+        }
+        .script-card.warning .script-title { color: var(--amber-700); }
+        .script-card.critical .script-title { color: var(--red-700); }
+        
+        .copy-btn {
+            display: flex; align-items: center; gap: 4px;
+            padding: 4px 8px; background: transparent; border: none;
+            font-size: 10px; color: var(--slate-400); cursor: pointer;
+            border-radius: 4px; transition: all 0.15s;
+        }
+        .copy-btn:hover { background: var(--slate-100); color: var(--blue-600); }
+        .copy-btn.copied { color: var(--emerald-600); }
+        .copy-btn svg { width: 12px; height: 12px; }
+        
+        .script-text { font-size: 15px; line-height: 1.6; color: var(--slate-800); font-weight: 500; }
+        .script-text em { color: var(--slate-400); font-style: italic; font-size: 13px; }
+        .script-text strong { color: var(--slate-900); }
+        
+        .section-title { font-size: 18px; font-weight: 700; color: var(--slate-800); margin-bottom: 12px; }
+        
+        /* CHECKLIST */
+        .checklist { display: flex; flex-direction: column; gap: 6px; }
+        .check-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 10px; background: var(--slate-50); border: 1px solid var(--slate-200);
+            border-radius: 8px; cursor: pointer; transition: all 0.15s;
+        }
+        .check-item:hover { border-color: var(--blue-300); }
+        .check-item.checked { background: var(--blue-50); border-color: var(--blue-200); }
+        .check-item input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--blue-600); }
+        .check-item span { font-size: 14px; font-weight: 500; color: var(--slate-800); line-height: 1.4; }
+        
+        /* ALERT */
+        .alert {
+            display: flex; gap: 12px; padding: 12px;
+            border-radius: 8px; margin-bottom: 12px;
+        }
+        .alert-icon {
+            width: 20px; height: 20px; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; flex-shrink: 0;
+        }
+        .alert.danger { background: var(--red-50); border: 1px solid var(--red-100); }
+        .alert.danger .alert-icon { background: var(--red-500); color: white; }
+        .alert.danger .alert-title { color: var(--red-700); }
+        .alert.success { background: var(--emerald-50); border: 1px solid var(--emerald-100); }
+        .alert.success .alert-icon { background: var(--emerald-500); color: white; }
+        .alert.info { background: var(--blue-50); border: 1px solid var(--blue-100); }
+        .alert.info .alert-icon { background: var(--blue-500); color: white; }
+        .alert.warning { background: var(--amber-50); border: 1px solid var(--amber-100); }
+        .alert.warning .alert-icon { background: var(--amber-500); color: white; }
+        .alert-content { flex: 1; }
+        .alert-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+        .alert-text { font-size: 13px; color: var(--slate-600); line-height: 1.5; }
+        
+        /* SETUP SCREEN */
+        .setup-screen {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 60vh; text-align: center;
+        }
+        .setup-screen h1 { font-size: 24px; font-weight: 700; color: var(--slate-800); margin-bottom: 8px; }
+        .setup-screen p { font-size: 14px; color: var(--slate-500); margin-bottom: 24px; max-width: 400px; }
+        
+        .start-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 16px 32px; background: var(--blue-600); color: white;
+            border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        .start-btn:hover { background: var(--blue-700); transform: translateY(-2px); }
+        
+        .key-point {
+            background: linear-gradient(135deg, var(--slate-100), var(--slate-50));
+            border: 1px solid var(--slate-200); border-radius: 12px;
+            padding: 20px; text-align: center; margin: 16px 0;
+        }
+        .key-point-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--amber-600); margin-bottom: 8px;
+        }
+        .key-point-text { font-size: 16px; font-weight: 600; color: var(--slate-800); line-height: 1.5; }
+        
+        /* QUICK REF GRID */
+        .ref-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; }
+        .ref-card {
+            background: white; border: 1px solid var(--slate-200);
+            border-radius: 8px; padding: 12px; border-top: 3px solid var(--blue-500);
+        }
+        .ref-card.warning { border-top-color: var(--amber-500); }
+        .ref-card-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--slate-500); margin-bottom: 8px; }
+        .ref-card p { font-size: 13px; color: var(--slate-600); margin-bottom: 4px; }
+        
+        /* OBJECTION OVERLAY */
+        .overlay {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 320px;
+            background: white; box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+            border-left: 1px solid var(--slate-200); z-index: 100;
+            display: none; flex-direction: column; animation: slideIn 0.2s ease;
+        }
+        .overlay.active { display: flex; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        
+        .overlay-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px; border-bottom: 1px solid var(--slate-100);
+        }
+        .overlay-header h3 { font-size: 16px; font-weight: 700; }
+        .close-btn { background: none; border: none; cursor: pointer; color: var(--slate-400); padding: 4px; }
+        .close-btn:hover { color: var(--slate-600); }
+        
+        .overlay-content { flex: 1; padding: 16px; overflow-y: auto; }
+        .objection-label {
+            padding: 12px; background: var(--amber-50); border: 1px solid var(--amber-100);
+            border-radius: 8px; margin-bottom: 12px;
+        }
+        .objection-label-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--amber-700); margin-bottom: 4px; }
+        .objection-label-text { font-size: 14px; font-weight: 600; color: var(--slate-800); }
+        
+        .response-box {
+            background: var(--slate-900); border-radius: 8px; padding: 16px;
+        }
+        .response-box-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .response-box-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--blue-400); }
+        .response-box p { font-size: 14px; color: var(--slate-100); line-height: 1.6; }
+        
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .ref-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>AmerBen PRE-CLOSE</span>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="sidebar-section-title">Application Progress</div>
+                <div id="phaseList"></div>
+                
+                <div class="sidebar-section-title">Quick Handles</div>
+                <button class="quick-handle" onclick="showObjection(0)">Customer Confused</button>
+                <button class="quick-handle" onclick="showObjection(1)">Second Thoughts</button>
+                <button class="quick-handle" onclick="showObjection(2)">Questions Legitimacy</button>
+                <button class="quick-handle" onclick="showObjection(3)">Wants to Change Coverage</button>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="reset-btn" onclick="resetApp()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 4v6h6M23 20v-6h-6"/>
+                        <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                    </svg>
+                    Reset Application
+                </button>
+            </div>
+        </aside>
+        
+        <!-- MAIN CONTENT -->
+        <main class="main">
+            <header class="main-header">
+                <h2 id="currentPhaseTitle">Getting Started</h2>
+                <div class="progress-info">
+                    <span class="step-counter" id="stepCounter">Step 1 of 8</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 12.5%"></div>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="content-area">
+                <div class="content-wrapper">
+                    <!-- SCREEN 0: SETUP -->
+                    <div class="screen active" data-screen="0">
+                        <div class="setup-screen">
+                            <h1>Pre-Closed Application Guide</h1>
+                            <p>The sale is already made. Your job is to finish it—not lose it. This guide will walk you through completing the application efficiently.</p>
+                            <button class="start-btn" onclick="nextStep()">
+                                Start Application
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="alert danger" style="max-width: 500px; margin: 24px auto 0;">
+                            <div class="alert-icon">✕</div>
+                            <div class="alert-content">
+                                <div class="alert-title">The #1 Way Agents Kill These Deals</div>
+                                <div class="alert-text"><strong>Starting over.</strong> The customer just spent 15-20 minutes with your call center. If you say "So tell me, what made you interested in final expense today?"—the deal is DEAD.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 1: THE PICKUP -->
+                    <div class="screen" data-screen="1">
+                        <h2 class="section-title">Phase 1: The Pickup</h2>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">💬 Standard Opening Script</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Hi, [First Name]?"</strong><br><br>
+                                <em>[Wait for yes]</em><br><br>
+                                <strong>"Hey [First Name], this is [Your Name]—I'm the licensed agent that's going to help you finish up today."</strong><br><br>
+                                <strong>"My team has already filled me in on everything, so this should only take a few minutes."</strong><br><br>
+                                <strong>"Sound good?"</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="alert info">
+                            <div class="alert-icon">💡</div>
+                            <div class="alert-content">
+                                <div class="alert-title">Why This Works</div>
+                                <div class="alert-text">"Finish up today" → We're almost done. "Already filled me in" → No repeating. "Only a few minutes" → Quick process.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 2: CONFIRM DETAILS -->
+                    <div class="screen" data-screen="2">
+                        <h2 class="section-title">Phase 2: Confirm the Details</h2>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">✓ Coverage Confirmation</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Alright, so I've got you down for $[Coverage Amount] of coverage with [Carrier Name], coming out to $[Premium] a month."</strong><br><br>
+                                <strong>"That's what you discussed with my team, correct?"</strong><br><br>
+                                <em>[Wait for yes]</em>
+                            </p>
+                        </div>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">👤 Beneficiary Confirmation</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"And I have [Beneficiary Name] listed as your beneficiary—that's your [relationship], right?"</strong><br><br>
+                                <em>[Wait for yes]</em>
+                            </p>
+                        </div>
+                        
+                        <div class="alert info">
+                            <div class="alert-icon">ℹ</div>
+                            <div class="alert-content">
+                                <div class="alert-title">If Something Doesn't Match</div>
+                                <div class="alert-text"><strong>"Okay, no problem—let me update that. So it should be [correct information], right?"</strong> Fix it and move on. Don't make it a big deal.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 3: APPLICATION -->
+                    <div class="screen" data-screen="3">
+                        <h2 class="section-title">Phase 3: The Application</h2>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">📝 Transition Statement</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Perfect. Now I just need to walk you through the application—this is the official part where we get everything documented for [Carrier Name]."</strong><br><br>
+                                <strong>"Most of this I already have, so I'll just verify as we go."</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="alert warning">
+                            <div class="alert-icon">!</div>
+                            <div class="alert-content">
+                                <div class="alert-title">Important</div>
+                                <div class="alert-text">You MUST ask health questions directly—even if the call center already asked them. This is required for compliance.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">🏥 Health Questions</span>
+                            </div>
+                            <div class="checklist" id="healthChecklist">
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Have you used any form of tobacco or nicotine products in the past 12 months?"</span>
+                                </label>
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Are you currently confined to a hospital, nursing home, or assisted living facility?"</span>
+                                </label>
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"In the past 2 years, have you been diagnosed with or treated for any form of cancer, heart disease, stroke, or kidney disease?"</span>
+                                </label>
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Have you tested positive for or been diagnosed with HIV or AIDS?"</span>
+                                </label>
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Are you currently taking any prescription medications?"</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 4: PAYMENT -->
+                    <div class="screen" data-screen="4">
+                        <h2 class="section-title">Phase 4: Payment Setup</h2>
+                        
+                        <div class="ref-grid">
+                            <div class="ref-card">
+                                <div class="ref-card-title">For Bank Draft</div>
+                                <p><strong>1.</strong> Routing number (9-digit)</p>
+                                <p><strong>2.</strong> Account number</p>
+                                <p><strong>3.</strong> Name on the account</p>
+                            </div>
+                            <div class="ref-card warning">
+                                <div class="ref-card-title">For Credit/Debit Card</div>
+                                <p><strong>1.</strong> Card number</p>
+                                <p><strong>2.</strong> Expiration date</p>
+                                <p><strong>3.</strong> Security code (back)</p>
+                                <p><strong>4.</strong> Billing zip code</p>
+                            </div>
+                        </div>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">📅 Payment Date Script</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"What day of the month does your social security check arrive?"</strong><br><br>
+                                <em>[Wait for answer]</em><br><br>
+                                <strong>"Okay. Your first payment will come when this application is approved and your future monthly payments will come out on the [date check arrives], okay?"</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 5: DISCLOSURES -->
+                    <div class="screen" data-screen="5">
+                        <h2 class="section-title">Phase 5: Disclosures & Authorization</h2>
+                        
+                        <div class="alert danger">
+                            <div class="alert-icon">⚠</div>
+                            <div class="alert-content">
+                                <div class="alert-title">Critical Compliance Requirement</div>
+                                <div class="alert-text">Read disclosures <strong>EXACTLY</strong> as required by your carrier. Do not paraphrase. Do not skip.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">📜 Authorization Script</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Perfect. Now to complete this application, I need your verbal authorization."</strong><br><br>
+                                <strong>"By saying 'Yes, I agree,' you are authorizing [Carrier Name] to issue this policy, confirming that all the information you've provided is accurate to the best of your knowledge, and authorizing the payment of $[Premium] per month from your [bank account/card]."</strong><br><br>
+                                <strong>"[First Name], do you agree?"</strong><br><br>
+                                <em>[Wait for clear "Yes" or "I agree"]</em><br><br>
+                                <strong>"Thank you. For our records, I'm noting that [Full Name] provided verbal authorization on [Today's Date] at [Time]."</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 6: WRAP-UP -->
+                    <div class="screen" data-screen="6">
+                        <h2 class="section-title">Phase 6: Wrap-Up</h2>
+                        
+                        <div class="script-card success">
+                            <div class="script-header">
+                                <span class="script-title">🎉 Closing Script</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Alright [First Name], you are all set!"</strong><br><br>
+                                <strong>"Let me confirm what you're getting:</strong><br><br>
+                                <strong>• $[Coverage Amount] of permanent whole life coverage with [Carrier Name]<br>
+                                • Your beneficiary is [Beneficiary Name]<br>
+                                • Your monthly payment is $[Premium], coming out on the [Date] of each month"</strong><br><br>
+                                <strong>"Does everything sound correct?"</strong><br><br>
+                                <em>[Wait for confirmation]</em><br><br>
+                                <strong>"You'll receive your policy documents in the mail within [7-10 business days]. When you get them, look them over. If you have any questions, my contact information will be included."</strong><br><br>
+                                <strong>"[First Name], congratulations. You just did something really important for [Beneficiary Name]. A lot of people talk about doing this but never follow through. You actually got it done."</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 7: COMPLIANCE -->
+                    <div class="screen" data-screen="7">
+                        <h2 class="section-title">Compliance Checklist</h2>
+                        
+                        <div class="ref-grid">
+                            <div class="script-card success">
+                                <div class="script-header">
+                                    <span class="script-title" style="color: var(--emerald-700);">✓ You MUST Do</span>
+                                </div>
+                                <div class="checklist">
+                                    <label class="check-item"><input type="checkbox"><span>Read all required disclosures exactly as written</span></label>
+                                    <label class="check-item"><input type="checkbox"><span>Document verbal authorization with date and time</span></label>
+                                    <label class="check-item"><input type="checkbox"><span>Verify identity (SSN, DOB)</span></label>
+                                    <label class="check-item"><input type="checkbox"><span>Ask ALL health questions directly</span></label>
+                                    <label class="check-item"><input type="checkbox"><span>Explain the free look period</span></label>
+                                </div>
+                            </div>
+                            <div class="script-card critical">
+                                <div class="script-header">
+                                    <span class="script-title">✕ You MUST NOT Do</span>
+                                </div>
+                                <div class="checklist">
+                                    <label class="check-item"><input type="checkbox" disabled><span>Skip health questions because "call center asked them"</span></label>
+                                    <label class="check-item"><input type="checkbox" disabled><span>Promise specific payout timing</span></label>
+                                    <label class="check-item"><input type="checkbox" disabled><span>Say "guaranteed" without proper qualification</span></label>
+                                    <label class="check-item"><input type="checkbox" disabled><span>Continue if customer clearly wants to stop</span></label>
+                                    <label class="check-item"><input type="checkbox" disabled><span>Misrepresent coverage or benefits</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="key-point">
+                            <div class="key-point-label">⭐ The Golden Rule</div>
+                            <p class="key-point-text">The application call isn't where you win the sale—<br>it's where you don't lose it.</p>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 16px; color: var(--emerald-600); font-weight: 700;">
+                            🎉 APPLICATION GUIDE COMPLETE
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <footer class="main-footer">
+                <button class="nav-btn secondary" id="backBtn" onclick="prevStep()" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Back
+                </button>
+                <button class="nav-btn primary" id="nextBtn" onclick="nextStep()">
+                    Next Step
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </footer>
+        </main>
+        
+        <!-- OBJECTION OVERLAY -->
+        <div class="overlay" id="overlay">
+            <div class="overlay-header">
+                <h3>Objection Handler</h3>
+                <button class="close-btn" onclick="closeOverlay()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="overlay-content">
+                <div class="objection-label">
+                    <div class="objection-label-title">They Said:</div>
+                    <div class="objection-label-text" id="objectionLabel"></div>
+                </div>
+                <div class="response-box">
+                    <div class="response-box-header">
+                        <div class="response-box-title">You Say:</div>
+                        <button class="copy-btn" style="color: var(--slate-400);" onclick="copyResponse()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="objectionResponse"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const PHASES = [
+            { id: 'setup', title: 'Getting Started' },
+            { id: 'pickup', title: 'The Pickup' },
+            { id: 'confirm', title: 'Confirm Details' },
+            { id: 'application', title: 'Application' },
+            { id: 'payment', title: 'Payment Setup' },
+            { id: 'disclosures', title: 'Disclosures' },
+            { id: 'wrapup', title: 'Wrap-Up' },
+            { id: 'compliance', title: 'Compliance' }
+        ];
+        
+        const OBJECTIONS = [
+            { label: "Customer Gets Confused", content: "\"I know you've already been through a lot of questions—I apologize if this feels repetitive. The reason I'm asking again is because this is the official application that goes to [Carrier]. I need to document everything directly. We're almost done—just a few more things.\"" },
+            { label: "Second Thoughts", content: "\"I understand, [First Name]. This is an important decision. Let me ask you—what specifically is giving you pause? Is it the coverage amount, the monthly payment, or something else?\" [Address their specific concern]" },
+            { label: "Questions Legitimacy", content: "\"That's a fair question—you should always be careful. [Carrier Name] has been around for [X years]. They're A-rated, licensed in all 50 states, and have paid out billions in claims. After you receive your policy, you can call them directly to verify everything. And remember—you have a 30-day free look period.\"" },
+            { label: "Wants to Change Coverage", content: "\"Absolutely, we can adjust that. Let me see what the premium would be for $[New Amount]... Okay, so $[New Amount] would be $[New Premium] per month. Would you like to go with that instead?\"" }
+        ];
+        
+        let currentStep = 0;
+        
+        function init() {
+            renderPhases();
+            updateUI();
+        }
+        
+        function renderPhases() {
+            const list = document.getElementById('phaseList');
+            list.innerHTML = PHASES.map((phase, i) => `
+                <div class="phase-item ${i === currentStep ? 'active' : ''} ${i < currentStep ? 'completed' : ''}" onclick="goToStep(${i})">
+                    ${i < currentStep ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : `<span style="font-size:10px;font-weight:700;color:inherit;">${i}</span>`}
+                    ${phase.title}
+                </div>
+            `).join('');
+        }
+        
+        function updateUI() {
+            // Update screens
+            document.querySelectorAll('.screen').forEach((s, i) => {
+                s.classList.toggle('active', i === currentStep);
+            });
+            
+            // Update header
+            document.getElementById('currentPhaseTitle').textContent = PHASES[currentStep].title;
+            document.getElementById('stepCounter').textContent = `Step ${currentStep + 1} of ${PHASES.length}`;
+            document.getElementById('progressFill').style.width = `${((currentStep + 1) / PHASES.length) * 100}%`;
+            
+            // Update buttons
+            document.getElementById('backBtn').disabled = currentStep === 0;
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentStep === PHASES.length - 1) {
+                nextBtn.className = 'nav-btn success';
+                nextBtn.innerHTML = 'Finish & Start New <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>';
+            } else {
+                nextBtn.className = 'nav-btn primary';
+                nextBtn.innerHTML = 'Next Step <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+            }
+            
+            renderPhases();
+        }
+        
+        function nextStep() {
+            if (currentStep < PHASES.length - 1) {
+                currentStep++;
+                updateUI();
+            } else {
+                resetApp();
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateUI();
+            }
+        }
+        
+        function goToStep(step) {
+            currentStep = step;
+            updateUI();
+        }
+        
+        function resetApp() {
+            currentStep = 0;
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateUI();
+        }
+        
+        function copyText(btn) {
+            const card = btn.closest('.script-card');
+            const text = card.querySelector('.script-text').innerText;
+            navigator.clipboard.writeText(text);
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        }
+        
+        function showObjection(idx) {
+            const obj = OBJECTIONS[idx];
+            document.getElementById('objectionLabel').textContent = obj.label;
+            document.getElementById('objectionResponse').textContent = obj.content;
+            document.getElementById('overlay').classList.add('active');
+        }
+        
+        function closeOverlay() {
+            document.getElementById('overlay').classList.remove('active');
+        }
+        
+        function copyResponse() {
+            const text = document.getElementById('objectionResponse').textContent;
+            navigator.clipboard.writeText(text);
+        }
+        
+        function updateChecklist() {
+            const checks = document.querySelectorAll('#healthChecklist input');
+            checks.forEach(cb => cb.closest('.check-item').classList.toggle('checked', cb.checked));
+        }
+        
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Transfer Script | AmerBen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+            --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-400: #60a5fa;
+            --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+            --emerald-50: #ecfdf5; --emerald-100: #d1fae5; --emerald-500: #10b981;
+            --emerald-600: #059669; --emerald-700: #047857;
+            --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-500: #f59e0b;
+            --amber-700: #b45309;
+            --red-50: #fef2f2; --red-100: #fee2e2; --red-500: #ef4444;
+            --red-600: #dc2626; --red-700: #b91c1c;
+        }
+        
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--slate-50);
+            color: var(--slate-900);
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .app { display: flex; height: 100vh; width: 100%; overflow: hidden; }
+        
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px;
+            background: white;
+            border-right: 1px solid var(--slate-200);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+        }
+        .sidebar-header {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            background: var(--slate-900);
+            color: white;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .sidebar-header svg { color: var(--blue-400); }
+        .sidebar-header span { font-weight: 700; font-size: 14px; letter-spacing: -0.3px; }
+        
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 12px 8px; }
+        .sidebar-section-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--slate-400); padding: 8px 8px 4px; margin-top: 8px;
+        }
+        .sidebar-section-title:first-child { margin-top: 0; }
+        
+        .phase-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 8px; border-radius: 6px; font-size: 12px;
+            font-weight: 500; color: var(--slate-400); transition: all 0.15s;
+            cursor: pointer;
+        }
+        .phase-item:hover { background: var(--slate-50); }
+        .phase-item.active { background: var(--blue-50); color: var(--blue-700); }
+        .phase-item.completed { color: var(--emerald-600); }
+        .phase-item svg { width: 12px; height: 12px; }
+        
+        .quick-handle {
+            width: 100%; text-align: left;
+            padding: 8px; margin-bottom: 4px;
+            background: var(--slate-50); border: 1px solid var(--slate-200);
+            border-radius: 6px; font-size: 11px; font-weight: 600;
+            color: var(--slate-600); cursor: pointer; transition: all 0.15s;
+        }
+        .quick-handle:hover { background: var(--slate-100); border-color: var(--slate-300); }
+        
+        .sidebar-footer {
+            padding: 8px; border-top: 1px solid var(--slate-100);
+            background: var(--slate-50); flex-shrink: 0;
+        }
+        .reset-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 8px; background: transparent; border: none;
+            font-size: 10px; font-weight: 700; color: var(--slate-400);
+            cursor: pointer; transition: color 0.15s;
+        }
+        .reset-btn:hover { color: var(--slate-600); }
+        .reset-btn svg { width: 12px; height: 12px; }
+        
+        /* MAIN CONTENT */
+        .main { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
+        
+        .main-header {
+            height: 48px; background: white; border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; flex-shrink: 0;
+        }
+        .main-header h2 { font-size: 16px; font-weight: 700; color: var(--slate-800); }
+        .progress-info { display: flex; align-items: center; gap: 12px; }
+        .step-counter { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; }
+        .progress-bar { width: 80px; height: 4px; background: var(--slate-100); border-radius: 999px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--blue-600); transition: width 0.5s; }
+        
+        .content-area {
+            flex: 1; overflow: hidden; padding: 12px;
+        }
+        .content-wrapper { max-width: 800px; margin: 0 auto; }
+        
+        .main-footer {
+            height: 56px; background: white; border-top: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; flex-shrink: 0;
+        }
+        
+        .nav-btn {
+            display: flex; align-items: center; gap: 4px;
+            padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+            border: none; cursor: pointer; transition: all 0.15s;
+        }
+        .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .nav-btn.secondary { background: transparent; color: var(--slate-600); }
+        .nav-btn.secondary:hover:not(:disabled) { background: var(--slate-100); }
+        .nav-btn.primary {
+            background: var(--blue-600); color: white;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+        }
+        .nav-btn.primary:hover:not(:disabled) { background: var(--blue-700); transform: translateY(-1px); }
+        .nav-btn.success { background: var(--emerald-600); color: white; }
+        .nav-btn.success:hover { background: var(--emerald-700); }
+        .nav-btn svg { width: 16px; height: 16px; }
+        
+        /* SCREEN CONTENT */
+        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* CARDS */
+        .script-card {
+            background: white; border-radius: 8px; padding: 12px;
+            margin-bottom: 12px; position: relative; border: 1px solid var(--slate-200);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .script-card.warning { border-left: 4px solid var(--amber-500); background: var(--amber-50); }
+        .script-card.success { border-left: 4px solid var(--emerald-500); background: var(--emerald-50); }
+        .script-card.critical { border-left: 4px solid var(--red-600); background: var(--red-50); }
+        
+        .script-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .script-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--slate-500);
+        }
+        .script-card.warning .script-title { color: var(--amber-700); }
+        .script-card.critical .script-title { color: var(--red-700); }
+        
+        .copy-btn {
+            display: flex; align-items: center; gap: 4px;
+            padding: 4px 8px; background: transparent; border: none;
+            font-size: 10px; color: var(--slate-400); cursor: pointer;
+            border-radius: 4px; transition: all 0.15s;
+        }
+        .copy-btn:hover { background: var(--slate-100); color: var(--blue-600); }
+        .copy-btn.copied { color: var(--emerald-600); }
+        .copy-btn svg { width: 12px; height: 12px; }
+        
+        .script-text { font-size: 13px; line-height: 1.5; color: var(--slate-800); font-weight: 500; }
+        .script-text em { color: var(--slate-400); font-style: italic; font-size: 11px; }
+        .script-text strong { color: var(--slate-900); }
+        
+        .section-title { font-size: 16px; font-weight: 700; color: var(--slate-800); margin-bottom: 8px; }
+        
+        .script-card { padding: 10px; margin-bottom: 8px; }
+        .script-card.hidden { display: none; }
+        
+        /* CHECKLIST */
+        .checklist { display: flex; flex-direction: column; gap: 4px; }
+        .check-item {
+            display: flex; align-items: flex-start; gap: 8px;
+            padding: 6px 8px; background: var(--slate-50); border: 1px solid var(--slate-200);
+            border-radius: 6px; cursor: pointer; transition: all 0.15s;
+        }
+        .check-item:hover { border-color: var(--blue-300); }
+        .check-item.checked { background: var(--blue-50); border-color: var(--blue-200); }
+        .check-item input { width: 14px; height: 14px; margin-top: 1px; accent-color: var(--blue-600); }
+        .check-item span { font-size: 11px; font-weight: 500; color: var(--slate-800); line-height: 1.3; }
+        
+        /* ALERT */
+        .alert {
+            display: flex; gap: 8px; padding: 8px;
+            border-radius: 6px; margin-bottom: 8px;
+        }
+        .alert-icon {
+            width: 18px; height: 18px; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; flex-shrink: 0;
+        }
+        .alert.danger { background: var(--red-50); border: 1px solid var(--red-100); }
+        .alert.danger .alert-icon { background: var(--red-500); color: white; }
+        .alert.danger .alert-title { color: var(--red-700); }
+        .alert.success { background: var(--emerald-50); border: 1px solid var(--emerald-100); }
+        .alert.success .alert-icon { background: var(--emerald-500); color: white; }
+        .alert.info { background: var(--blue-50); border: 1px solid var(--blue-100); }
+        .alert.info .alert-icon { background: var(--blue-500); color: white; }
+        .alert.warning { background: var(--amber-50); border: 1px solid var(--amber-100); }
+        .alert.warning .alert-icon { background: var(--amber-500); color: white; }
+        .alert-content { flex: 1; }
+        .alert-title { font-size: 11px; font-weight: 700; margin-bottom: 1px; }
+        .alert-text { font-size: 11px; color: var(--slate-600); line-height: 1.4; }
+        
+        /* SETUP SCREEN */
+        .setup-screen {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 40vh; text-align: center;
+        }
+        .setup-screen h1 { font-size: 20px; font-weight: 700; color: var(--slate-800); margin-bottom: 6px; }
+        .setup-screen p { font-size: 12px; color: var(--slate-500); margin-bottom: 16px; max-width: 400px; }
+        
+        .start-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 12px 24px; background: var(--blue-600); color: white;
+            border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        .start-btn:hover { background: var(--blue-700); transform: translateY(-2px); }
+        
+        .key-point {
+            background: linear-gradient(135deg, var(--slate-100), var(--slate-50));
+            border: 1px solid var(--slate-200); border-radius: 8px;
+            padding: 10px; text-align: center; margin: 8px 0;
+        }
+        .key-point-label {
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--amber-600); margin-bottom: 4px;
+        }
+        .key-point-text { font-size: 13px; font-weight: 600; color: var(--slate-800); line-height: 1.4; }
+        
+        /* QUICK REF GRID */
+        .ref-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px; }
+        .ref-card {
+            background: white; border: 1px solid var(--slate-200);
+            border-radius: 6px; padding: 8px; border-top: 3px solid var(--blue-500);
+        }
+        .ref-card.warning { border-top-color: var(--amber-500); }
+        .ref-card-title { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--slate-500); margin-bottom: 4px; }
+        .ref-card p { font-size: 11px; color: var(--slate-600); margin-bottom: 2px; }
+        
+        /* OBJECTION OVERLAY */
+        .overlay {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 320px;
+            background: white; box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+            border-left: 1px solid var(--slate-200); z-index: 100;
+            display: none; flex-direction: column; animation: slideIn 0.2s ease;
+        }
+        .overlay.active { display: flex; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        
+        .overlay-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px; border-bottom: 1px solid var(--slate-100);
+        }
+        .overlay-header h3 { font-size: 16px; font-weight: 700; }
+        .close-btn { background: none; border: none; cursor: pointer; color: var(--slate-400); padding: 4px; }
+        .close-btn:hover { color: var(--slate-600); }
+        
+        .overlay-content { flex: 1; padding: 16px; overflow-y: auto; }
+        .objection-label {
+            padding: 12px; background: var(--amber-50); border: 1px solid var(--amber-100);
+            border-radius: 8px; margin-bottom: 12px;
+        }
+        .objection-label-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--amber-700); margin-bottom: 4px; }
+        .objection-label-text { font-size: 14px; font-weight: 600; color: var(--slate-800); }
+        
+        .response-box {
+            background: var(--slate-900); border-radius: 8px; padding: 16px;
+        }
+        .response-box-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .response-box-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--blue-400); }
+        .response-box p { font-size: 14px; color: var(--slate-100); line-height: 1.6; }
+        
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .ref-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>AmerBen LIVE</span>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="sidebar-section-title">Call Progress</div>
+                <div id="phaseList"></div>
+                
+                <div class="sidebar-section-title">Quick Handles</div>
+                <button class="quick-handle" onclick="showObjection(0)">It's too expensive</button>
+                <button class="quick-handle" onclick="showObjection(1)">I need to think about it</button>
+                <button class="quick-handle" onclick="showObjection(2)">I need to talk to my kids</button>
+                <button class="quick-handle" onclick="showObjection(3)">Send me info by mail</button>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="reset-btn" onclick="resetApp()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 4v6h6M23 20v-6h-6"/>
+                        <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                    </svg>
+                    Reset Call
+                </button>
+            </div>
+        </aside>
+        
+        <!-- MAIN CONTENT -->
+        <main class="main">
+            <header class="main-header">
+                <h2 id="currentPhaseTitle">Getting Started</h2>
+                <div class="progress-info">
+                    <span class="step-counter" id="stepCounter">Step 1 of 8</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 12.5%"></div>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="content-area">
+                <div class="content-wrapper">
+                    <!-- SCREEN 0: SETUP -->
+                    <div class="screen active" data-screen="0">
+                        <div class="setup-screen">
+                            <h1>Select Transfer Type</h1>
+                            <p>Choose how the call was transferred to you to get the appropriate opening script.</p>
+                            
+                            <div class="ref-grid" style="max-width: 500px; margin-bottom: 24px;">
+                                <button class="start-btn" onclick="setTransferType('blind'); nextStep();" style="flex-direction: column; padding: 24px;">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                                    </svg>
+                                    <strong>Blind Transfer</strong>
+                                    <span style="font-size: 12px; opacity: 0.8;">Fronter drops off immediately</span>
+                                </button>
+                                <button class="start-btn" onclick="setTransferType('warm'); nextStep();" style="flex-direction: column; padding: 24px; background: var(--emerald-600);">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                    <strong>Warm Transfer</strong>
+                                    <span style="font-size: 12px; opacity: 0.8;">Fronter introduces you</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert danger" style="max-width: 500px; margin: 0 auto;">
+                            <div class="alert-icon">✕</div>
+                            <div class="alert-content">
+                                <div class="alert-title">Forbidden Phrases</div>
+                                <div class="alert-text"><strong>NEVER</strong> say "How are you?" or "How may I help you?"</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 1: THE OPENING -->
+                    <div class="screen" data-screen="1">
+                        <h2 class="section-title">The Opening</h2>
+                        
+                        <div class="script-card" id="blindScript">
+                            <div class="script-header">
+                                <span class="script-title">📞 Blind Transfer Script</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <em>(Fronter connects call...)</em><br><br>
+                                <strong>"Hi, this is [Your Name]. Whom do I have the pleasure of speaking with?"</strong><br><br>
+                                <em>[WAIT FOR NAME. Do not ask to spell it.]</em><br><br>
+                                <strong>"Pleasure to meet you, [Name]. I appreciate you holding. The previous agent just transferred you to me because I'm the local licensed specialist for [State]. They mentioned you're [Age] and living in [City], right?"</strong><br><br>
+                                <strong>"Okay, great. Now [Name], I know you didn't wake up this morning expecting to hear from me—we called you. But since I have you on the line, my job is pretty simple — I'll ask you a few quick questions, show you exactly what you qualify for, and then you decide if it makes sense. Fair enough?"</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="script-card" id="warmScript">
+                            <div class="script-header">
+                                <span class="script-title">👤 Warm Transfer Script</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <em>(To Fronter):</em><br><br>
+                                <strong>"Thanks [Fronter Name], I see the file here. I'll take it from here."</strong><br><br>
+                                <em>(To Prospect):</em><br><br>
+                                <strong>"Hi [Prospect Name], this is [Your Name], the licensed specialist for [State]. I appreciate your patience while they got us connected. [Fronter Name] got me up to speed—they mentioned you're [Age] and looking to make sure the family isn't stuck with a bill, is that right?"</strong><br><br>
+                                <strong>"Perfect. Like I said, I'm the specialist for the area. My job is simple—I'll ask a few quick questions to see if you qualify for the state-regulated benefits. If you do, I'll show you the numbers. If not, I'll tell you that too. Fair enough?"</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 2: DISCOVERY -->
+                    <div class="screen" data-screen="2">
+                        <h2 class="section-title">Discovery</h2>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">🎯 Motivation Check</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Great. So [Name], when you were speaking with the other agent, you mentioned you wanted to make sure your family isn't stuck dealing with any final expenses when that time comes. Is that still the main thing on your mind, or is there something else driving this for you?"</strong><br><br>
+                                <em>(Listen to response)</em><br><br>
+                                <strong>"I appreciate you sharing that. You know, a lot of the folks I talk to—they're not worried about themselves. They've lived their life. What keeps them up at night is the thought of their kids or grandkids having to scramble to come up with $10,000 or $15,000 just to lay them to rest properly. Does that resonate with you at all?"</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">💔 Identify the Beneficiary</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Perfect. So, If you didn't wake up tomorrow morning... who is the one person that would have to pick up the phone and handle everything?"</strong><br><br>
+                                <em>(Wait for name, e.g., 'Sarah')</em><br><br>
+                                <strong>"Sarah. Okay. Now, [Name], most people don't realize that funeral homes are businesses. They generally require the full $10,000 to $15,000 upfront before they will even open the doors."</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="script-card critical">
+                            <div class="script-header">
+                                <span class="script-title">⚡ The Pain Question</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Knowing Sarah's financial situation... is she in a position to write a check that big on a Tuesday morning?"</strong><br><br>
+                                <em>(Wait for 'No')</em><br><br>
+                                <strong>"Ok. Sarah would have to come up with that money somehow. How would that affect her? Would she have to borrow it? Go into debt?"</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="script-card success">
+                            <div class="script-header">
+                                <span class="script-title">🌉 The Bridge</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"That's exactly why we're talking. We want to make sure Sarah gets a check, not a bill. My goal is to set this up so she never has to worry about the money. Does that sound like what you want to accomplish?"</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 3: HEALTH DISCOVERY -->
+                    <div class="screen" data-screen="3">
+                        <h2 class="section-title">Health Discovery</h2>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">🏥 Health Questions Intro</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Alright, so here's what I want to do. I'm going to ask you a few quick health questions—nothing invasive—just so I can match you with the right program and make sure you're not overpaying. Sound good?"</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">✅ Health Checklist</span>
+                            </div>
+                            <div class="checklist" id="healthChecklist">
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Are you currently taking any medications for your heart—like blood thinners, or anything for cholesterol or blood pressure?"</span>
+                                </label>
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Any history of cancer, stroke, or diabetes?"</span>
+                                </label>
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Have you been hospitalized for anything in the last two years?"</span>
+                                </label>
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Do you use any oxygen equipment or have any issues with your lungs?"</span>
+                                </label>
+                                <label class="check-item">
+                                    <input type="checkbox" onchange="updateChecklist()">
+                                    <span>"Do you smoke or use tobacco?"</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="script-card success">
+                            <div class="script-header">
+                                <span class="script-title">✨ Value Stack</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Good news, [Name]—based on what you've told me, you qualify for our [Plan Tier] program. Let me tell you exactly what that means for you."</strong><br><br>
+                                <strong>"So here's what you're looking at. This is a whole life insurance policy—not term, whole life. That means a few important things:"</strong><br><br>
+                                • <strong>First, your rate is locked in.</strong> The price I give you today will never go up. Even if your health changes.<br><br>
+                                • <strong>Second, the benefit is guaranteed.</strong> There's no fine print. When that time comes, Sarah receives the full amount, tax-free, usually within 24 to 48 hours.<br><br>
+                                • <strong>Third, this is 'Day One' coverage.</strong> That means the full benefit is available immediately. No waiting period.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 4: THE MANDATE -->
+                    <div class="screen" data-screen="4">
+                        <h2 class="section-title">The Mandate</h2>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">📊 Budget Anchor</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Okay. Based on what you've told me, I'm going to run a comparison across the top state-approved carriers. I'm filtering strictly for the 'Rate Lock' programs."</strong><br><br>
+                                <strong>"Most folks on a fixed income tell me they want to keep this between $50 and $80 a month."</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="script-card warning">
+                            <div class="script-header">
+                                <span class="script-title">🎯 The Takeaway (CRUCIAL)</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text" style="font-size: 17px;">
+                                <strong>"If I find the right plan but it comes back at $150 a month, are you going to kick me off the phone?"</strong><br><br>
+                                <em>(Wait for laugh/agreement)</em><br><br>
+                                <strong>"I figured. Let me pull the numbers now. Hold on."</strong>
+                            </p>
+                        </div>
+                        
+                        <div style="background: var(--slate-900); color: var(--slate-200); padding: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <div style="width: 12px; height: 12px; border: 2px solid var(--slate-500); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <span style="font-size: 12px; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em;">Silence for 10-15 seconds (Actually quote)</span>
+                        </div>
+                        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                    </div>
+                    
+                    <!-- SCREEN 5: DISCLOSURES -->
+                    <div class="screen" data-screen="5">
+                        <h2 class="section-title">The Verdict</h2>
+                        
+                        <div class="script-card success">
+                            <div class="script-header">
+                                <span class="script-title">⚖️ Verdict Delivery</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Alright, I've got good news for you. Based on everything you've shared, I found a program that fits exactly what you're looking for."</strong><br><br>
+                                <strong>"Looking at [Carrier Name], I can get you set up with $[Coverage Amount] in coverage at $[Premium] a month."</strong><br><br>
+                                <strong>"Now, tell me—is Sarah worth that kind of protection?"</strong><br><br>
+                                <em>[Wait for response]</em>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 6: PRESENTATION / GOLDILOCKS -->
+                    <div class="screen" data-screen="6">
+                        <h2 class="section-title">Presentation</h2>
+                        
+                        <div class="key-point">
+                            <div class="key-point-label">🎯 The Goldilocks Method</div>
+                            <p class="key-point-text">Present 3 options: High (anchor), Medium (target), Low (floor)</p>
+                        </div>
+                        
+                        <div class="ref-grid">
+                            <div class="ref-card warning">
+                                <div class="ref-card-title">💎 Premium Option</div>
+                                <p><strong>$20,000</strong> coverage</p>
+                                <p>~$95/month</p>
+                                <p><em>"Covers everything plus extra"</em></p>
+                            </div>
+                            <div class="ref-card" style="border-top-color: var(--emerald-500);">
+                                <div class="ref-card-title">✅ Recommended</div>
+                                <p><strong>$15,000</strong> coverage</p>
+                                <p>~$70/month</p>
+                                <p><em>"Most popular - covers a proper burial"</em></p>
+                            </div>
+                        </div>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">💬 Goldilocks Script</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Okay [Name], I've got three options in front of me. Let me walk you through them quickly."</strong><br><br>
+                                <strong>"The first option gives you $20,000 in coverage. That would cover everything plus leave a little something extra for Sarah. That one comes out to about $95 a month."</strong><br><br>
+                                <strong>"The second—and this is what most of my clients choose—is $15,000. That's enough to handle the average funeral, casket, flowers, everything. That's about $70 a month."</strong><br><br>
+                                <strong>"And if the budget is tight, I have a $10,000 option at around $45 a month. It won't cover everything, but it takes the biggest burden off Sarah's shoulders."</strong><br><br>
+                                <strong>"Which one sounds like the right fit for you?"</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- SCREEN 7: CLOSE -->
+                    <div class="screen" data-screen="7">
+                        <h2 class="section-title">The Close</h2>
+                        
+                        <div class="script-card">
+                            <div class="script-header">
+                                <span class="script-title">📝 Application Transition</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Perfect. Let's go ahead and get this locked in for you today. I just need to gather a few pieces of information to finalize the application."</strong><br><br>
+                                <strong>"First, can you verify your date of birth for me?"</strong><br><br>
+                                <em>(Collect: Full name, DOB, SSN, Address, Payment info)</em>
+                            </p>
+                        </div>
+                        
+                        <div class="script-card success">
+                            <div class="script-header">
+                                <span class="script-title">🎉 Final Confirmation</span>
+                                <button class="copy-btn" onclick="copyText(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="script-text">
+                                <strong>"Alright [Name], you're all set! Here's what you've got:"</strong><br><br>
+                                • $[Amount] of whole life coverage<br>
+                                • Beneficiary: [Sarah]<br>
+                                • Monthly payment: $[Premium] on the [Date] of each month<br><br>
+                                <strong>"You'll receive your policy in the mail within 7-10 business days. My information will be included. Congratulations—you just did something really important for Sarah."</strong>
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 16px; color: var(--emerald-600); font-weight: 700;">
+                            🎉 CALL COMPLETE
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <footer class="main-footer">
+                <button class="nav-btn secondary" id="backBtn" onclick="prevStep()" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Back
+                </button>
+                <button class="nav-btn primary" id="nextBtn" onclick="nextStep()">
+                    Next Step
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </footer>
+        </main>
+        
+        <!-- OBJECTION OVERLAY -->
+        <div class="overlay" id="overlay">
+            <div class="overlay-header">
+                <h3>Objection Handler</h3>
+                <button class="close-btn" onclick="closeOverlay()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="overlay-content">
+                <div class="objection-label">
+                    <div class="objection-label-title">They Said:</div>
+                    <div class="objection-label-text" id="objectionLabel"></div>
+                </div>
+                <div class="response-box">
+                    <div class="response-box-header">
+                        <div class="response-box-title">You Say:</div>
+                        <button class="copy-btn" style="color: var(--slate-400);" onclick="copyResponse()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="objectionResponse"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const PHASES = [
+            { id: 'setup', title: 'Setup' },
+            { id: 'opening', title: 'Opening' },
+            { id: 'discovery', title: 'Discovery' },
+            { id: 'health', title: 'Health' },
+            { id: 'mandate', title: 'Mandate' },
+            { id: 'verdict', title: 'Verdict' },
+            { id: 'presentation', title: 'Presentation' },
+            { id: 'close', title: 'Close' }
+        ];
+        
+        const OBJECTIONS = [
+            { label: "It's too expensive", content: "\"I totally understand. Most of our clients are on a fixed income, so we have to be careful. But let me ask you—is it that you can't afford the $XX right now, or is it that you're just not sure if it's worth that amount?\"" },
+            { label: "I need to think about it", content: "\"That's fair. But let me ask—what specifically is it that you need to think over? Is it the monthly amount, or is it who you want to leave the money to? Usually when folks tell me that, it's just the price.\"" },
+            { label: "I need to talk to my kids", content: "\"I get that. But let me ask—if you told them you were buying this to protect them from a $15,000 bill, would they tell you NOT to do it? This is for them, not you. You're the one protecting them.\"" },
+            { label: "Send me info by mail", content: "\"I wish I could, but these rates are state-regulated and change based on your exact age and health as of today. If I mail you something, it'll be wrong by the time you get it. My job is just to show you the accurate math right now. It takes 2 minutes.\"" }
+        ];
+        
+        let currentStep = 0;
+        let transferType = 'blind'; // 'blind' or 'warm'
+        
+        function setTransferType(type) {
+            transferType = type;
+        }
+        
+        function init() {
+            renderPhases();
+            updateUI();
+        }
+        
+        function renderPhases() {
+            const list = document.getElementById('phaseList');
+            list.innerHTML = PHASES.map((phase, i) => `
+                <div class="phase-item ${i === currentStep ? 'active' : ''} ${i < currentStep ? 'completed' : ''}" onclick="goToStep(${i})">
+                    ${i < currentStep ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : `<span style="font-size:10px;font-weight:700;color:inherit;">${i}</span>`}
+                    ${phase.title}
+                </div>
+            `).join('');
+        }
+        
+        function updateUI() {
+            // Update screens
+            document.querySelectorAll('.screen').forEach((s, i) => {
+                s.classList.toggle('active', i === currentStep);
+            });
+            
+            // Show/hide transfer scripts based on selection
+            const blindScript = document.getElementById('blindScript');
+            const warmScript = document.getElementById('warmScript');
+            if (blindScript && warmScript) {
+                blindScript.classList.toggle('hidden', transferType !== 'blind');
+                warmScript.classList.toggle('hidden', transferType !== 'warm');
+            }
+            
+            // Update header
+            document.getElementById('currentPhaseTitle').textContent = PHASES[currentStep].title;
+            document.getElementById('stepCounter').textContent = `Step ${currentStep + 1} of ${PHASES.length}`;
+            document.getElementById('progressFill').style.width = `${((currentStep + 1) / PHASES.length) * 100}%`;
+            
+            // Update buttons
+            document.getElementById('backBtn').disabled = currentStep === 0;
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentStep === PHASES.length - 1) {
+                nextBtn.className = 'nav-btn success';
+                nextBtn.innerHTML = 'Finish & Start New <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>';
+            } else {
+                nextBtn.className = 'nav-btn primary';
+                nextBtn.innerHTML = 'Next Step <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+            }
+            
+            renderPhases();
+        }
+        
+        function nextStep() {
+            if (currentStep < PHASES.length - 1) {
+                currentStep++;
+                updateUI();
+            } else {
+                resetApp();
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateUI();
+            }
+        }
+        
+        function goToStep(step) {
+            currentStep = step;
+            updateUI();
+        }
+        
+        function resetApp() {
+            currentStep = 0;
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateUI();
+        }
+        
+        function copyText(btn) {
+            const card = btn.closest('.script-card');
+            const text = card.querySelector('.script-text').innerText;
+            navigator.clipboard.writeText(text);
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        }
+        
+        function showObjection(idx) {
+            const obj = OBJECTIONS[idx];
+            document.getElementById('objectionLabel').textContent = obj.label;
+            document.getElementById('objectionResponse').textContent = obj.content;
+            document.getElementById('overlay').classList.add('active');
+        }
+        
+        function closeOverlay() {
+            document.getElementById('overlay').classList.remove('active');
+        }
+        
+        function copyResponse() {
+            const text = document.getElementById('objectionResponse').textContent;
+            navigator.clipboard.writeText(text);
+        }
+        
+        function updateChecklist() {
+            const checks = document.querySelectorAll('#healthChecklist input');
+            checks.forEach(cb => cb.closest('.check-item').classList.toggle('checked', cb.checked));
+        }
+        
+        init();
+    </script>
+</body>
+</html>

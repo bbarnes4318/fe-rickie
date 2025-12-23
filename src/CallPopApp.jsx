@@ -4,6 +4,7 @@ import ScreenPopDisplay from './ScreenPopDisplay';
 import WebhookHandler from './WebhookHandler';
 import { POST_FIELD_DEFINITIONS } from './types';
 import { api } from './api';
+import IntegratedScriptPanel from './IntegratedScriptPanel';
 
 // Health question tooltips - full question text for Q1-Q8
 const HEALTH_QUESTIONS = {
@@ -90,6 +91,7 @@ const CallPopApp = () => {
   const [applications, setApplications] = useState([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const [activeCallView, setActiveCallView] = useState('script'); // 'script' | 'data'
   const callTimerRef = useRef(null);
   const notesAutoSaveRef = useRef(null);
 
@@ -112,9 +114,13 @@ const CallPopApp = () => {
       trusted_form_cert_url: 'https://cert.trustedform.com/abc123',
       tcpa_opt_in: true,
       tcpa_optin_consent_language: 'I agree to be contacted via phone for insurance quotes',
-      coverage_amount: 500000,
+      coverage_amount: 15000,
+      beneficiary: 'Sarah Smith',
+      carrier: 'Mutual of Omaha',
+      premium: '$67.50',
       call_time: new Date().toISOString(),
-      campaign_id: 'CAMP-001'
+      campaign_id: 'CAMP-001',
+      did: '+18005551234'
     };
     
     const notification = {
@@ -999,6 +1005,90 @@ const CallPopApp = () => {
           <div className="flex-1 p-4 overflow-hidden flex flex-col">
             {/* Active Call - Show Customer Data */}
             {isCallActive && activeCallData && screenPopNotifications.length > 0 && (
+              <div className="flex-1 flex flex-col overflow-hidden gap-2">
+                {/* View Toggle Tabs */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setActiveCallView('script')}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                      activeCallView === 'script'
+                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30'
+                        : 'bg-[#1e1e2e] text-gray-400 hover:text-white border border-[#2e2e3e]'
+                    }`}
+                  >
+                    📋 Script & Call Guide
+                  </button>
+                  <button
+                    onClick={() => setActiveCallView('data')}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                      activeCallView === 'data'
+                        ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-lg shadow-purple-500/30'
+                        : 'bg-[#1e1e2e] text-gray-400 hover:text-white border border-[#2e2e3e]'
+                    }`}
+                  >
+                    👤 Customer Data
+                  </button>
+                  <div className="ml-auto flex items-center gap-2">
+                    <span className="text-xs text-gray-500 uppercase font-bold">
+                      {activeCallData?.first_name || activeCallData?.firstName} {activeCallData?.last_name || activeCallData?.lastName}
+                    </span>
+                    <span className="text-xs text-cyan-400">{activeCallData?.caller_id || activeCallData?.phone}</span>
+                  </div>
+                </div>
+
+                {/* Script View */}
+                {activeCallView === 'script' && (
+                  <div className="flex-1 flex gap-4 overflow-hidden">
+                    {/* Script Panel - Main Content */}
+                    <div className="flex-1 overflow-hidden">
+                      <IntegratedScriptPanel
+                        prospectData={activeCallData}
+                        did={activeCallData?.did || activeCallData?.caller_id}
+                        scriptTypeOverride={null}
+                      />
+                    </div>
+                    
+                    {/* Quick Notes - Side Panel */}
+                    <div className="w-64 flex flex-col gap-3 flex-shrink-0">
+                      <div className="glass-panel rounded-xl p-3 flex-1 flex flex-col">
+                        <h3 className="text-xs font-bold text-cyan-400 mb-2 flex items-center">
+                          <FileText className="w-3 h-3 mr-1" />
+                          Call Notes
+                        </h3>
+                        <textarea
+                          value={callNotes}
+                          onChange={(e) => setCallNotes(e.target.value)}
+                          placeholder="Add notes about this call..."
+                          className="flex-1 bg-[#1e1e2e] border border-[#2e2e3e] rounded-lg p-2 text-xs text-white resize-none focus:outline-none focus:border-cyan-500"
+                        />
+                      </div>
+                      <div className="glass-panel rounded-xl p-3">
+                        <h3 className="text-xs font-bold text-emerald-400 mb-2">Quick Info</h3>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Coverage:</span>
+                            <span className="text-emerald-400 font-bold">${(activeCallData?.faceAmount || 0).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Premium:</span>
+                            <span className="text-white">${activeCallData?.premium || activeCallData?.monthlyPremium || '—'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Carrier:</span>
+                            <span className="text-white">{activeCallData?.carrier || 'TBD'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Beneficiary:</span>
+                            <span className="text-cyan-400">{activeCallData?.primaryBenName || activeCallData?.beneficiary || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Data View - Original CRM Data */}
+                {activeCallView === 'data' && (
               <div className="flex-1 flex gap-4 overflow-hidden">
                 {/* CRM Data Panel - Organized Sections */}
                 <div className="flex-1 glass-panel rounded-2xl overflow-hidden flex flex-col">
@@ -1280,6 +1370,8 @@ const CallPopApp = () => {
                     />
                   </div>
                 </div>
+                </div>
+                )}
               </div>
             )}
 
