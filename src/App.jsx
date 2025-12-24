@@ -2052,6 +2052,8 @@ const Login = ({ onLogin }) => {
       const data = await api.login(password);
       if (data.success) {
         onLogin(data.token);
+      } else {
+         throw new Error("Invalid credentials");
       }
     } catch (err) {
       setError(err.message || "Login failed");
@@ -2062,7 +2064,6 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="view-contained items-center justify-center bg-gradient-hero p-6">
-      {/* Decorative Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
@@ -2070,7 +2071,6 @@ const Login = ({ onLogin }) => {
 
       <div className="relative w-full max-w-md animate-scale-in">
         <div className="card-glass p-10">
-          {/* Logo */}
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl glow-cyan">
               <Shield size={40} className="text-white" />
@@ -2084,13 +2084,16 @@ const Login = ({ onLogin }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <Input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+                <input
+                  type="password"
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-xl focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all font-medium placeholder:text-slate-400"
+                />
+            </div>
 
             {error && (
               <div className="p-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl flex items-center gap-3">
@@ -2101,7 +2104,7 @@ const Login = ({ onLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-accent"
+              className="w-full btn-accent py-3 font-bold text-lg flex items-center justify-center gap-2"
             >
               {loading ? (
                 <RefreshCw size={20} className="animate-spin" />
