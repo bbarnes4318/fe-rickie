@@ -171,7 +171,6 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   const [showTip, setShowTip] = useState(false);
   const [ratesLoaded, setRatesLoaded] = useState(isRatesLoaded());
   const [ratesVersion, setRatesVersion] = useState(0); // Forces re-render on rate update
-  const [automationStarted, setAutomationStarted] = useState(false); // Track if background automation has started
   const scrollRef = useRef(null);
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -211,37 +210,6 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
       scrollRef.current.scrollTop = 0;
     }
   }, [nodeId]);
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // AUTOMATION TRIGGER - BACKGROUND CARRIER APP
-  // ─────────────────────────────────────────────────────────────────────────
-  const triggerCarrierAutomation = useCallback(async (state) => {
-    const API_BASE = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
-    console.log(`[IntegratedScriptPanel] Triggering automation for state: ${state}`);
-    
-    try {
-      // Fire and forget - don't block UI
-      fetch(`${API_BASE}/automation/run-carrier-app`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state })
-      })
-      .then(res => res.json())
-      .then(data => console.log('[Automation] Result:', data))
-      .catch(err => console.error('[Automation] Error:', err));
-      
-    } catch (err) {
-      console.error('[Automation] Failed to trigger:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Trigger when moving to intro_transition (implies location verified)
-    if (nodeId === 'intro_transition' && !automationStarted && formData.state) {
-      setAutomationStarted(true);
-      triggerCarrierAutomation(formData.state);
-    }
-  }, [nodeId, formData.state, automationStarted, triggerCarrierAutomation]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // UPDATE FORM DATA
@@ -309,53 +277,21 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   // ─────────────────────────────────────────────────────────────────────────
   const replaceVars = useCallback((text) => {
     if (!text) return '';
-    
-    // Calculate three-option coverage amounts
-    const highCoverage = formData.selectedCoverage + 5000;
-    const midCoverage = formData.selectedCoverage;
-    const lowCoverage = Math.max(3000, formData.selectedCoverage - 5000);
-    
-    // Spelled out last name for verification (e.g. J-o-n-e-s)
-    const lastNameSpelled = formData.lastName 
-      ? formData.lastName.split('').join('-').toUpperCase() 
-      : 'LAST NAME';
-    
-    // Calculate premiums for each coverage level
-    const highPremium = activeQuote ? calculateMonthlyPremium(activeQuote.carrier, formData.age, formData.gender, formData.tobacco, highCoverage, activeQuote.planType) : null;
-    const midPremium = activeQuote ? calculateMonthlyPremium(activeQuote.carrier, formData.age, formData.gender, formData.tobacco, midCoverage, activeQuote.planType) : null;
-    const lowPremium = activeQuote ? calculateMonthlyPremium(activeQuote.carrier, formData.age, formData.gender, formData.tobacco, lowCoverage, activeQuote.planType) : null;
-    
     return text
-      // Support both camelCase and snake_case variable names
       .replace(/{firstName}/g, formData.firstName || 'Friend')
-      .replace(/{first_name}/g, formData.firstName || 'Friend')
-      .replace(/{last_name}/g, formData.lastName || '')
-      .replace(/{last_name_spelled}/g, lastNameSpelled)
+      .replace(/{lastName}/g, formData.lastName || '')
       .replace(/{state}/g, formData.state || 'your state')
       .replace(/{city}/g, formData.city || '')
       .replace(/{age}/g, formData.age || '')
-      .replace(/{dob}/g, formData.dob ? new Date(formData.dob).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'your date of birth')
       .replace(/{beneficiary}/g, formData.beneficiaryName || 'your beneficiary')
-      .replace(/{beneficiary_relationship}/g, 'child')
       .replace(/{carrier}/g, activeQuote?.carrier || 'the carrier')
       .replace(/{premium}/g, `$${activeQuote?.premium?.toFixed(2) || '0.00'}`)
       .replace(/{coverage}/g, `$${formData.selectedCoverage.toLocaleString()}`)
-      // Three-option dynamic coverage amounts
-      .replace(/{coverage_amount_high}/g, `$${highCoverage.toLocaleString()}`)
-      .replace(/{coverage_amount_mid}/g, `$${midCoverage.toLocaleString()}`)
-      .replace(/{coverage_amount_low}/g, `$${lowCoverage.toLocaleString()}`)
-      // Three-option dynamic premiums
-      .replace(/{monthly_premium_high}/g, highPremium ? `$${highPremium.toFixed(2)}` : '$—')
-      .replace(/{monthly_premium_mid}/g, midPremium ? `$${midPremium.toFixed(2)}` : '$—')
-      .replace(/{monthly_premium_low}/g, lowPremium ? `$${lowPremium.toFixed(2)}` : '$—')
-      // Legacy premium variables
       .replace(/{p15k}/g, `$${premiums.p15k?.toFixed(2) || '0.00'}`)
       .replace(/{p10k}/g, `$${premiums.p10k?.toFixed(2) || '0.00'}`)
       .replace(/{p5k}/g, `$${premiums.p5k?.toFixed(2) || '0.00'}`)
       .replace(/{p3k}/g, `$${premiums.p3k?.toFixed(2) || '0.00'}`)
-      .replace(/{ssDay}/g, formData.ssPaymentDay || 'your payment day')
-      .replace(/{address}/g, formData.address || 'your address')
-      .replace(/{agent_name}/g, 'your agent');
+      .replace(/{ssDay}/g, formData.ssPaymentDay || 'your payment day');
   }, [formData, activeQuote, premiums]);
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -365,22 +301,6 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
 
   // Get current node
   const node = NODES[nodeId];
-
-  // Handle CONDITIONAL nodes - auto-navigate based on variable value
-  useEffect(() => {
-    if (!node) return;
-    if (node.type === 'conditional' && node.checkVariable) {
-      const value = formData[node.checkVariable];
-      const isEmpty = !value || (typeof value === 'string' && value.trim() === '');
-      const nextNodeId = isEmpty ? node.ifEmpty : node.ifNotEmpty;
-      if (nextNodeId) {
-        setTimeout(() => {
-          setHistory(prev => [...prev, nextNodeId]);
-          setNodeId(nextNodeId);
-        }, 0);
-      }
-    }
-  }, [nodeId, node, formData]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // NAVIGATION
@@ -424,70 +344,12 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   // ─────────────────────────────────────────────────────────────────────────
   const renderField = (field) => {
     const value = formData[field.key] || '';
-    const baseClass = "bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-lg focus:border-cyan-500 focus:outline-none";
+    const baseClass = "bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:border-cyan-500 focus:outline-none";
     
-    // Height Slider (Feet or Inches) - Compact
-    if (field.type === 'height_slider') {
-      if (field.key === 'heightFeet') {
-        const feet = formData.heightFeet || 5;
-        return (
-          <div key={field.key} className="col-span-2 mb-2">
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-gray-400 text-xs font-medium">Height</label>
-              <span className="text-lg font-bold text-cyan-400">{feet}' {formData.heightInches || 0}"</span>
-            </div>
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <input type="range" min="4" max="7" value={feet}
-                  onChange={(e) => updateField('heightFeet', parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer"
-                  style={{ background: `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${((feet - 4) / 3) * 100}%, #374151 ${((feet - 4) / 3) * 100}%, #374151 100%)` }}
-                />
-                <div className="flex justify-between text-xs text-gray-600"><span>4'</span><span>7'</span></div>
-              </div>
-              <div className="flex-1">
-                <input type="range" min="0" max="11" value={formData.heightInches || 0}
-                  onChange={(e) => updateField('heightInches', parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer"
-                  style={{ background: `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${((formData.heightInches || 0) / 11) * 100}%, #374151 ${((formData.heightInches || 0) / 11) * 100}%, #374151 100%)` }}
-                />
-                <div className="flex justify-between text-xs text-gray-600"><span>0"</span><span>11"</span></div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-      return null;
-    }
-
-    // Weight Slider - Compact
-    if (field.type === 'weight_slider') {
-      const weight = formData.weight || 150;
-      return (
-        <div key={field.key} className="col-span-2">
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-gray-400 text-xs font-medium">Weight</label>
-            <span className="text-lg font-bold text-emerald-400">{weight} lbs</span>
-          </div>
-          <input type="range" min="80" max="400" step="5" value={weight}
-            onChange={(e) => updateField('weight', parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer"
-            style={{ background: `linear-gradient(to right, #10b981 0%, #10b981 ${((weight - 80) / 320) * 100}%, #374151 ${((weight - 80) / 320) * 100}%, #374151 100%)` }}
-          />
-          <div className="flex gap-1 mt-1.5">
-            {[100, 150, 200, 250, 300].map(w => (
-              <button key={w} onClick={() => updateField('weight', w)}
-                className={`flex-1 py-1 rounded text-xs font-medium transition-all ${weight === w ? 'bg-emerald-500 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}
-              >{w}</button>
-            ))}
-          </div>
-        </div>
-      );
-    }
     if (field.type === 'select') {
       return (
         <div key={field.key} className={field.inline ? 'flex-1' : ''}>
-          <label className="text-gray-400 text-sm mb-1 block">{field.label}</label>
+          <label className="text-gray-400 text-xs mb-1 block">{field.label}</label>
           <select
             value={value}
             onChange={(e) => updateField(field.key, e.target.value)}
@@ -518,7 +380,7 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     
     return (
       <div key={field.key} className={field.fullWidth ? 'col-span-2' : (field.inline ? 'flex-1' : '')}>
-        <label className="text-gray-400 text-sm mb-1 block">{field.label}</label>
+        <label className="text-gray-400 text-xs mb-1 block">{field.label}</label>
         <input
           type={field.type || 'text'}
           value={value}
@@ -791,8 +653,8 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
             <ChevronLeft size={18} className="text-white" />
           </button>
           <div>
-            <h2 className="text-white font-bold text-xl">{node.title}</h2>
-            <p className="text-gray-500 text-sm">Phase {node.phase}/15 • Step {history.length}</p>
+            <h2 className="text-white font-bold text-sm">{node.title}</h2>
+            <p className="text-gray-500 text-xs">Phase {node.phase}/15 • Step {history.length}</p>
           </div>
         </div>
 
@@ -836,12 +698,12 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
       {/* TIP (Collapsible) */}
       {showTip && node.tip && (
         <div className="px-3 py-2 bg-amber-900/30 border-b border-amber-500/30 flex-shrink-0">
-          <p className="text-amber-200 text-base font-medium">💡 {node.tip}</p>
+          <p className="text-amber-200 text-xs">💡 {node.tip}</p>
         </div>
       )}
 
-      {/* CONTENT - NO SCROLL */}
-      <div ref={scrollRef} className="flex-1 overflow-hidden px-3 py-3 flex flex-col">
+      {/* CONTENT */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
         
         {/* DATA SOURCE INDICATOR - Shows for location and DOB screens */}
         {(node.dynamicLocation || node.dynamicDOB) && (
@@ -873,38 +735,39 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
           </div>
         )}
 
-        {/* SCRIPT TEXT - Compact */}
+        {/* SCRIPT TEXT */}
         <div 
-          className="mb-3 p-3 rounded-xl bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50"
-        >
-          <div 
-            className="text-white text-lg leading-7 font-normal"
-            style={{ 
-              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-            }}
-            dangerouslySetInnerHTML={{
-              __html: replaceVars(node.script)
-                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-300 font-bold">$1</strong>')
-                .replace(/\n\n/g, ' ')
-                .replace(/\n/g, ' ')
-            }}
-          />
-        </div>
+          className="text-white text-[15px] leading-relaxed mb-4"
+          dangerouslySetInnerHTML={{
+            __html: replaceVars(node.script)
+              .replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-400 font-bold">$1</strong>')
+              .replace(/\n\n/g, '<br/><br/>')
+              .replace(/\n/g, '<br/>')
+          }}
+        />
 
-        {/* LOCATION VERIFICATION CARD - Compact */}
+        {/* LOCATION VERIFICATION CARD */}
         {node.dynamicLocation && (
-          <div className="mb-2 p-2 rounded-lg border border-white/10 bg-gradient-to-br from-cyan-500/10 to-blue-500/10">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-4 h-4 text-white" />
+          <div className="mt-4 p-4 rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-blue-500/10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-white" />
               </div>
-              <div className="flex-1">
-                <p className="text-white font-medium text-sm">Location: {formData.locationDataSource === 'webhook' ? `${formData.city}, ${formData.state}` : formData.state || 'N/A'}</p>
+              <div>
+                <p className="text-white font-bold">Current Location</p>
+                <p className="text-gray-400 text-sm">
+                  {formData.locationDataSource === 'webhook' 
+                    ? `${formData.city}, ${formData.state}` 
+                    : formData.state || 'Not available'}
+                </p>
               </div>
-              {formData.locationDataSource === 'areaCode' && (
-                <span className="text-amber-400/80 text-xs">From area code</span>
-              )}
             </div>
+            {formData.locationDataSource === 'areaCode' && (
+              <p className="text-amber-400/80 text-xs flex items-center gap-1">
+                <AlertCircle size={12} />
+                City not available - State derived from phone area code
+              </p>
+            )}
           </div>
         )}
 
@@ -971,125 +834,6 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
             <p className="text-cyan-200 text-sm">
               That makes you <strong className="text-cyan-400">{formData.age} years young</strong>.
             </p>
-          </div>
-        )}
-
-        {/* COVERAGE SELECTOR - Ultra Compact */}
-        {node.showCoverageSelector && (
-          <div className="mt-3 p-3 rounded-xl border border-white/10 bg-gradient-to-br from-emerald-500/10 to-cyan-500/10">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                <DollarSign className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-white font-medium text-sm">Coverage:</span>
-              <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent ml-auto">
-                ${formData.selectedCoverage.toLocaleString()}
-              </span>
-            </div>
-
-            {/* Coverage Slider */}
-            <input
-              type="range"
-              min="5000"
-              max="50000"
-              step="2500"
-              value={formData.selectedCoverage}
-              onChange={(e) => updateField('selectedCoverage', parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer mb-2"
-              style={{
-                background: `linear-gradient(to right, #10b981 0%, #06b6d4 ${((formData.selectedCoverage - 5000) / 45000) * 100}%, #374151 ${((formData.selectedCoverage - 5000) / 45000) * 100}%, #374151 100%)`
-              }}
-            />
-
-            {/* Quick Select - Single Row */}
-            <div className="flex gap-1 mb-3">
-              {[5000, 10000, 15000, 20000, 25000].map(amount => (
-                <button
-                  key={amount}
-                  onClick={() => updateField('selectedCoverage', amount)}
-                  className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
-                    formData.selectedCoverage === amount
-                      ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white'
-                      : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                  }`}
-                >
-                  ${amount/1000}K
-                </button>
-              ))}
-            </div>
-
-            {/* Continue Button */}
-            <button
-              onClick={() => goTo(node.nextNode)}
-              className="w-full py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-bold text-sm flex items-center justify-center gap-2"
-            >
-              Continue <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* THREE OPTIONS QUOTE DISPLAY */}
-        {/* THREE OPTIONS QUOTE DISPLAY - Ultra Compact */}
-        {node.showThreeOptions && ratesLoaded && activeQuote && (
-          <div className="mt-2 space-y-1.5">
-            <div className="flex justify-between items-end px-1">
-              <p className="text-gray-400 text-[10px] font-medium uppercase tracking-wider">Highest to Lowest</p>
-              <p className="text-gray-500 text-[10px]">{activeQuote.carrier} • {activeQuote.planType}</p>
-            </div>
-            
-            {/* Option 1 - High (+$5000) */}
-            {(() => {
-              const highCoverage = formData.selectedCoverage + 5000;
-              const highPremium = calculateMonthlyPremium(activeQuote.carrier, formData.age, formData.gender, formData.tobacco, highCoverage, activeQuote.planType);
-              return (
-                <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/10 to-purple-600/5 border border-purple-500/30 flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded bg-purple-500 flex items-center justify-center text-[10px] text-white font-bold">1</div>
-                    <div>
-                      <p className="text-purple-200 font-bold text-xs">Max Protection</p>
-                      <p className="text-purple-300/60 text-[10px]">${highCoverage.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <p className="text-base font-bold text-purple-300">${highPremium?.toFixed(2) || '—'}</p>
-                </div>
-              );
-            })()}
-
-            {/* Option 2 - Mid (Target) */}
-            {(() => {
-              const midCoverage = formData.selectedCoverage;
-              const midPremium = calculateMonthlyPremium(activeQuote.carrier, formData.age, formData.gender, formData.tobacco, midCoverage, activeQuote.planType);
-              return (
-                <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 border border-emerald-500/30 flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded bg-emerald-500 flex items-center justify-center text-[10px] text-white font-bold">2</div>
-                    <div>
-                      <p className="text-emerald-200 font-bold text-xs">Standard</p>
-                      <p className="text-emerald-300/60 text-[10px]">${midCoverage.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <p className="text-base font-bold text-emerald-300">${midPremium?.toFixed(2) || '—'}</p>
-                </div>
-              );
-            })()}
-
-            {/* Option 3 - Low (-$5000) */}
-            {(() => {
-              const lowCoverage = Math.max(3000, formData.selectedCoverage - 5000);
-              const lowPremium = calculateMonthlyPremium(activeQuote.carrier, formData.age, formData.gender, formData.tobacco, lowCoverage, activeQuote.planType);
-              return (
-                <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-cyan-500/10 to-cyan-600/5 border border-cyan-500/30 flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded bg-cyan-500 flex items-center justify-center text-[10px] text-white font-bold">3</div>
-                    <div>
-                      <p className="text-cyan-200 font-bold text-xs">Basic</p>
-                      <p className="text-cyan-300/60 text-[10px]">${lowCoverage.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <p className="text-base font-bold text-cyan-300">${lowPremium?.toFixed(2) || '—'}</p>
-                </div>
-              );
-            })()}
           </div>
         )}
 
@@ -1196,49 +940,30 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
           </div>
         )}
 
-        {/* DATA COLLECTION FIELDS - Compact */}
+        {/* DATA COLLECTION FIELDS */}
         {node.fields && node.fields.length > 0 && (
-          <div className="mt-2 p-2 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <div className={`grid gap-2 ${node.fields.some(f => f.inline) ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <div className="mt-4 p-3 bg-gray-800/50 border border-gray-700 rounded-xl">
+            <div className={`grid gap-3 ${node.fields.some(f => f.inline) ? 'grid-cols-3' : 'grid-cols-2'}`}>
               {node.fields.map(field => renderField(field))}
             </div>
           </div>
         )}
 
-        {/* DECISION OPTIONS - Compact */}
+        {/* DECISION OPTIONS */}
         {node.options && node.options.length > 0 && (
-          <div className="mt-auto pt-2 space-y-1.5">
-            {node.options.map((opt, i) => {
-              const isPositive = opt.color === 'emerald' || opt.label.includes('✅') || opt.label.includes('Yes');
-              const isNegative = opt.color === 'red' || opt.label.includes('❌') || opt.label.includes('No');
-              const isWarning = opt.color === 'amber' || opt.color === 'orange' || opt.label.includes('⚠️');
-              
-              let buttonStyle = 'border-slate-600/50 hover:border-slate-500 hover:bg-slate-700/50';
-              let dotColor = 'bg-slate-500';
-              
-              if (isPositive) {
-                buttonStyle = 'border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-900/30';
-                dotColor = 'bg-emerald-500';
-              } else if (isNegative) {
-                buttonStyle = 'border-red-500/50 hover:border-red-400 hover:bg-red-900/30';
-                dotColor = 'bg-red-500';
-              } else if (isWarning) {
-                buttonStyle = 'border-amber-500/50 hover:border-amber-400 hover:bg-amber-900/30';
-                dotColor = 'bg-amber-500';
-              }
-              
-              return (
-                <button
-                  key={i}
-                  onClick={() => goTo(opt.next, { setData: opt.setData })}
-                  className={`w-full px-3 py-2.5 rounded-lg bg-slate-800/50 ${buttonStyle} border text-left transition-all active:scale-[0.98] flex items-center gap-3`}
-                >
-                  <div className={`w-2.5 h-2.5 rounded-full ${dotColor} flex-shrink-0`}></div>
-                  <span className="font-medium text-white text-sm flex-1">{opt.label}</span>
+          <div className="mt-4 space-y-2">
+            {node.options.map((opt, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(opt.next, { setData: opt.setData })}
+                className={`w-full p-3 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${getOptionColor(opt.color)}`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-white text-sm">{opt.label}</span>
                   <ChevronRight className="w-4 h-4 text-gray-500" />
-                </button>
-              );
-            })}
+                </div>
+              </button>
+            ))}
           </div>
         )}
 

@@ -1,0 +1,108 @@
+Background Carrier Application (American Amicable)
+Objective: Simultaneously complete the carrier application in the background while the user fills out the phone scripting tool application.
+
+Variables:
+
+{state} = The full state name provided by the internal application (e.g., "Texas", "Florida").
+
+Part 1: Initial Authentication
+1. Navigate to URL:
+
+https://www.americanamicable.com/v4/AgentLogin.php
+
+2. Agent Login:
+
+Action: Wait for #user to be visible.
+
+Field (Agent Number): Input ID #user
+
+Value: 0001163940
+
+Field (Password): Input ID #password
+
+Value: Top$producer2026
+
+3. Submit:
+
+Action: Click the submit button.
+
+Selector: input[type="submit"][value="Submit"]
+
+4. Continue Screen:
+
+Action: Click the "Continue" image/link.
+
+Selector: a[href*="/Marketing/area/A"] OR img[src="images/continue.png"]
+
+Part 2: Access Mobile Portal
+5. Select Tools:
+
+Action: Click the "Mobile Business Tools" link.
+
+Selector: a[href="https://www.insuranceapplication.com/"]
+
+6. Select Application:
+
+Action: Click the "Mobile Application" card.
+
+Selector: a[href*="webappmobile"]
+
+Part 3: Mobile Application Authentication
+7. Mobile Login ID:
+
+Action: Wait for #LoginId to be visible.
+
+Field: Input ID #LoginId
+
+Value: 0001163940
+
+8. Mobile Password:
+
+Field: Input ID #Password
+
+Value: Top$producer2026
+
+9. Login Action:
+
+Action: Click the Login button.
+
+Selector: Input ID #LoginBtn
+
+Part 4: Start New Application
+10. Initiate App:
+
+Action: Click the "New Application" button.
+
+Selector: Input ID #BtnNewApp
+
+11. Select Agent (Popup):
+
+Action: Click the element containing the Agent Number in the grid.
+
+Selector: td.dataItem containing text "0001163940"
+
+12. Select Product (Popup):
+
+Action: Click the element containing the product name.
+
+Selector: td.dataItem containing text "Senior Choice (FE 50-85)"
+
+Part 5: State Selection Logic
+13. Locate Dropdown:
+
+Target: Select element ID #StateDropDown
+
+14. Select State:
+
+Logic: Map the input variable {state} to the corresponding Option Value listed below.
+
+Action: Select the option where value matches the map below.
+
+State Mapping Table: | State Name | Option Value | | :--- | :--- | | Alaska | AASCAKSM0010001163940 | | Alabama | AASCALSM0010001163940 | | Arkansas | AASCARSM0010001163940 | | Arizona | AASCAZSM0010001163940 | | California | AASCCASM0010001163940 | | Colorado | AASCCOSM0010001163940 | | Connecticut | AASCCTSM0010001163940 | | District of Columbia | AASCDCSM0010001163940 | | Delaware | AASCDESM0010001163940 | | Florida | AASCFLSM0010001163940 | | Georgia | AASCGASM0010001163940 | | Hawaii | AASCHISM0010001163940 | | Idaho | AASCIDSM0010001163940 | | Illinois | AASCILSM0010001163940 | | Indiana | AASCINSM0010001163940 | | Kansas | AASCKSSM0010001163940 | | Kentucky | AASCKYSM0010001163940 | | Louisiana | AASCLASM0010001163940 | | Maryland | AASCMDSM0010001163940 | | Maine | AASCMESM0010001163940 | | Minnesota | AASCMNSM0010001163940 | | Missouri | AASCMOSM0010001163940 | | Mississippi | AASCMSSM0010001163940 | | North Carolina | AASCNCSM0010001163940 | | North Dakota | AASCNDSM0010001163940 | | Nebraska | AASCNESM0010001163940 | | New Mexico | AASCNMSM0010001163940 | | Nevada | AASCNVSM0010001163940 | | Ohio | AASCOHSM0010001163940 | | Oklahoma | AASCOKSM0010001163940 | | Oregon | AASCORSM0010001163940 | | Pennsylvania | AASCPASM0010001163940 | | South Carolina | AASCSCSM0010001163940 | | South Dakota | AASCSDSM0010001163940 | | Tennessee | AASCTNSM0010001163940 | | Texas | AASCTXSM0010001163940 | | Utah | AASCUTSM0010001163940 | | Virginia | AASCVASM0010001163940 | | Washington | AASCWASM0010001163940 | | Wisconsin | AASCWISM0010001163940 | | West Virginia | AASCWVSM0010001163940 | | Wyoming | AASCWYSM0010001163940 |
+
+Part 6: Final Submission
+15. Submit Popup:
+
+Action: Click the "Submit" button in the popup.
+
+Selector: Input ID #BtnNewAppFinal

@@ -45,7 +45,6 @@ export const NODE_TYPES = {
   TRANSITION: "transition",
   QUOTE: "quote",
   CLOSE: "close",
-  CONDITIONAL: "conditional",
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -57,7 +56,7 @@ export const SCRIPT_NODES = {
   // ═══════════════════════════════════════════════════════════════
   greeting_start: {
     id: "greeting_start",
-    type: NODE_TYPES.VERIFICATION,
+    type: NODE_TYPES.STATEMENT,
     phase: 1,
     title: "👋 The Trust Anchor",
     timestamp: "0:00 - 0:45",
@@ -65,28 +64,23 @@ export const SCRIPT_NODES = {
       text: "+7.1% lift (dove_straight_in), +0.9% (authority_title)",
       source: "opening_approach.dove_straight_in",
     },
-    script: `Hello, this is {agent_name}, the licensed field underwriter for the state of {state}.
-
-Just to make sure I've got the right file in front of me... I am speaking with {first_name} {last_name}, correct?`,
-    options: [
-      { label: "✅ Yes", nextNode: "verify_state" },
-      { label: "❌ No / Need to correct", nextNode: "correct_info" },
-    ],
+    script: `Hello, this is {agent_name}, the licensed field underwriter for the state of {state}.`,
+    nextNode: "verify_identity",
   },
 
-  verify_state: {
-    id: "verify_state",
+  verify_identity: {
+    id: "verify_identity",
     type: NODE_TYPES.VERIFICATION,
     phase: 1,
-    title: "📍 Verify State",
+    title: "📝 Verify Identity",
     conversionTip: {
       text: "+4.1% lift (full_name)",
       source: "Full Name Verification",
     },
-    script: `Okay, great. And you're in the state of {state}, right?`,
+    script: `I have you listed here as {first_name} {last_name}, residing in {state}, is that correct?`,
     options: [
       { label: "✅ Yes", nextNode: "verify_age" },
-      { label: "❌ No / Different state", nextNode: "correct_state" },
+      { label: "❌ No / Need to correct", nextNode: "correct_info" },
     ],
   },
 
@@ -97,16 +91,6 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     title: "✏️ Correct Information",
     script: `My apologies, let me update my file. What is the correct spelling of your name?`,
     captureVariable: "first_name",
-    nextNode: "verify_state",
-  },
-
-  correct_state: {
-    id: "correct_state",
-    type: NODE_TYPES.DATA_COLLECTION,
-    phase: 1,
-    title: "📍 Correct State",
-    script: `Oh, I'm sorry. Which state are you in?`,
-    captureVariable: "state",
     nextNode: "verify_age",
   },
 
@@ -531,35 +515,9 @@ Just to make sure I've got the right file in front of me... I am speaking with {
       text: "+4.3% lift (controlled_conversation)",
       source: "Control Technique",
     },
-    script: `To make sure I find you the carrier with the absolute best rate, I need to check exactly how they cover your specific medications. Could you grab your bottles so we can read them off together? Take your time, I'll be right here.`,
+    script: `Just to make sure I match you with the right carrier, grab your medication bottles. I need to list them out to ensure they are covered. Go ahead, I'll wait.`,
     captureVariable: "medications_list",
-    // Dynamic nextNode - will be handled by component based on whether meds entered
-    nextNode: "medication_check",
-  },
-
-  // New: Check if medications were entered
-  medication_check: {
-    id: "medication_check",
-    type: NODE_TYPES.CONDITIONAL,
-    phase: 3,
-    title: "🔍 Medication Check",
-    // This is handled dynamically in the component
-    checkVariable: "medications_list",
-    ifEmpty: "no_medications_confirm",
-    ifNotEmpty: "medication_confirmation",
-  },
-
-  // New: Confirmation screen if NO medications entered
-  no_medications_confirm: {
-    id: "no_medications_confirm",
-    type: NODE_TYPES.QUESTION,
-    phase: 3,
-    title: "❓ No Medications?",
-    script: `Okay, so no blood thinners, diabetes medication or anything like that?`,
-    options: [
-      { label: "✅ No, nothing", nextNode: "transition_to_presentation", color: "emerald" },
-      { label: "💊 Yes, actually...", nextNode: "medication_list", color: "amber" },
-    ],
+    nextNode: "medication_confirmation",
   },
 
   medication_confirmation: {
@@ -646,7 +604,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     },
     script: `Now, most of my clients in {state} with a fixed income like to keep their budget between $50 and $80 a month to get the maximum coverage. Does that range sound comfortable for you, or were you thinking higher?`,
     options: [
-      { label: "✅ Comfortable", nextNode: "coverage_selection" },
+      { label: "✅ Comfortable", nextNode: "present_options" },
       { label: "⬇️ Lower", nextNode: "adjust_anchor" },
       { label: "⬆️ Higher", nextNode: "adjust_anchor_up" },
     ],
@@ -658,7 +616,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     phase: 4,
     title: "⬇️ Adjust Lower",
     script: `Understood. We can definitely look at something lower. The most important thing is that it's comfortable for you.`,
-    nextNode: "coverage_selection",
+    nextNode: "present_options",
   },
 
   adjust_anchor_up: {
@@ -667,36 +625,19 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     phase: 4,
     title: "⬆️ Adjust Higher",
     script: `Okay, we can look at higher amounts. I just want to make sure we don't 'take food off the table' to pay for this.`,
-    nextNode: "coverage_selection",
-  },
-
-  coverage_selection: {
-    id: "coverage_selection",
-    type: NODE_TYPES.DATA_COLLECTION,
-    phase: 4,
-    title: "💵 Coverage Amount",
-    conversionTip: {
-      text: "Enter the target coverage - quotes will show this amount, +$5K above, and -$5K below",
-      source: "Three Option Strategy",
-    },
-    script: `Based on what you told me about your budget, let me pull up the best rates. What coverage amount would work best for {beneficiary}?`,
-    captureVariable: "target_coverage",
-    showCoverageSelector: true,
     nextNode: "present_options",
   },
 
   present_options: {
     id: "present_options",
-    type: NODE_TYPES.QUOTE,
+    type: NODE_TYPES.STATEMENT,
     phase: 4,
-    title: "📋 Present Three Options",
+    title: "📋 Present Options",
     conversionTip: {
-      text: "+10.3% lift (offered_multiple_options) - Always present highest to lowest",
-      source: "Multiple Options Strategy",
+      text: "+4.3% lift (controlled_conversation)",
+      source: "Control Technique",
     },
     script: `Okay {first_name}, I have three options approved for you. Grab a pen and paper, let me know when you're ready to write these down.`,
-    showQuoteCalculator: true,
-    showThreeOptions: true,
     nextNode: "quote_high",
   },
 
@@ -713,7 +654,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
       text: "+10.3% lift (offered_multiple_options)",
       source: "Multiple Options Strategy",
     },
-    script: `Option 1 is the Maximum Protection. This provides {coverage_amount_high} for {beneficiary}, and that runs {monthly_premium_high} per month.`,
+    script: `Option 1 is the Maximum Protection. This provides ${coverage_amount_high} for {beneficiary}, and that runs ${monthly_premium_high} per month.`,
     showQuoteCalculator: true,
     nextNode: "quote_mid",
   },
@@ -723,7 +664,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     type: NODE_TYPES.QUOTE,
     phase: 5,
     title: "💰 Option 2 - Standard",
-    script: `Option 2 is the Standard Protection. This gives {coverage_amount_mid} of coverage, and that is {monthly_premium_mid} per month.`,
+    script: `Option 2 is the Standard Protection. This gives ${coverage_amount_mid} of coverage, and that is ${monthly_premium_mid} per month.`,
     nextNode: "quote_low",
   },
 
@@ -732,7 +673,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     type: NODE_TYPES.QUOTE,
     phase: 5,
     title: "💰 Option 3 - Basic",
-    script: `Option 3 is the Basic Protection. This provides {coverage_amount_low}, and that is only {monthly_premium_low} per month.`,
+    script: `Option 3 is the Basic Protection. This provides ${coverage_amount_low}, and that is only ${monthly_premium_low} per month.`,
     nextNode: "trial_close_selection",
   },
 
@@ -768,7 +709,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
       text: "+30.3% lift (assumptive_close)",
       source: "close_approach.assumptive_close",
     },
-    script: `Excellent choice. That's the one I would have picked for you as well. Let me just verify the spelling of your last name to get that started. Is it {last_name_spelled}?`,
+    script: `Excellent choice. That's the one I would have picked for you as well. Let me just verify the spelling of your last name to get that started. Is it {last_name}?`,
     options: [
       { label: "✅ Yes", nextNode: "verify_address_delivery" },
       { label: "✏️ Correction needed", nextNode: "correct_name" },
@@ -1035,7 +976,6 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     type: NODE_TYPES.TRANSITION,
     phase: 8,
     title: "⏭️ Move to Confirmation",
-    script: "Excellent. I have everything locked in. Let me just finalize the approval and we can wrap this up.",
     nextNode: "recap",
   },
 
@@ -1052,7 +992,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
       text: "+23.6% lift (summary_close)",
       source: "Summary Close Technique",
     },
-    script: `Congratulations {first_name}, you are approved! Let me recap: You have {coverage_amount} of whole life coverage for {monthly_premium}. Your beneficiary is {beneficiary}. And your first payment will be on {draft_date}.`,
+    script: `Congratulations {first_name}, you are approved! Let me recap: You have ${coverage_amount} of whole life coverage for ${monthly_premium}. Your beneficiary is {beneficiary}. And your first payment will be on {draft_date}.`,
     nextNode: "expectations",
   },
 

@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import applicationsRouter from './routes/applications.js';
+import automationRouter from './routes/automation.js';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use(express.static(path.join(__dirname, '../dist')));
 
 // Routes
 app.use('/api/applications', applicationsRouter);
+app.use('/api/automation', automationRouter);
 
 // Health check (keep this before the catch-all)
 app.get('/api/health', (req, res) => {
