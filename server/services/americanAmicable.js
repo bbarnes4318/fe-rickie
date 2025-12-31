@@ -162,34 +162,103 @@ export const runAmericanAmicableAutomation = async (data) => {
 
     // Part 2: Access Mobile Portal
     // The "Mobile Business Tools" link has target="_blank" which opens new tab
-    // We'll navigate directly to avoid new tab complexity in headless mode
     console.log('[Automation] Accessing Mobile Business Tools...');
     
-    // First verify the link exists on the page
+    // Log what's on the current page
+    const currentUrl = page.url();
+    console.log('[Automation] Current URL after Continue:', currentUrl);
+    
+    // Wait a moment for page to fully load
+    await new Promise(r => setTimeout(r, 2000));
+    
+    // Check if we're on the marketing page and need to find the Mobile link
     const mobileLinkSelector = 'a[href="https://www.insuranceapplication.com/"]';
+    const mobileLinkAlt = 'a[href*="insuranceapplication.com"]';
+    
+    let foundMobileLink = false;
+    
+    // Try to find the Mobile Business Tools link
     try {
-      await page.waitForSelector(mobileLinkSelector, { timeout: 15000 });
+      await page.waitForSelector(mobileLinkSelector, { timeout: 10000 });
       console.log('[Automation] ✓ Found Mobile Business Tools link');
+      foundMobileLink = true;
     } catch (e) {
-      console.log('[Automation] Mobile Business Tools link not found, checking page content...');
-      const pageContent = await page.content();
-      console.log('[Automation] Page contains insuranceapplication:', pageContent.includes('insuranceapplication'));
+      console.log('[Automation] Exact Mobile link not found, trying alternatives...');
+      try {
+        await page.waitForSelector(mobileLinkAlt, { timeout: 5000 });
+        console.log('[Automation] ✓ Found alternative mobile link');
+        foundMobileLink = true;
+      } catch (e2) {
+        console.log('[Automation] No mobile link found on page');
+        // Log what links ARE available
+        const allLinks = await page.$$eval('a', as => as.map(a => ({ href: a.href, text: a.innerText.slice(0, 30) })));
+        console.log('[Automation] Available links:', JSON.stringify(allLinks.slice(0, 10)));
+      }
     }
     
-    // Navigate directly to the mobile portal (since the link opens in new tab)
-    console.log('[Automation] Navigating to insuranceapplication.com...');
-    await page.goto('https://www.insuranceapplication.com/', { waitUntil: 'networkidle0', timeout: 60000 });
-    console.log('[Automation] ✓ Successfully navigated to Mobile Portal');
+    // Handle the target="_blank" by listening for new pages
+    const browserContext = browser.defaultBrowserContext();
+    let newPage = null;
     
-    // Log the current URL for debugging
+    if (foundMobileLink) {
+      // Set up listener for new tab BEFORE clicking
+      const newPagePromise = new Promise(resolve => {
+        browser.once('targetcreated', async target => {
+          const newP = await target.page();
+          if (newP) resolve(newP);
+        });
+      });
+      
+      // Click the mobile link (it opens in new tab)
+      await page.click(mobileLinkSelector).catch(() => page.click(mobileLinkAlt));
+      
+      // Wait for new tab or timeout
+      try {
+        newPage = await Promise.race([
+          newPagePromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
+        ]);
+        console.log('[Automation] ✓ New tab opened');
+        page = newPage; // Switch to new page
+        await page.waitForNavigation({ waitUntil: 'networkidle0' }).catch(() => {});
+      } catch (e) {
+        console.log('[Automation] No new tab opened, navigating directly...');
+        await page.goto('https://www.insuranceapplication.com/', { waitUntil: 'networkidle0', timeout: 60000 });
+      }
+    } else {
+      // Fallback: navigate directly to the mobile portal
+      console.log('[Automation] Navigating directly to insuranceapplication.com...');
+      await page.goto('https://www.insuranceapplication.com/', { waitUntil: 'networkidle0', timeout: 60000 });
+    }
+    
+    console.log('[Automation] ✓ On Mobile Portal');
     console.log('[Automation] Current URL:', page.url());
+    
+    // Wait for page to be ready
+    await new Promise(r => setTimeout(r, 2000));
 
     // Select Application - click the Mobile Platform icon/link
     // Actual element: <a href="https://www.insuranceapplication.com/cgi/webappmobile/">
     console.log('[Automation] Looking for Mobile Application link...');
-    const mobileAppSelector = 'a[href="https://www.insuranceapplication.com/cgi/webappmobile/"]';
-    const mobileAppSelectorAlt = 'a[href*="cgi/webappmobile"]';
     
+    // The mobile app link - might require login first
+    const mobileAppSelector = 'a[href="https://www.insuranceapplication.com/cgi/webappmobile/"]';
+    const mobileAppSelectorAlt = 'a[href*="cgi/webappmobile/"]';
+    
+    // First check if we need to login on this site
+    const loginFormExists = await page.$('#LoginId').catch(() => null);
+    if (loginFormExists) {
+      console.log('[Automation] Login form detected, performing mobile login...');
+      // This is the mobile portal login, do it here
+      await page.type('#LoginId', '0001163940');
+      await page.type('#Password', 'Top$producer2026');
+      await page.click('#LoginBtn').catch(() => page.click('input[type="submit"]'));
+      await page.waitForNavigation({ waitUntil: 'networkidle0' }).catch(() => {});
+      console.log('[Automation] ✓ Mobile login completed');
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    
+    // Now look for the mobile app link
     try {
       // Try exact match first
       let found = false;
@@ -202,15 +271,26 @@ export const runAmericanAmicableAutomation = async (data) => {
         console.log('[Automation] Exact selector not found, trying partial...');
       }
       
-      // Fallback to partial match
+      // Fallback to partial match (but exclude PDF/doc links)
       if (!found) {
-        await page.waitForSelector(mobileAppSelectorAlt, { timeout: 10000 });
-        console.log('[Automation] ✓ Found webappmobile link (partial match)');
-        await page.click(mobileAppSelectorAlt);
+        const appLinks = await page.$$eval('a[href*="cgi/webappmobile"]', els => 
+          els.filter(a => !a.href.includes('.pdf') && !a.href.includes('DocHandler'))
+             .map(a => a.href)
+        );
+        console.log('[Automation] Found webappmobile links:', appLinks);
+        
+        if (appLinks.length > 0) {
+          // Navigate directly to the first valid app link
+          await page.goto(appLinks[0], { waitUntil: 'networkidle0' });
+          console.log('[Automation] ✓ Navigated to Mobile Application');
+          found = true;
+        }
       }
       
-      await page.waitForNavigation({ waitUntil: 'networkidle0' });
-      console.log('[Automation] ✓ Navigated to Mobile Application');
+      if (!found) {
+        throw new Error('No webappmobile link found');
+      }
+      
       console.log('[Automation] Current URL:', page.url());
     } catch (e) {
       console.log('[Automation] webappmobile link not found, logging available links...');

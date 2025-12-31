@@ -27,7 +27,8 @@ router.post('/run-carrier-app', async (req, res) => {
   console.log(`[AUTOMATION] ${ts} ✓ State received: "${state}" - Starting automation...`);
   
   try {
-    const result = await runAmericanAmicableAutomation({ state });
+    // Pass the FULL request body (all customer data) to the automation
+    const result = await runAmericanAmicableAutomation(req.body);
     
     console.log(`[AUTOMATION] ${new Date().toISOString()} Automation completed:`, JSON.stringify(result));
     
