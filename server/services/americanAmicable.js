@@ -59,9 +59,22 @@ export const runAmericanAmicableAutomation = async (data) => {
 
   try {
     console.log(`[PUPPETEER] ${logTs()} Launching browser...`);
+    
+    // Use system Chromium in Docker/production, bundled Chrome locally
+    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || null;
+    console.log(`[PUPPETEER] ${logTs()} Executable path: ${executablePath || 'Using bundled Chrome'}`);
+    
     browser = await puppeteer.launch({
-      headless: "new", // Run in background
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      headless: "new",
+      executablePath: executablePath,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+        '--single-process'
+      ]
     });
     console.log(`[PUPPETEER] ${logTs()} ✓ Browser launched successfully`);
 
