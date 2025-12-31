@@ -268,38 +268,31 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     }
   }, []);
 
-  // Manual Start Application button handler
+  // Manual Start Application button handler - validates required data before submitting
   const handleStartApplication = useCallback(() => {
-    if (!formData.state) {
-      alert('Please verify the state first before starting the application.');
+    // Validate required fields for American Amicable application
+    const missingFields = [];
+    
+    if (!formData.state) missingFields.push('State');
+    if (!formData.firstName) missingFields.push('First Name');
+    if (!formData.lastName) missingFields.push('Last Name');
+    if (!formData.dob) missingFields.push('Date of Birth');
+    if (!formData.gender) missingFields.push('Gender');
+    if (!formData.selectedCoverage) missingFields.push('Coverage Amount');
+    
+    if (missingFields.length > 0) {
+      alert(`Please complete the following before submitting:\n\n• ${missingFields.join('\n• ')}`);
       return;
     }
-    console.log('%c[AUTOMATION] MANUAL TRIGGER - Start Application button clicked', 'background: #ff0; color: #000; font-weight: bold;');
+    
+    console.log('%c[AUTOMATION] MANUAL TRIGGER - Submit App button clicked', 'background: #ff0; color: #000; font-weight: bold;');
     console.log('[AUTOMATION] Sending formData:', formData);
     setAutomationStarted(true);
     triggerCarrierAutomation(formData);
   }, [formData, triggerCarrierAutomation]);
 
-  // Auto-trigger when state is verified (at 'verify_state' node with confirmed state)
-  // This happens early in the call, after state is confirmed
-  useEffect(() => {
-    // Log every render for debugging
-    console.log('%c[AUTOMATION EFFECT]', 'color: #ff0;', {
-      nodeId,
-      automationStarted,
-      hasState: !!formData.state,
-      state: formData.state
-    });
-    
-    // Trigger after state verification is complete
-    // verify_state -> correct_state -> verify_age is the flow
-    // Trigger when we reach verify_age (means state is confirmed)
-    if (nodeId === 'verify_age' && !automationStarted && formData.state) {
-      console.log('%c[AUTOMATION EFFECT] CONDITIONS MET - AUTO-TRIGGERING', 'background: #0f0; color: #000; font-weight: bold;');
-      setAutomationStarted(true);
-      triggerCarrierAutomation(formData);
-    }
-  }, [nodeId, formData, automationStarted, triggerCarrierAutomation]);
+  // NOTE: Auto-trigger DISABLED - automation only happens when agent clicks "Submit App" button
+  // This ensures all customer data is collected before submitting to American Amicable
 
   // ─────────────────────────────────────────────────────────────────────────
   // UPDATE FORM DATA
