@@ -127,6 +127,7 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   const [history, setHistory] = useState([STARTING_NODE]);
   const [formData, setFormData] = useState({
     firstName: prospectData?.first_name || prospectData?.firstName || '',
+    middleName: prospectData?.middle_name || prospectData?.middleName || '',
     lastName: prospectData?.last_name || prospectData?.lastName || '',
     state: initialState,
     city: initialCity,
@@ -218,21 +219,21 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   // ─────────────────────────────────────────────────────────────────────────
   
   // Manual trigger function - can be called from button or automatically
-  const triggerCarrierAutomation = useCallback(async (state) => {
+  const triggerCarrierAutomation = useCallback(async (customerData) => {
     const API_BASE = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
     const ts = new Date().toISOString();
     
     console.log('%c═══════════════════════════════════════════════════════════════', 'color: #0ff');
     console.log('%c[AUTOMATION] TRIGGERING CARRIER AUTOMATION', 'background: #f00; color: #fff; font-weight: bold; font-size: 14px; padding: 4px;');
     console.log('%c═══════════════════════════════════════════════════════════════', 'color: #0ff');
-    console.log(`[AUTOMATION] ${ts} State: ${state}`);
+    console.log(`[AUTOMATION] ${ts} Customer Data:`, customerData);
     console.log(`[AUTOMATION] ${ts} API_BASE: ${API_BASE}`);
     
     // Also log to server
     fetch(`${API_BASE}/logs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: `Triggering automation for state: ${state}`, level: 'info' })
+      body: JSON.stringify({ message: `Triggering automation for: ${customerData.firstName} ${customerData.lastName} (${customerData.state})`, level: 'info' })
     }).catch(() => {});
     
     try {
@@ -242,7 +243,7 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state })
+        body: JSON.stringify(customerData)
       });
       
       console.log('%c[AUTOMATION] Response status:', 'color: #0f0', response.status, response.statusText);
@@ -274,9 +275,10 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
       return;
     }
     console.log('%c[AUTOMATION] MANUAL TRIGGER - Start Application button clicked', 'background: #ff0; color: #000; font-weight: bold;');
+    console.log('[AUTOMATION] Sending formData:', formData);
     setAutomationStarted(true);
-    triggerCarrierAutomation(formData.state);
-  }, [formData.state, triggerCarrierAutomation]);
+    triggerCarrierAutomation(formData);
+  }, [formData, triggerCarrierAutomation]);
 
   // Auto-trigger when state is verified (at 'verify_state' node with confirmed state)
   // This happens early in the call, after state is confirmed
@@ -295,9 +297,9 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     if (nodeId === 'verify_age' && !automationStarted && formData.state) {
       console.log('%c[AUTOMATION EFFECT] CONDITIONS MET - AUTO-TRIGGERING', 'background: #0f0; color: #000; font-weight: bold;');
       setAutomationStarted(true);
-      triggerCarrierAutomation(formData.state);
+      triggerCarrierAutomation(formData);
     }
-  }, [nodeId, formData.state, automationStarted, triggerCarrierAutomation]);
+  }, [nodeId, formData, automationStarted, triggerCarrierAutomation]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // UPDATE FORM DATA

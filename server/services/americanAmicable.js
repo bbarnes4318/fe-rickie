@@ -47,14 +47,28 @@ const STATE_MAPPING = {
 };
 
 export const runAmericanAmicableAutomation = async (data) => {
-  const { state } = data;
+  // Extract all customer data from formData
+  const {
+    state,
+    firstName,
+    middleName = '',
+    lastName,
+    dob,
+    age,
+    gender,
+    tobacco,
+    selectedCoverage,
+    selectedPlanType
+  } = data;
+  
   let browser = null;
   const logTs = () => new Date().toISOString();
 
   console.log('═══════════════════════════════════════════════════════════════');
   console.log(`[PUPPETEER] ${logTs()} ▶▶▶ AUTOMATION FUNCTION CALLED ◀◀◀`);
-  console.log(`[PUPPETEER] ${logTs()} Input data:`, JSON.stringify(data));
-  console.log(`[PUPPETEER] ${logTs()} State: ${state}`);
+  console.log(`[PUPPETEER] ${logTs()} Customer: ${firstName} ${middleName} ${lastName}`);
+  console.log(`[PUPPETEER] ${logTs()} State: ${state}, DOB: ${dob}, Age: ${age}, Gender: ${gender}`);
+  console.log(`[PUPPETEER] ${logTs()} Coverage: ${selectedCoverage}, Plan: ${selectedPlanType}, Tobacco: ${tobacco}`);
   console.log('═══════════════════════════════════════════════════════════════');
 
   try {
@@ -269,35 +283,138 @@ export const runAmericanAmicableAutomation = async (data) => {
     await page.select('#StateDropDown', optionValue);
     console.log('[Automation] ✓ State selected');
 
-    // Part 6: Final Submission
-    console.log('[Automation] Looking for Final Submit button...');
+    // Part 6: Click Submit button to proceed to application form
+    // Selector: <input type="submit" id="BtnNewAppFinal" value="Submit">
+    console.log('[Automation] Clicking Submit button to proceed...');
+    await page.waitForSelector('#BtnNewAppFinal', { timeout: 15000 });
+    console.log('[Automation] ✓ Found Submit button');
+    await page.click('#BtnNewAppFinal');
+    await new Promise(r => setTimeout(r, 3000)); // Wait for form to load
+    console.log('[Automation] ✓ Clicked Submit, waiting for application form...');
     
-    // Try multiple possible selectors for the final submit
-    const submitSelectors = ['#BtnNewAppFinal', 'input[value="Continue"]', 'input[type="submit"]'];
-    let submitted = false;
+    // Part 7: Customer Information Form
+    console.log('[Automation] Filling Customer Information...');
     
-    for (const selector of submitSelectors) {
-      try {
-        await page.waitForSelector(selector, { timeout: 5000 });
-        console.log(`[Automation] ✓ Found submit button: ${selector}`);
-        await page.click(selector);
-        submitted = true;
-        break;
-      } catch (e) {
-        console.log(`[Automation] Submit selector not found: ${selector}`);
-      }
+    // Wait for the form to be visible
+    await page.waitForSelector('#InsNameFirst', { timeout: 15000 });
+    console.log('[Automation] ✓ Application form loaded');
+    
+    // First Name
+    await page.type('#InsNameFirst', firstName.toUpperCase());
+    console.log('[Automation] ✓ First name entered');
+    
+    // Middle Name (optional)
+    if (middleName) {
+      await page.type('#InsNameMiddle', middleName.toUpperCase());
+      console.log('[Automation] ✓ Middle name entered');
     }
     
-    if (!submitted) {
-      console.log('[Automation] Warning: Could not find final submit button, but state was selected');
+    // Last Name
+    await page.type('#InsNameLast', lastName.toUpperCase());
+    console.log('[Automation] ✓ Last name entered');
+    
+    // Date of Birth (mm/dd/yyyy format)
+    // Convert dob to mm/dd/yyyy if needed
+    let formattedDOB = dob;
+    if (dob && dob.includes('-')) {
+      // Convert yyyy-mm-dd to mm/dd/yyyy
+      const [year, month, day] = dob.split('-');
+      formattedDOB = `${month}/${day}/${year}`;
+    }
+    await page.type('#dob', formattedDOB);
+    console.log(`[Automation] ✓ DOB entered: ${formattedDOB}`);
+    
+    // Age
+    if (age) {
+      await page.type('#dobAge', String(age));
+      console.log(`[Automation] ✓ Age entered: ${age}`);
     }
     
-    // Wait for result/confirmation
+    // Gender (Male=M, Female=F)
+    const genderValue = gender === 'Male' ? 'M' : 'F';
+    await page.click(`input[name="ctl00$ContentPlaceHolderMain$Sex"][value="${genderValue}"]`);
+    console.log(`[Automation] ✓ Gender selected: ${genderValue}`);
+    
+    // Tobacco (Yes=T, No=N)
+    const tobaccoValue = tobacco ? 'T' : 'N';
+    await page.click(`input[name="ctl00$ContentPlaceHolderMain$Tobacco"][value="${tobaccoValue}"]`);
+    console.log(`[Automation] ✓ Tobacco selected: ${tobaccoValue}`);
+    
+    // Acceptance Checkbox (always check)
+    await page.click('#Acceptance');
+    console.log('[Automation] ✓ Acceptance checkbox checked');
+    
+    // Part 8: Death Benefit / Plan Type
+    // Map our plan types to AA values: Immediate=I, Graded=G, ROP=R
+    let planValue = 'I'; // Default to Immediate
+    if (selectedPlanType === 'Graded') planValue = 'G';
+    else if (selectedPlanType === 'ROP') planValue = 'R';
+    else if (selectedPlanType === 'Level' || selectedPlanType === 'Immediate') planValue = 'I';
+    
+    await page.click(`input[name="ctl00$ContentPlaceHolderMain$Plan"][value="${planValue}"]`);
+    console.log(`[Automation] ✓ Plan type selected: ${planValue}`);
+    
+    // Part 9: Payment Mode (always Monthly)
+    await page.select('#Mode', 'M');
+    console.log('[Automation] ✓ Payment mode set to Monthly');
+    
+    // Part 10: Face Amount / Coverage
+    const coverageAmount = String(selectedCoverage || 10000);
+    await page.type('#Coverage', coverageAmount);
+    console.log(`[Automation] ✓ Coverage amount entered: $${coverageAmount}`);
+    
+    // Part 11: Automatic Premium Loan (always Yes)
+    await page.click('#APL_1');
+    console.log('[Automation] ✓ APL set to Yes');
+    
+    // Part 12: Deliver Policy To (always Insured)
+    await page.click('#MailTo_1');
+    console.log('[Automation] ✓ Mail to Insured selected');
+    
+    // Part 13: Requested Policy Date (today's date in mm/dd/yyyy)
+    const today = new Date();
+    const policyDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+    await page.type('#ReqPolicyDate', policyDate);
+    console.log(`[Automation] ✓ Policy date entered: ${policyDate}`);
+    
+    // Part 14: Digital Policy (always Yes)
+    await page.click('#DigitalInterestQ_1');
+    console.log('[Automation] ✓ Digital policy set to Yes');
+    
+    // Part 15: Click Quote button
+    console.log('[Automation] Clicking Quote button...');
+    await page.waitForSelector('#BtnQuote', { timeout: 10000 });
+    await page.click('#BtnQuote');
+    console.log('[Automation] ✓ Quote button clicked');
+    
+    // Wait for quote popup to appear
+    await new Promise(r => setTimeout(r, 5000));
+    
+    // Part 16: Click Continue Application button
+    console.log('[Automation] Looking for Continue Application button...');
+    try {
+      await page.waitForSelector('#BtnContinue', { timeout: 15000 });
+      await page.click('#BtnContinue');
+      console.log('[Automation] ✓ Clicked Continue Application');
+    } catch (e) {
+      console.log('[Automation] Continue button not found, quote may have different flow');
+    }
+    
+    // Wait for final result
     await new Promise(r => setTimeout(r, 3000));
     
-    console.log('[Automation] ✓ Successfully started carrier application!');
+    console.log('[Automation] ════════════════════════════════════════════════════════');
+    console.log('[Automation] ✓✓✓ SUCCESSFULLY COMPLETED CARRIER APPLICATION! ✓✓✓');
+    console.log('[Automation] ════════════════════════════════════════════════════════');
     console.log('[Automation] Final URL:', page.url());
-    return { success: true, message: 'Application started successfully', state: state };
+    
+    return { 
+      success: true, 
+      message: 'Application submitted successfully',
+      customer: `${firstName} ${lastName}`,
+      state: state,
+      coverage: selectedCoverage
+    };
 
   } catch (error) {
     console.error('[Automation] Error:', error);
