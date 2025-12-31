@@ -139,14 +139,34 @@ export const runAmericanAmicableAutomation = async (data) => {
     // Log the current URL for debugging
     console.log('[Automation] Current URL:', page.url());
 
-    // Select Application - look for the webappmobile link
+    // Select Application - click the Mobile Platform icon/link
+    // Actual element: <a href="https://www.insuranceapplication.com/cgi/webappmobile/">
     console.log('[Automation] Looking for Mobile Application link...');
+    const mobileAppSelector = 'a[href="https://www.insuranceapplication.com/cgi/webappmobile/"]';
+    const mobileAppSelectorAlt = 'a[href*="cgi/webappmobile"]';
+    
     try {
-      await page.waitForSelector('a[href*="webappmobile"]', { timeout: 15000 });
-      console.log('[Automation] ✓ Found webappmobile link');
-      await page.click('a[href*="webappmobile"]');
+      // Try exact match first
+      let found = false;
+      try {
+        await page.waitForSelector(mobileAppSelector, { timeout: 10000 });
+        console.log('[Automation] ✓ Found exact webappmobile link');
+        await page.click(mobileAppSelector);
+        found = true;
+      } catch (e) {
+        console.log('[Automation] Exact selector not found, trying partial...');
+      }
+      
+      // Fallback to partial match
+      if (!found) {
+        await page.waitForSelector(mobileAppSelectorAlt, { timeout: 10000 });
+        console.log('[Automation] ✓ Found webappmobile link (partial match)');
+        await page.click(mobileAppSelectorAlt);
+      }
+      
       await page.waitForNavigation({ waitUntil: 'networkidle0' });
       console.log('[Automation] ✓ Navigated to Mobile Application');
+      console.log('[Automation] Current URL:', page.url());
     } catch (e) {
       console.log('[Automation] webappmobile link not found, logging available links...');
       const links = await page.$$eval('a', as => as.map(a => ({ href: a.href, text: a.innerText.slice(0, 50) })));
