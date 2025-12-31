@@ -152,11 +152,34 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     routingNumber: '',
     accountNumber: '',
     accountType: 'Checking',
-    healthAnswers: {},
+    // ═══ HEALTH QUESTIONS (American Amicable) ═══
+    // Questions 1-3: If Yes = NOT ELIGIBLE
+    healthQ1: null, // Hospitalized, nursing facility, oxygen, cancer, ADL assistance
+    healthQ2: null, // Organ transplant, CHF, Alzheimer's, ALS, terminal condition
+    healthQ3: null, // AIDS/HIV
+    // Questions 4-7: If Yes = ROP Plan
+    healthQ4: null, // Diabetes complications, insulin before 50
+    healthQ5: null, // Kidney disease, multiple cancers
+    healthQ6: null, // Pending diagnostic tests
+    healthQ7a: null, // 2yr: Stroke, COPD, cirrhosis, oxygen
+    healthQ7b: null, // 2yr: Heart attack, heart surgery
+    healthQ7c: null, // 2yr: Cancer treatment
+    healthQ7d: null, // 2yr: Drug/alcohol abuse
+    // Question 8: If Yes = Graded Plan
+    healthQ8a: null, // 3yr: Heart issues, circulation surgery
+    healthQ8b: null, // 3yr: Cancer, COPD, liver disease
+    healthQ8c: null, // 3yr: Paralysis, MS, seizures, Parkinson's
+    // COVID Question
+    healthCovid: null, // COVID hospitalization/complications
+    // If all No = Immediate Plan
+    // ═══ ADDITIONAL FIELDS ═══
+    doctorName: '',
+    doctorAddress: '',
+    doctorPhone: '',
     selectedCarrier: null,
     selectedCoverage: 10000,
     selectedPremium: null,
-    selectedPlanType: 'Level',
+    selectedPlanType: 'Level', // Will be auto-set based on health answers
     medications: '',
     hospitalizationReason: '',
     callbackDate: '',

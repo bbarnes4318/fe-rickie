@@ -1,0 +1,193 @@
+Next on the application are the health questions. 
+
+Please replace all the existing health questions on our application with the health questions below. 
+
+And this is also the next steps in the American Amicable application process, so I've included the inputs next to each answer so that you can match them up to the American Amicable next steps in the automation process:
+
+Health Information: 
+
+Health Information
+
+1. Are you currently hospitalized, confined to a nursing facility, a bed, or a wheelchair due to chronic illness or disease, currently using oxygen equipment to assist in breathing, receiving Hospice Care or home health care, or had an amputation caused by disease, or do you currently have any form of cancer (excluding basal cell skin cancer) diagnosed or treated by a medical professional, or do you require assistance (from anyone) with activities of daily living such as bathing, dressing, eating or toileting?
+Yes: <input id="_SectionA1_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA1" value="Y">
+No: <input id="_SectionA1_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA1" value="N">
+
+2. Have you had or been medically advised to have an organ transplant or kidney dialysis, or have you been medically diagnosed as having congestive heart failure (CHF), Alzheimer’s, dementia, mental incapacity, Lou Gehrig’s disease (ALS), liver failure, respiratory failure, or been diagnosed by a medical professional as having a terminal medical condition or end-stage disease that is expected to result in death in the next 12 months?
+Yes: <input id="_SectionA2_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA2" value="Y">
+No: <input id="_SectionA2_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA2" value="N">
+
+3. Have you been medically treated or diagnosed by a medical professional as having Acquired Immune Deficiency Syndrome (AIDS), AIDS related complex (ARC), or any immune deficiency related disorder or tested positive for the Human Immunodeficiency Virus (HIV)?
+Yes: <input id="_SectionA3_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA3" value="Y">
+No: <input id="_SectionA3_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA3" value="N">
+
+If any answer to questions 1 through 3 is answered “Yes” the Proposed Insured is not eligible for any coverage.
+**include the text above on the user interface for questions 1 to 3**
+
+4. Have you ever been medically diagnosed or treated for complications of diabetes, including insulin shock, diabetic coma, retinopathy (eye), nephropathy (kidney), neuropathy (nerve damage/pain), or used insulin prior to age 50?
+Yes: <input id="_SectionA4_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA4" value="Y">
+No: <input id="_SectionA4_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA4" value="N">
+
+5. Have you ever been medically diagnosed, treated or taken medication for renal insufficiency, kidney failure, chronic kidney disease, or more than one occurrence of cancer in your lifetime (excluding basal cell skin cancer)?
+Yes: <input id="_SectionA5_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA5" value="Y">
+No: <input id="_SectionA5_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA5" value="N">
+
+6. Within the past 2 years have you had any diagnostic testing (excluding tests related to Human Immunodeficiency Virus (HIV)), surgery, or hospitalization advised by a medical professional which has not been completed or for which the results have not been received?
+Yes: <input id="_SectionA6_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA6" value="Y">
+No: <input id="_SectionA6_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA6" value="N">
+
+7. Within the past 2 years have you:
+
+a. been medically diagnosed or treated for angina (chest pain), stroke or TIA, cardiomyopathy, systemic lupus (SLE), cirrhosis, Hepatitis C, chronic hepatitis, chronic pancreatitis, chronic obstructive pulmonary disease (COPD), emphysema, chronic bronchitis, or required oxygen equipment to assist in breathing?
+Yes: <input id="_SectionA7a_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA7a" value="Y">
+No: <input id="_SectionA7a_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA7a" value="N">
+
+b. had a heart attack or aneurysm, or had or been medically advised to have any type of heart, brain or circulatory surgery (including, but not limited to a pacemaker insertion, defibrillator placement), or any procedure to improve circulation?
+Yes: <input id="_SectionA7b_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA7b" value="Y">
+No: <input id="_SectionA7b_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA7b" value="N">
+
+c. been medically diagnosed, or treated, or taken medication for any form of cancer (excluding basal cell skin cancer)?
+Yes: <input id="_SectionA7c_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA7c" value="Y">
+No: <input id="_SectionA7c_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA7c" value="N">
+
+d. used illegal drugs, abused alcohol or drugs, had or been recommended by a medical professional to have treatment or counseling for alcohol or drug use or been advised to discontinue use of alcohol or drugs?
+Yes: <input id="_SectionA7d_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA7d" value="Y">
+No: <input id="_SectionA7d_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA7d" value="N">
+
+If any answer to questions 4 through 7 is answered “Yes” the Proposed Insured should apply for the Return of Premium Death Benefit Plan.
+**include the text above on the user interface for questions 4 to 7**
+
+
+8. Within the past 3 years have you been medically diagnosed or treated, or hospitalized for:
+
+a. stroke, angina (chest pain), heart attack, aneurysm, heart or circulatory surgery or any procedure to improve circulation?
+Yes: <input id="_SectionA8a_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA8a" value="Y">
+No: <input id="_SectionA8a_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA8a" value="N">
+
+b. or taken medication for any form of cancer (excluding basal cell skin cancer), emphysema, chronic bronchitis, chronic obstructive pulmonary disease (COPD), ulcerative colitis, cirrhosis, Hepatitis C, or liver disease?
+Yes: <input id="_SectionA8b_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA8b" value="Y">
+No: <input id="_SectionA8b_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA8b" value="N">
+
+c. paralysis of two or more extremities or cerebral palsy, multiple sclerosis, seizures, Parkinson’s disease or muscular dystrophy?
+Yes: <input id="_SectionA8c_1" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA8c" value="Y">
+No: <input id="_SectionA8c_2" type="radio" name="ctl00$ContentPlaceHolderMain$_SectionA8c" value="N"> 
+
+If any answer to question 8 is answered “Yes” the Proposed Insured should apply for the Graded Death Benefit Plan.
+**include the text above on the user interface for question 8**
+
+If all questions 1 through 8 are answered “No” the Proposed Insured should apply for the Immediate Death Benefit Plan.
+**include the text above on the user interface**
+
+Coronavirus Questionnaire
+Within the past 6 months, have you been hospitalized or diagnosed by a medical professional with ongoing medical complications due to the novel coronavirus (COVID-19) or are you currently diagnosed by a medical professional with or being treated for the novel coronavirus (COVID-19)?
+Yes: <input id="CVQ1_1" type="radio" name="ctl00$ContentPlaceHolderMain$CVQ1" value="Y">
+No: <input id="CVQ1_2" type="radio" name="ctl00$ContentPlaceHolderMain$CVQ1" value="N">
+
+Click the 'Continue' button: <input type="submit" name="ctl00$ContentPlaceHolderBottomButton$BtnContinue" value="Continue" onclick="if (HasError()) return false;" id="BtnContinue" class="btn">
+
+Payment Type (always click 'Bank Draft):
+<input id="Method_1" type="radio" name="ctl00$ContentPlaceHolderMain$Method" value="BankDraft">
+
+Street Address (must type address into text box):
+<input name="ctl00$ContentPlaceHolderMain$StreetAddress" type="text" id="StreetAddress" class=" capitalizeField w3-input w3-border">
+
+Zip Code (must type zip code into text box):
+<input name="ctl00$ContentPlaceHolderMain$ZipCode" type="text" maxlength="5" id="ZipCode" class=" numbersOnly w3-input w3-border" size="5" disabled="">
+
+Social Security (must type social security number into text box):
+<input name="ctl00$ContentPlaceHolderMain$SSN" type="text" id="SSN" class=" ssnOnly w3-input w3-border">
+
+Best Contact Phone (must type Phone Number into text box):
+<input name="ctl00$ContentPlaceHolderMain$Phone" type="text" id="Phone" class=" phoneNumber w3-input w3-border">
+
+Would you like to proceed with providing your Client’s email address? (if email field is completed in our app then select 'Yes' here):
+Yes: <input id="EmailAdress_1" type="radio" name="ctl00$ContentPlaceHolderMain$EmailAdress" value="Yes">
+No: <input id="EmailAdress_2" type="radio" name="ctl00$ContentPlaceHolderMain$EmailAdress" value="No">
+
+State OR Country of Birth (must type in 2 digit state):
+<input name="ctl00$ContentPlaceHolderMain$BirthState" type="text" maxlength="6" id="BirthState" class=" upperField w3-input w3-border" size="6">
+
+Height (Select from the dropdown menu):
+<select name="ctl00$ContentPlaceHolderMain$Height" id="Height" class="w3-select w3-border" style="margin:0px 8px;">
+	<option selected="selected" value="" style="selected:;disabled:;hidden:;"></option>
+	<option value="4'">4'</option>
+	<option value="4'1">4'1"</option>
+	<option value="4'2">4'2"</option>
+	<option value="4'3">4'3"</option>
+	<option value="4'4">4'4"</option>
+	<option value="4'5">4'5"</option>
+	<option value="4'6">4'6"</option>
+	<option value="4'7">4'7"</option>
+	<option value="4'8">4'8"</option>
+	<option value="4'9">4'9"</option>
+	<option value="4'10">4'10"</option>
+	<option value="4'11">4'11"</option>
+	<option value="5'">5'</option>
+	<option value="5'1">5'1"</option>
+	<option value="5'2">5'2"</option>
+	<option value="5'3">5'3"</option>
+	<option value="5'4">5'4"</option>
+	<option value="5'5">5'5"</option>
+	<option value="5'6">5'6"</option>
+	<option value="5'7">5'7"</option>
+	<option value="5'8">5'8"</option>
+	<option value="5'9">5'9"</option>
+	<option value="5'10">5'10"</option>
+	<option value="5'11">5'11"</option>
+	<option value="6'">6'</option>
+	<option value="6'1">6'1"</option>
+	<option value="6'2">6'2"</option>
+	<option value="6'3">6'3"</option>
+	<option value="6'4">6'4"</option>
+	<option value="6'5">6'5"</option>
+	<option value="6'6">6'6"</option>
+	<option value="6'7">6'7"</option>
+	<option value="6'8">6'8"</option>
+	<option value="6'9">6'9"</option>
+	<option value="6'10">6'10"</option>
+	<option value="6'11">6'11"</option>
+	<option value="7'">7'</option>
+	<option value="7'1">7'1"</option>
+	<option value="7'2">7'2"</option>
+	<option value="7'3">7'3"</option>
+	<option value="7'4">7'4"</option>
+	<option value="7'5">7'5"</option>
+	<option value="7'6">7'6"</option>
+	<option value="7'7">7'7"</option>
+	<option value="7'8">7'8"</option>
+	<option value="7'9">7'9"</option>
+	<option value="7'10">7'10"</option>
+	<option value="7'11">7'11"</option>
+	<option value="18&quot;">18"</option>
+	<option value="20&quot;">20"</option>
+	<option value="22&quot;">22"</option>
+	<option value="24&quot;">24"</option>
+	<option value="26&quot;">26"</option>
+	<option value="28&quot;">28"</option>
+	<option value="30&quot;">30"</option>
+	<option value="32&quot;">32"</option>
+	<option value="34&quot;">34"</option>
+	<option value="36&quot;">36"</option>
+	<option value="38&quot;">38"</option>
+	<option value="42&quot;">42"</option>
+	<option value="46&quot;">46"</option>
+	<option value="48&quot;">48"</option>
+
+</select>
+
+Weight (input weight into the text box):
+<input name="ctl00$ContentPlaceHolderMain$Weight" type="text" maxlength="3" id="Weight" class=" numbersOnly w3-input w3-border" size="3">
+
+Personal Physician Name:
+<input name="ctl00$ContentPlaceHolderMain$DoctorName" type="text" id="DoctorName" class=" capitalizeField w3-input w3-border">
+
+Address (address of doctor):
+<input name="ctl00$ContentPlaceHolderMain$DoctorName1" type="text" id="DoctorName1" class=" capitalizeField w3-input w3-border">
+
+Physician Phone:
+<input name="ctl00$ContentPlaceHolderMain$PPhone" type="text" maxlength="14" id="PPhone" class=" phoneNumber w3-input w3-border" size="14">
+
+Owner Information (always select 'Yes' or 'True' here):
+<input id="OwnerInfo_1" type="radio" name="ctl00$ContentPlaceHolderMain$OwnerInfo" value="True">
+
+Payor Information: (always select 'Yes' or 'True' here):
+<input id="PayorInfo_1" type="radio" name="ctl00$ContentPlaceHolderMain$PayorInfo" value="True">

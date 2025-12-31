@@ -58,7 +58,37 @@ export const runAmericanAmicableAutomation = async (data) => {
     gender,
     tobacco,
     selectedCoverage,
-    selectedPlanType
+    selectedPlanType,
+    // Additional contact info
+    address = '',
+    zip = '',
+    ssn = '',
+    phone = '',
+    email = '',
+    birthState = '',
+    // Height/Weight
+    heightFeet = '',
+    heightInches = '',
+    weight = '',
+    // Doctor info
+    doctorName = '',
+    doctorAddress = '',
+    doctorPhone = '',
+    // Health Questions (Q1-Q8c + Covid)
+    healthQ1 = false,
+    healthQ2 = false,
+    healthQ3 = false,
+    healthQ4 = false,
+    healthQ5 = false,
+    healthQ6 = false,
+    healthQ7a = false,
+    healthQ7b = false,
+    healthQ7c = false,
+    healthQ7d = false,
+    healthQ8a = false,
+    healthQ8b = false,
+    healthQ8c = false,
+    healthCovid = false
   } = data;
   
   let browser = null;
@@ -69,6 +99,7 @@ export const runAmericanAmicableAutomation = async (data) => {
   console.log(`[PUPPETEER] ${logTs()} Customer: ${firstName} ${middleName} ${lastName}`);
   console.log(`[PUPPETEER] ${logTs()} State: ${state}, DOB: ${dob}, Age: ${age}, Gender: ${gender}`);
   console.log(`[PUPPETEER] ${logTs()} Coverage: ${selectedCoverage}, Plan: ${selectedPlanType}, Tobacco: ${tobacco}`);
+  console.log(`[PUPPETEER] ${logTs()} Address: ${address}, ${zip}`);
   console.log('═══════════════════════════════════════════════════════════════');
 
   try {
@@ -399,6 +430,212 @@ export const runAmericanAmicableAutomation = async (data) => {
     } catch (e) {
       console.log('[Automation] Continue button not found, quote may have different flow');
     }
+    
+    // Wait for health questions form to load
+    await new Promise(r => setTimeout(r, 3000));
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PART 17: HEALTH QUESTIONS
+    // ═══════════════════════════════════════════════════════════════════════
+    console.log('[Automation] Filling Health Questions...');
+    
+    // Helper function to click Yes or No radio
+    const answerHealthQuestion = async (questionId, answer) => {
+      const suffix = answer ? '_1' : '_2'; // _1 = Yes, _2 = No
+      const selector = `#${questionId}${suffix}`;
+      try {
+        await page.waitForSelector(selector, { timeout: 5000 });
+        await page.click(selector);
+        console.log(`[Automation] ✓ ${questionId}: ${answer ? 'Yes' : 'No'}`);
+      } catch (e) {
+        console.log(`[Automation] Health question ${questionId} not found`);
+      }
+    };
+    
+    // Questions 1-3 (If Yes = Not Eligible)
+    await answerHealthQuestion('_SectionA1', healthQ1);
+    await answerHealthQuestion('_SectionA2', healthQ2);
+    await answerHealthQuestion('_SectionA3', healthQ3);
+    
+    // Questions 4-7 (If Yes = ROP Plan)
+    await answerHealthQuestion('_SectionA4', healthQ4);
+    await answerHealthQuestion('_SectionA5', healthQ5);
+    await answerHealthQuestion('_SectionA6', healthQ6);
+    await answerHealthQuestion('_SectionA7a', healthQ7a);
+    await answerHealthQuestion('_SectionA7b', healthQ7b);
+    await answerHealthQuestion('_SectionA7c', healthQ7c);
+    await answerHealthQuestion('_SectionA7d', healthQ7d);
+    
+    // Question 8 (If Yes = Graded Plan)
+    await answerHealthQuestion('_SectionA8a', healthQ8a);
+    await answerHealthQuestion('_SectionA8b', healthQ8b);
+    await answerHealthQuestion('_SectionA8c', healthQ8c);
+    
+    // COVID Question
+    await answerHealthQuestion('CVQ1', healthCovid);
+    
+    console.log('[Automation] ✓ Health questions completed');
+    
+    // Click Continue after health questions
+    try {
+      await page.waitForSelector('#BtnContinue', { timeout: 10000 });
+      await page.click('#BtnContinue');
+      console.log('[Automation] ✓ Clicked Continue after health questions');
+    } catch (e) {
+      console.log('[Automation] Continue button not found after health questions');
+    }
+    
+    await new Promise(r => setTimeout(r, 2000));
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PART 18: CONTACT & ADDITIONAL INFORMATION
+    // ═══════════════════════════════════════════════════════════════════════
+    console.log('[Automation] Filling Contact Information...');
+    
+    // Payment Type (always Bank Draft)
+    try {
+      await page.click('#Method_1');
+      console.log('[Automation] ✓ Payment method set to Bank Draft');
+    } catch (e) {
+      console.log('[Automation] Payment method selector not found');
+    }
+    
+    // Street Address
+    if (address) {
+      try {
+        await page.type('#StreetAddress', address.toUpperCase());
+        console.log('[Automation] ✓ Street address entered');
+      } catch (e) {
+        console.log('[Automation] Street address field not found');
+      }
+    }
+    
+    // Zip Code
+    if (zip) {
+      try {
+        await page.type('#ZipCode', zip);
+        console.log('[Automation] ✓ Zip code entered');
+      } catch (e) {
+        console.log('[Automation] Zip code field not found');
+      }
+    }
+    
+    // Social Security Number
+    if (ssn) {
+      try {
+        await page.type('#SSN', ssn.replace(/[^0-9]/g, '')); // Remove dashes
+        console.log('[Automation] ✓ SSN entered');
+      } catch (e) {
+        console.log('[Automation] SSN field not found');
+      }
+    }
+    
+    // Phone
+    if (phone) {
+      try {
+        await page.type('#Phone', phone.replace(/[^0-9]/g, '')); // Numbers only
+        console.log('[Automation] ✓ Phone entered');
+      } catch (e) {
+        console.log('[Automation] Phone field not found');
+      }
+    }
+    
+    // Email - select Yes if we have email
+    if (email) {
+      try {
+        await page.click('#EmailAdress_1'); // Yes
+        console.log('[Automation] ✓ Email: Yes selected');
+        // Type email if there's a field for it
+      } catch (e) {
+        console.log('[Automation] Email radio not found');
+      }
+    } else {
+      try {
+        await page.click('#EmailAdress_2'); // No
+        console.log('[Automation] ✓ Email: No selected');
+      } catch (e) {
+        console.log('[Automation] Email radio not found');
+      }
+    }
+    
+    // Birth State (2 letter code)
+    if (birthState) {
+      try {
+        await page.type('#BirthState', birthState.toUpperCase().slice(0, 2));
+        console.log('[Automation] ✓ Birth state entered');
+      } catch (e) {
+        console.log('[Automation] Birth state field not found');
+      }
+    }
+    
+    // Height (format: 5'10)
+    if (heightFeet && heightInches) {
+      const heightValue = `${heightFeet}'${heightInches}`;
+      try {
+        await page.select('#Height', heightValue);
+        console.log(`[Automation] ✓ Height selected: ${heightValue}`);
+      } catch (e) {
+        console.log('[Automation] Height selector not found or value not in list');
+      }
+    }
+    
+    // Weight
+    if (weight) {
+      try {
+        await page.type('#Weight', String(weight));
+        console.log('[Automation] ✓ Weight entered');
+      } catch (e) {
+        console.log('[Automation] Weight field not found');
+      }
+    }
+    
+    // Doctor Name
+    if (doctorName) {
+      try {
+        await page.type('#DoctorName', doctorName.toUpperCase());
+        console.log('[Automation] ✓ Doctor name entered');
+      } catch (e) {
+        console.log('[Automation] Doctor name field not found');
+      }
+    }
+    
+    // Doctor Address
+    if (doctorAddress) {
+      try {
+        await page.type('#DoctorName1', doctorAddress.toUpperCase());
+        console.log('[Automation] ✓ Doctor address entered');
+      } catch (e) {
+        console.log('[Automation] Doctor address field not found');
+      }
+    }
+    
+    // Doctor Phone
+    if (doctorPhone) {
+      try {
+        await page.type('#PPhone', doctorPhone.replace(/[^0-9]/g, ''));
+        console.log('[Automation] ✓ Doctor phone entered');
+      } catch (e) {
+        console.log('[Automation] Doctor phone field not found');
+      }
+    }
+    
+    // Owner Information (always Yes/True)
+    try {
+      await page.click('#OwnerInfo_1');
+      console.log('[Automation] ✓ Owner Info set to True');
+    } catch (e) {
+      console.log('[Automation] Owner Info radio not found');
+    }
+    
+    // Payor Information (always Yes/True)
+    try {
+      await page.click('#PayorInfo_1');
+      console.log('[Automation] ✓ Payor Info set to True');
+    } catch (e) {
+      console.log('[Automation] Payor Info radio not found');
+    }
+    
+    console.log('[Automation] ✓ Contact information completed');
     
     // Wait for final result
     await new Promise(r => setTimeout(r, 3000));
