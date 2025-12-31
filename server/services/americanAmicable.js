@@ -260,35 +260,39 @@ export const runAmericanAmicableAutomation = async (data) => {
     
     // Now look for the mobile app link
     try {
-      // Try exact match first
-      let found = false;
-      try {
-        await page.waitForSelector(mobileAppSelector, { timeout: 10000 });
-        console.log('[Automation] ✓ Found exact webappmobile link');
-        await page.click(mobileAppSelector);
-        found = true;
-      } catch (e) {
-        console.log('[Automation] Exact selector not found, trying partial...');
-      }
+      // First, look for the direct webappmobile link (not PDF/doc links)
+      const appLinks = await page.$$eval('a[href*="cgi/webappmobile"]', els => 
+        els.filter(a => !a.href.includes('.pdf') && !a.href.includes('DocHandler') && !a.href.includes('Demo'))
+           .map(a => a.href)
+      );
+      console.log('[Automation] Found webappmobile links:', appLinks);
       
-      // Fallback to partial match (but exclude PDF/doc links)
-      if (!found) {
-        const appLinks = await page.$$eval('a[href*="cgi/webappmobile"]', els => 
-          els.filter(a => !a.href.includes('.pdf') && !a.href.includes('DocHandler'))
-             .map(a => a.href)
-        );
-        console.log('[Automation] Found webappmobile links:', appLinks);
-        
-        if (appLinks.length > 0) {
-          // Navigate directly to the first valid app link
-          await page.goto(appLinks[0], { waitUntil: 'networkidle0' });
-          console.log('[Automation] ✓ Navigated to Mobile Application');
-          found = true;
+      if (appLinks.length > 0) {
+        // Navigate directly to the mobile app URL (most reliable)
+        console.log('[Automation] Navigating directly to:', appLinks[0]);
+        await page.goto(appLinks[0], { waitUntil: 'networkidle0', timeout: 30000 });
+        console.log('[Automation] ✓ Navigated to Mobile Application');
+      } else {
+        // Fallback: try clicking the link with navigation wait
+        try {
+          await page.waitForSelector(mobileAppSelector, { timeout: 10000 });
+          console.log('[Automation] ✓ Found exact webappmobile link, clicking...');
+          
+          // Click and wait for navigation
+          await Promise.all([
+            page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
+            page.click(mobileAppSelector)
+          ]);
+          console.log('[Automation] ✓ Clicked and navigated');
+        } catch (clickErr) {
+          console.log('[Automation] Click navigation failed:', clickErr.message);
+          // Last resort: navigate directly to the known URL
+          console.log('[Automation] Navigating directly to webappmobile...');
+          await page.goto('https://www.insuranceapplication.com/cgi/webappmobile/', { 
+            waitUntil: 'networkidle0', 
+            timeout: 30000 
+          });
         }
-      }
-      
-      if (!found) {
-        throw new Error('No webappmobile link found');
       }
       
       console.log('[Automation] Current URL:', page.url());
