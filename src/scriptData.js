@@ -384,141 +384,234 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     title: "📏 Height & Weight",
     script: `And roughly, how tall are you and how much do you weigh?`,
     captureVariable: "height_weight",
-    nextNode: "heart_loop",
+    nextNode: "health_intro",
   },
 
-  heart_loop: {
-    id: "heart_loop",
+  // ═══════════════════════════════════════════════════════════════
+  // AMERICAN AMICABLE HEALTH QUESTIONS
+  // ═══════════════════════════════════════════════════════════════
+  health_intro: {
+    id: "health_intro",
+    type: NODE_TYPES.STATEMENT,
+    phase: 3,
+    title: "🏥 Health Questions Intro",
+    script: `Now I need to ask you some health questions. These are yes or no questions that help determine which plan you qualify for. Just answer honestly and we'll find you the best coverage.`,
+    nextNode: "health_q1",
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // QUESTIONS 1-3: If ANY Yes = NOT ELIGIBLE
+  // ═══════════════════════════════════════════════════════════════
+  health_q1: {
+    id: "health_q1",
     type: NODE_TYPES.QUESTION,
     phase: 3,
-    title: "❤️ Heart Conditions",
-    conversionTip: {
-      text: "+10.0% lift (combined_questions)",
-      source: "qualification_approach.combined_questions",
-    },
-    script: `I'm going to ask about the heart. In the past 2 years, have you had a heart attack, stroke, or congestive heart failure?`,
+    title: "❤️ Health Q1 - Critical Conditions",
+    eligibilityNote: "⚠️ If Yes to Q1-Q3: NOT ELIGIBLE for coverage",
+    script: `Are you currently hospitalized, confined to a nursing facility, a bed, or a wheelchair due to chronic illness, currently using oxygen equipment to assist in breathing, receiving Hospice Care or home health care, or had an amputation caused by disease, or do you currently have any form of cancer diagnosed or treated by a medical professional, or do you require assistance with activities of daily living such as bathing, dressing, eating or toileting?`,
     options: [
-      { label: "✅ No", nextNode: "respiratory_loop" },
-      { label: "⚠️ Yes", nextNode: "heart_drill_down" },
+      { label: "✅ No", nextNode: "health_q2", color: "emerald", setData: { healthQ1: false } },
+      { label: "❌ Yes", nextNode: "not_eligible_q1_3", color: "red", setData: { healthQ1: true } },
     ],
   },
 
-  heart_drill_down: {
-    id: "heart_drill_down",
-    type: NODE_TYPES.DATA_COLLECTION,
-    phase: 3,
-    title: "❤️ Heart Details",
-    script: `I see. Which one was it, and when exactly did that happen?`,
-    captureVariable: "heart_condition_date",
-    nextNode: "respiratory_loop",
-  },
-
-  respiratory_loop: {
-    id: "respiratory_loop",
+  health_q2: {
+    id: "health_q2",
     type: NODE_TYPES.QUESTION,
     phase: 3,
-    title: "🫁 Respiratory Check",
-    script: `Moving to the lungs—have you ever been diagnosed with COPD, emphysema, or do you use oxygen equipment to assist with breathing?`,
+    title: "🏥 Health Q2 - Serious Conditions",
+    eligibilityNote: "⚠️ If Yes to Q1-Q3: NOT ELIGIBLE for coverage",
+    script: `Have you had or been medically advised to have an organ transplant or kidney dialysis, or have you been diagnosed as having congestive heart failure, Alzheimer's, dementia, mental incapacity, Lou Gehrig's disease (ALS), liver failure, respiratory failure, or been diagnosed with a terminal medical condition expected to result in death in the next 12 months?`,
     options: [
-      { label: "✅ No", nextNode: "diabetes_loop" },
-      { label: "⚠️ Yes", nextNode: "respiratory_drill_down" },
+      { label: "✅ No", nextNode: "health_q3", color: "emerald", setData: { healthQ2: false } },
+      { label: "❌ Yes", nextNode: "not_eligible_q1_3", color: "red", setData: { healthQ2: true } },
     ],
   },
 
-  respiratory_drill_down: {
-    id: "respiratory_drill_down",
-    type: NODE_TYPES.DATA_COLLECTION,
-    phase: 3,
-    title: "🫁 Respiratory Details",
-    script: `Okay, do you use a nebulizer or just inhalers?`,
-    captureVariable: "respiratory_details",
-    nextNode: "diabetes_loop",
-  },
-
-  diabetes_loop: {
-    id: "diabetes_loop",
+  health_q3: {
+    id: "health_q3",
     type: NODE_TYPES.QUESTION,
     phase: 3,
-    title: "🩸 Diabetes Check",
-    script: `Do you have diabetes or high blood sugar?`,
+    title: "🔬 Health Q3 - HIV/AIDS",
+    eligibilityNote: "⚠️ If Yes to Q1-Q3: NOT ELIGIBLE for coverage",
+    script: `Have you been medically treated or diagnosed as having AIDS, AIDS related complex, any immune deficiency related disorder, or tested positive for HIV?`,
     options: [
-      { label: "✅ No", nextNode: "major_illness_loop" },
-      { label: "💊 Yes", nextNode: "diabetes_drill_down" },
+      { label: "✅ No", nextNode: "health_q4", color: "emerald", setData: { healthQ3: false } },
+      { label: "❌ Yes", nextNode: "not_eligible_q1_3", color: "red", setData: { healthQ3: true } },
     ],
   },
 
-  diabetes_drill_down: {
-    id: "diabetes_drill_down",
-    type: NODE_TYPES.QUESTION,
+  not_eligible_q1_3: {
+    id: "not_eligible_q1_3",
+    type: NODE_TYPES.OBJECTION_HANDLER,
     phase: 3,
-    title: "💊 Diabetes Details",
-    script: `Do you take pills for that, or do you use insulin?`,
+    title: "🚫 Not Eligible",
+    script: `I appreciate your honesty. Unfortunately, based on your answer, you would not be eligible for coverage with American Amicable at this time. I apologize I wasn't able to help you today.`,
     options: [
-      { label: "💊 Pills", nextNode: "neuropathy_check" },
-      { label: "💉 Insulin", nextNode: "insulin_details" },
+      { label: "📞 End Call", nextNode: "call_end", color: "gray" },
     ],
   },
 
-  insulin_details: {
-    id: "insulin_details",
-    type: NODE_TYPES.DATA_COLLECTION,
-    phase: 3,
-    title: "💉 Insulin Details",
-    script: `How old were you when you started the insulin, and how many units a day do you take?`,
-    captureVariable: "insulin_start_age",
-    nextNode: "neuropathy_check",
-  },
-
-  neuropathy_check: {
-    id: "neuropathy_check",
+  // ═══════════════════════════════════════════════════════════════
+  // QUESTIONS 4-7: If ANY Yes = ROP (Return of Premium) Plan
+  // ═══════════════════════════════════════════════════════════════
+  health_q4: {
+    id: "health_q4",
     type: NODE_TYPES.QUESTION,
     phase: 3,
-    title: "🦶 Neuropathy Check",
-    script: `Have you ever been told you have neuropathy or nerve pain related to the diabetes?`,
-    nextNode: "major_illness_loop",
-  },
-
-  major_illness_loop: {
-    id: "major_illness_loop",
-    type: NODE_TYPES.QUESTION,
-    phase: 3,
-    title: "🎗️ Cancer/Major Illness",
-    script: `In the last 2 years, have you been treated for any internal cancer or tumors?`,
+    title: "💊 Health Q4 - Diabetes",
+    eligibilityNote: "ℹ️ If Yes to Q4-Q7: Qualifies for ROP Plan",
+    script: `Have you ever been diagnosed or treated for complications of diabetes, including insulin shock, diabetic coma, retinopathy (eye), nephropathy (kidney), neuropathy (nerve damage), or used insulin prior to age 50?`,
     options: [
-      { label: "✅ No", nextNode: "hospital_loop" },
-      { label: "⚠️ Yes", nextNode: "cancer_drill_down" },
+      { label: "✅ No", nextNode: "health_q5", color: "emerald", setData: { healthQ4: false } },
+      { label: "⚠️ Yes", nextNode: "health_q5", color: "amber", setData: { healthQ4: true, selectedPlanType: "ROP" } },
     ],
   },
 
-  cancer_drill_down: {
-    id: "cancer_drill_down",
-    type: NODE_TYPES.DATA_COLLECTION,
-    phase: 3,
-    title: "🎗️ Cancer Details",
-    script: `Was that cancer free more than 2 years ago, or are you still taking medication for it?`,
-    captureVariable: "cancer_status",
-    nextNode: "hospital_loop",
-  },
-
-  hospital_loop: {
-    id: "hospital_loop",
+  health_q5: {
+    id: "health_q5",
     type: NODE_TYPES.QUESTION,
     phase: 3,
-    title: "🏥 Hospitalization",
-    script: `And finally, do you have any surgeries pending, or have you been hospitalized overnight in the last 12 months?`,
+    title: "🔬 Health Q5 - Kidney/Cancer",
+    eligibilityNote: "ℹ️ If Yes to Q4-Q7: Qualifies for ROP Plan",
+    script: `Have you ever been diagnosed, treated, or taken medication for renal insufficiency, kidney failure, chronic kidney disease, or more than one occurrence of cancer in your lifetime (excluding basal cell skin cancer)?`,
     options: [
-      { label: "✅ No", nextNode: "medication_list" },
-      { label: "⚠️ Yes", nextNode: "hospital_drill_down" },
+      { label: "✅ No", nextNode: "health_q6", color: "emerald", setData: { healthQ5: false } },
+      { label: "⚠️ Yes", nextNode: "health_q6", color: "amber", setData: { healthQ5: true, selectedPlanType: "ROP" } },
     ],
   },
 
-  hospital_drill_down: {
-    id: "hospital_drill_down",
-    type: NODE_TYPES.DATA_COLLECTION,
+  health_q6: {
+    id: "health_q6",
+    type: NODE_TYPES.QUESTION,
     phase: 3,
-    title: "🏥 Hospital Details",
-    script: `What was the hospitalization for?`,
-    captureVariable: "hospital_reason",
+    title: "🩺 Health Q6 - Pending Tests",
+    eligibilityNote: "ℹ️ If Yes to Q4-Q7: Qualifies for ROP Plan",
+    script: `Within the past 2 years, have you had any diagnostic testing, surgery, or hospitalization advised by a medical professional which has not been completed or for which the results have not been received?`,
+    options: [
+      { label: "✅ No", nextNode: "health_q7a", color: "emerald", setData: { healthQ6: false } },
+      { label: "⚠️ Yes", nextNode: "health_q7a", color: "amber", setData: { healthQ6: true, selectedPlanType: "ROP" } },
+    ],
+  },
+
+  health_q7a: {
+    id: "health_q7a",
+    type: NODE_TYPES.QUESTION,
+    phase: 3,
+    title: "❤️ Health Q7a - Heart/Lung (2yr)",
+    eligibilityNote: "ℹ️ If Yes to Q4-Q7: Qualifies for ROP Plan",
+    script: `Within the past 2 years, have you been diagnosed or treated for angina (chest pain), stroke or TIA, cardiomyopathy, lupus, cirrhosis, Hepatitis C, chronic hepatitis, chronic pancreatitis, COPD, emphysema, chronic bronchitis, or required oxygen equipment to assist in breathing?`,
+    options: [
+      { label: "✅ No", nextNode: "health_q7b", color: "emerald", setData: { healthQ7a: false } },
+      { label: "⚠️ Yes", nextNode: "health_q7b", color: "amber", setData: { healthQ7a: true, selectedPlanType: "ROP" } },
+    ],
+  },
+
+  health_q7b: {
+    id: "health_q7b",
+    type: NODE_TYPES.QUESTION,
+    phase: 3,
+    title: "🫀 Health Q7b - Heart Surgery (2yr)",
+    eligibilityNote: "ℹ️ If Yes to Q4-Q7: Qualifies for ROP Plan",
+    script: `Within the past 2 years, have you had a heart attack or aneurysm, or had or been medically advised to have any type of heart, brain or circulatory surgery (including pacemaker insertion, defibrillator placement), or any procedure to improve circulation?`,
+    options: [
+      { label: "✅ No", nextNode: "health_q7c", color: "emerald", setData: { healthQ7b: false } },
+      { label: "⚠️ Yes", nextNode: "health_q7c", color: "amber", setData: { healthQ7b: true, selectedPlanType: "ROP" } },
+    ],
+  },
+
+  health_q7c: {
+    id: "health_q7c",
+    type: NODE_TYPES.QUESTION,
+    phase: 3,
+    title: "🎗️ Health Q7c - Cancer (2yr)",
+    eligibilityNote: "ℹ️ If Yes to Q4-Q7: Qualifies for ROP Plan",
+    script: `Within the past 2 years, have you been diagnosed, treated, or taken medication for any form of cancer (excluding basal cell skin cancer)?`,
+    options: [
+      { label: "✅ No", nextNode: "health_q7d", color: "emerald", setData: { healthQ7c: false } },
+      { label: "⚠️ Yes", nextNode: "health_q7d", color: "amber", setData: { healthQ7c: true, selectedPlanType: "ROP" } },
+    ],
+  },
+
+  health_q7d: {
+    id: "health_q7d",
+    type: NODE_TYPES.QUESTION,
+    phase: 3,
+    title: "🍺 Health Q7d - Substance Use (2yr)",
+    eligibilityNote: "ℹ️ If Yes to Q4-Q7: Qualifies for ROP Plan",
+    script: `Within the past 2 years, have you used illegal drugs, abused alcohol or drugs, had or been recommended to have treatment or counseling for alcohol or drug use, or been advised to discontinue use of alcohol or drugs?`,
+    options: [
+      { label: "✅ No", nextNode: "health_q8a", color: "emerald", setData: { healthQ7d: false } },
+      { label: "⚠️ Yes", nextNode: "health_q8a", color: "amber", setData: { healthQ7d: true, selectedPlanType: "ROP" } },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // QUESTION 8: If ANY Yes = GRADED Plan
+  // ═══════════════════════════════════════════════════════════════
+  health_q8a: {
+    id: "health_q8a",
+    type: NODE_TYPES.QUESTION,
+    phase: 3,
+    title: "❤️ Health Q8a - Heart/Circulation (3yr)",
+    eligibilityNote: "ℹ️ If Yes to Q8: Qualifies for Graded Plan",
+    script: `Within the past 3 years, have you been diagnosed, treated, or hospitalized for stroke, angina (chest pain), heart attack, aneurysm, heart or circulatory surgery, or any procedure to improve circulation?`,
+    options: [
+      { label: "✅ No", nextNode: "health_q8b", color: "emerald", setData: { healthQ8a: false } },
+      { label: "⚠️ Yes", nextNode: "health_q8b", color: "amber", setData: { healthQ8a: true, selectedPlanType: "Graded" } },
+    ],
+  },
+
+  health_q8b: {
+    id: "health_q8b",
+    type: NODE_TYPES.QUESTION,
+    phase: 3,
+    title: "🫁 Health Q8b - Cancer/Lung/Liver (3yr)",
+    eligibilityNote: "ℹ️ If Yes to Q8: Qualifies for Graded Plan",
+    script: `Within the past 3 years, have you been diagnosed, treated, hospitalized, or taken medication for any form of cancer (excluding basal cell skin cancer), emphysema, chronic bronchitis, COPD, ulcerative colitis, cirrhosis, Hepatitis C, or liver disease?`,
+    options: [
+      { label: "✅ No", nextNode: "health_q8c", color: "emerald", setData: { healthQ8b: false } },
+      { label: "⚠️ Yes", nextNode: "health_q8c", color: "amber", setData: { healthQ8b: true, selectedPlanType: "Graded" } },
+    ],
+  },
+
+  health_q8c: {
+    id: "health_q8c",
+    type: NODE_TYPES.QUESTION,
+    phase: 3,
+    title: "🧠 Health Q8c - Neurological (3yr)",
+    eligibilityNote: "ℹ️ If Yes to Q8: Qualifies for Graded Plan",
+    script: `Within the past 3 years, have you been diagnosed, treated, or hospitalized for paralysis of two or more extremities or cerebral palsy, multiple sclerosis, seizures, Parkinson's disease, or muscular dystrophy?`,
+    options: [
+      { label: "✅ No", nextNode: "health_covid", color: "emerald", setData: { healthQ8c: false } },
+      { label: "⚠️ Yes", nextNode: "health_covid", color: "amber", setData: { healthQ8c: true, selectedPlanType: "Graded" } },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // COVID QUESTION
+  // ═══════════════════════════════════════════════════════════════
+  health_covid: {
+    id: "health_covid",
+    type: NODE_TYPES.QUESTION,
+    phase: 3,
+    title: "🦠 COVID-19 Question",
+    script: `Within the past 6 months, have you been hospitalized or diagnosed by a medical professional with ongoing medical complications due to COVID-19, or are you currently diagnosed with or being treated for COVID-19?`,
+    options: [
+      { label: "✅ No", nextNode: "health_summary", color: "emerald", setData: { healthCovid: false } },
+      { label: "⚠️ Yes", nextNode: "health_summary", color: "amber", setData: { healthCovid: true } },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // HEALTH SUMMARY - Determines plan eligibility
+  // ═══════════════════════════════════════════════════════════════
+  health_summary: {
+    id: "health_summary",
+    type: NODE_TYPES.STATEMENT,
+    phase: 3,
+    title: "📋 Health Summary",
+    script: `Great, thank you for answering those questions honestly. Based on your responses, I can see what plans you qualify for. Let me pull up your rates.`,
     nextNode: "medication_list",
   },
 
@@ -533,23 +626,19 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     },
     script: `To make sure I find you the carrier with the absolute best rate, I need to check exactly how they cover your specific medications. Could you grab your bottles so we can read them off together? Take your time, I'll be right here.`,
     captureVariable: "medications_list",
-    // Dynamic nextNode - will be handled by component based on whether meds entered
     nextNode: "medication_check",
   },
 
-  // New: Check if medications were entered
   medication_check: {
     id: "medication_check",
     type: NODE_TYPES.CONDITIONAL,
     phase: 3,
     title: "🔍 Medication Check",
-    // This is handled dynamically in the component
     checkVariable: "medications_list",
     ifEmpty: "no_medications_confirm",
     ifNotEmpty: "medication_confirmation",
   },
 
-  // New: Confirmation screen if NO medications entered
   no_medications_confirm: {
     id: "no_medications_confirm",
     type: NODE_TYPES.QUESTION,
@@ -588,7 +677,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     type: NODE_TYPES.TRANSITION,
     phase: 3,
     title: "⏭️ Transition to Presentation",
-    script: `Excellent. Based on that, I'm seeing some great options for you. Give me one moment to pull up the state-approved rates.`,
+    script: `Excellent. Based on your health answers, I'm seeing some great options for you. Give me one moment to pull up the state-approved rates.`,
     nextNode: "inflation_story",
   },
 
