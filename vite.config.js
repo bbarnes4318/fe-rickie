@@ -11,8 +11,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         live: resolve(__dirname, 'live.html'),
         wizard: resolve(__dirname, 'wizard.html'),
-        preclosed: resolve(__dirname, 'preclosed.html'),
-        framework: resolve(__dirname, 'framework.html')
+        preclosed: resolve(__dirname, 'preclosed.html')
       }
     }
   }

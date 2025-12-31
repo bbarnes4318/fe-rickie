@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useWizard } from '../WizardContext';
-import { populateDynamicFields, NODE_TYPES } from '../scriptData';
+import { replaceVariables, NODE_TYPES } from '../scriptData';
 import ConversionTip from './ConversionTip';
 import QuoteDisplay from './QuoteDisplay';
 
@@ -19,8 +19,8 @@ export default function WizardCard() {
   }
   
   // Populate dynamic fields like {first_name}, {beneficiary}, etc.
-  const populatedScript = populateDynamicFields(currentNode.script, prospectData);
-  const populatedPrompt = populateDynamicFields(currentNode.prompt, prospectData);
+  const populatedScript = replaceVariables(currentNode.script, prospectData);
+  const populatedPrompt = replaceVariables(currentNode.prompt, prospectData);
   
   // Handle button click
   const handleOptionClick = (option) => {

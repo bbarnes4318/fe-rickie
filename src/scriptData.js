@@ -1283,3 +1283,12 @@ export const replaceVariables = (text, prospectData) => {
 
   return result;
 };
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════
+export const getNode = (id) => {
+  if (!id) return null;
+  return SCRIPT_NODES[id];
+};
+
