@@ -17,7 +17,8 @@ import {
   Info,
   MapPin,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  ArrowRight
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -215,40 +216,84 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   // ─────────────────────────────────────────────────────────────────────────
   // AUTOMATION TRIGGER - BACKGROUND CARRIER APP
   // ─────────────────────────────────────────────────────────────────────────
+  
+  // Manual trigger function - can be called from button or automatically
   const triggerCarrierAutomation = useCallback(async (state) => {
     const API_BASE = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
-    const log = (msg, data) => {
-       console.log(msg, data || '');
-       fetch(`${API_BASE}/logs`, {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ message: msg, data })
-       }).catch(() => {});
-    };
-
-    log(`[IntegratedScriptPanel] Triggering automation for state: ${state}`);
+    const ts = new Date().toISOString();
+    
+    console.log('%c═══════════════════════════════════════════════════════════════', 'color: #0ff');
+    console.log('%c[AUTOMATION] TRIGGERING CARRIER AUTOMATION', 'background: #f00; color: #fff; font-weight: bold; font-size: 14px; padding: 4px;');
+    console.log('%c═══════════════════════════════════════════════════════════════', 'color: #0ff');
+    console.log(`[AUTOMATION] ${ts} State: ${state}`);
+    console.log(`[AUTOMATION] ${ts} API_BASE: ${API_BASE}`);
+    
+    // Also log to server
+    fetch(`${API_BASE}/logs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: `Triggering automation for state: ${state}`, level: 'info' })
+    }).catch(() => {});
     
     try {
-      // Fire and forget - don't block UI
-      fetch(`${API_BASE}/automation/run-carrier-app`, {
+      const url = `${API_BASE}/automation/run-carrier-app`;
+      console.log('%c[AUTOMATION] Making POST request to:', 'color: #0f0', url);
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ state })
-      })
-      .then(async (res) => {
-        const data = await res.json();
-        log('[Automation] Response:', data);
-      })
-      .catch(err => log('[Automation] Network Error:', err.message));
+      });
       
+      console.log('%c[AUTOMATION] Response status:', 'color: #0f0', response.status, response.statusText);
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('%c[AUTOMATION] ✅ SUCCESS', 'background: #0f0; color: #000; font-weight: bold;', data);
+      } else {
+        console.log('%c[AUTOMATION] ❌ FAILED', 'background: #f00; color: #fff; font-weight: bold;', data);
+      }
+      
+      return data;
     } catch (err) {
-      log('[Automation] Failed to trigger:', err.message);
+      console.error('%c[AUTOMATION] 💥 EXCEPTION', 'background: #f00; color: #fff; font-weight: bold;', err);
+      fetch(`${API_BASE}/logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Automation EXCEPTION: ${err.message}`, level: 'error' })
+      }).catch(() => {});
+      return { success: false, error: err.message };
     }
   }, []);
 
+  // Manual Start Application button handler
+  const handleStartApplication = useCallback(() => {
+    if (!formData.state) {
+      alert('Please verify the state first before starting the application.');
+      return;
+    }
+    console.log('%c[AUTOMATION] MANUAL TRIGGER - Start Application button clicked', 'background: #ff0; color: #000; font-weight: bold;');
+    setAutomationStarted(true);
+    triggerCarrierAutomation(formData.state);
+  }, [formData.state, triggerCarrierAutomation]);
+
+  // Auto-trigger when state is verified (at 'verify_state' node with confirmed state)
+  // This happens early in the call, after state is confirmed
   useEffect(() => {
-    // Trigger when moving to intro_transition (implies location verified)
-    if (nodeId === 'intro_transition' && !automationStarted && formData.state) {
+    // Log every render for debugging
+    console.log('%c[AUTOMATION EFFECT]', 'color: #ff0;', {
+      nodeId,
+      automationStarted,
+      hasState: !!formData.state,
+      state: formData.state
+    });
+    
+    // Trigger after state verification is complete
+    // verify_state -> correct_state -> verify_age is the flow
+    // Trigger when we reach verify_age (means state is confirmed)
+    if (nodeId === 'verify_age' && !automationStarted && formData.state) {
+      console.log('%c[AUTOMATION EFFECT] CONDITIONS MET - AUTO-TRIGGERING', 'background: #0f0; color: #000; font-weight: bold;');
       setAutomationStarted(true);
       triggerCarrierAutomation(formData.state);
     }
@@ -833,6 +878,33 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
               <span>Get Quote</span>
             )}
           </button>
+          
+          {/* START APPLICATION BUTTON */}
+          <button
+            onClick={handleStartApplication}
+            disabled={!formData.state || automationStarted}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              automationStarted 
+                ? 'bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 cursor-default' 
+                : formData.state
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg shadow-orange-500/20'
+                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+            }`}
+            title={automationStarted ? 'Application started' : 'Start carrier application in background'}
+          >
+            {automationStarted ? (
+              <>
+                <Check size={14} />
+                <span>App Started</span>
+              </>
+            ) : (
+              <>
+                <ArrowRight size={14} />
+                <span>Start App</span>
+              </>
+            )}
+          </button>
+          
           <button onClick={resetScript} className="p-1.5 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors" title="Reset">
             <RotateCcw size={16} />
           </button>

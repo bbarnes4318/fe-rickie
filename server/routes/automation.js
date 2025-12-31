@@ -4,36 +4,51 @@ import { runAmericanAmicableAutomation } from '../services/americanAmicable.js';
 
 const router = express.Router();
 
-// POST /api/automation/run-carrier-app
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTOMATION ROUTE - POST /api/automation/run-carrier-app
+// ═══════════════════════════════════════════════════════════════════════════
 router.post('/run-carrier-app', async (req, res) => {
+  const ts = new Date().toISOString();
+  
+  // AGGRESSIVE LOGGING - FIRST THING
+  console.log('═══════════════════════════════════════════════════════════════');
+  console.log(`[AUTOMATION] ${ts} ▶▶▶ REQUEST RECEIVED ◀◀◀`);
+  console.log(`[AUTOMATION] ${ts} Request Body:`, JSON.stringify(req.body));
+  console.log(`[AUTOMATION] ${ts} Headers:`, JSON.stringify(req.headers));
+  console.log('═══════════════════════════════════════════════════════════════');
+  
   const { state } = req.body;
 
-  console.log(`[Automation] Received request for state: "${state}"`);
-
   if (!state) {
-    console.warn('[Automation] Missing state in request');
+    console.warn(`[AUTOMATION] ${ts} ⚠️ MISSING STATE IN REQUEST`);
     return res.status(400).json({ success: false, error: 'State is required' });
   }
 
-  // Run asynchronously without blocking response? 
-  // User asked to "simultaneously complete", meaning it runs in background.
-  // However, usually we want to know if it started successfully.
-  // Since Puppeteer can take 10-20 seconds, we should verify start.
+  console.log(`[AUTOMATION] ${ts} ✓ State received: "${state}" - Starting automation...`);
   
   try {
-    // We await the whole process or just the kickoff?
-    // Given the flow is "Start Application", it's finite.
     const result = await runAmericanAmicableAutomation({ state });
     
+    console.log(`[AUTOMATION] ${new Date().toISOString()} Automation completed:`, JSON.stringify(result));
+    
     if (result.success) {
+      console.log(`[AUTOMATION] ${new Date().toISOString()} ✅ SUCCESS - Sending response`);
       res.json(result);
     } else {
+      console.log(`[AUTOMATION] ${new Date().toISOString()} ❌ FAILED - ${result.error}`);
       res.status(500).json(result);
     }
   } catch (error) {
-    console.error('Automation route error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
+    console.error(`[AUTOMATION] ${new Date().toISOString()} 💥 EXCEPTION:`, error.message);
+    console.error(`[AUTOMATION] Stack:`, error.stack);
+    res.status(500).json({ success: false, error: error.message });
   }
+});
+
+// Also add a GET endpoint for testing
+router.get('/test', (req, res) => {
+  console.log(`[AUTOMATION] ${new Date().toISOString()} TEST ENDPOINT HIT`);
+  res.json({ status: 'Automation route is working', timestamp: new Date().toISOString() });
 });
 
 export default router;

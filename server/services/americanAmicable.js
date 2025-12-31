@@ -49,14 +49,21 @@ const STATE_MAPPING = {
 export const runAmericanAmicableAutomation = async (data) => {
   const { state } = data;
   let browser = null;
+  const logTs = () => new Date().toISOString();
 
-  console.log(`[Automation] Starting American Amicable application for state: ${state}`);
+  console.log('═══════════════════════════════════════════════════════════════');
+  console.log(`[PUPPETEER] ${logTs()} ▶▶▶ AUTOMATION FUNCTION CALLED ◀◀◀`);
+  console.log(`[PUPPETEER] ${logTs()} Input data:`, JSON.stringify(data));
+  console.log(`[PUPPETEER] ${logTs()} State: ${state}`);
+  console.log('═══════════════════════════════════════════════════════════════');
 
   try {
+    console.log(`[PUPPETEER] ${logTs()} Launching browser...`);
     browser = await puppeteer.launch({
       headless: "new", // Run in background
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] // Required for running as root in some containers
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
+    console.log(`[PUPPETEER] ${logTs()} ✓ Browser launched successfully`);
 
     const page = await browser.newPage();
     
