@@ -378,131 +378,148 @@ export const runAmericanAmicableAutomation = async (data) => {
       throw new Error('Could not find Senior Choice product');
     }
     
-    // Wait for state dropdown popup/modal to fully load
-    await new Promise(r => setTimeout(r, 3000));
+    // Wait for state menu popup to appear (same pattern as Agent and Product)
+    await new Promise(r => setTimeout(r, 2000));
     
-    // Debug: Log current page state
-    console.log('[Automation] Current URL before state selection:', page.url());
-    
-    // Part 5: State Selection Logic
+    // Part 5: State Selection - Using custom popup menu (NOT a native select!)
+    // The page uses #StateMenu popup with clickable td.dataItem rows, just like Agent and Product
     console.log(`[Automation] Selecting State: ${state}...`);
     
-    // Try to find the state dropdown - might be a select, might be a custom dropdown
-    let stateDropdownFound = false;
+    // First, check if the StateMenu popup is visible
+    const stateMenuVisible = await page.$('#StateMenu');
+    if (stateMenuVisible) {
+      console.log('[Automation] StateMenu popup found, checking visibility...');
+      const isVisible = await page.evaluate(() => {
+        const menu = document.querySelector('#StateMenu');
+        return menu && menu.style.display !== 'none' && menu.offsetParent !== null;
+      });
+      console.log('[Automation] StateMenu visible:', isVisible);
+    }
     
-    // First, let's see what elements are on the page
-    const pageElements = await page.evaluate(() => {
-      const selects = Array.from(document.querySelectorAll('select')).map(s => ({
-        id: s.id,
-        name: s.name,
-        options: Array.from(s.options).slice(0, 5).map(o => o.text)
-      }));
-      const inputs = Array.from(document.querySelectorAll('input[type="submit"], button')).map(i => ({
-        id: i.id,
-        value: i.value || i.textContent,
-        type: i.type
-      }));
-      return { selects, inputs };
-    });
-    console.log('[Automation] Page elements - Selects:', JSON.stringify(pageElements.selects));
-    console.log('[Automation] Page elements - Buttons:', JSON.stringify(pageElements.inputs));
+    // Wait for new dataItem cells to appear (these are the state options)
+    console.log('[Automation] Waiting for state options to load...');
+    await page.waitForFunction(() => document.querySelectorAll('td.dataItem').length > 0, { timeout: 15000 });
     
-    // Try multiple possible selectors for the state dropdown
-    const stateSelectors = ['#StateDropDown', '#ddlState', 'select[name*="State"]', 'select[id*="State"]', '#State'];
-    let foundSelector = null;
+    // Get all dataItem cells - these should be state options now
+    const stateElements = await page.$$('td.dataItem');
+    console.log(`[Automation] Found ${stateElements.length} dataItem cells for state selection`);
     
-    for (const selector of stateSelectors) {
-      try {
-        const element = await page.$(selector);
-        if (element) {
-          foundSelector = selector;
-          console.log(`[Automation] ✓ Found state dropdown with selector: ${selector}`);
-          break;
-        }
-      } catch (e) {
-        // Continue to next selector
+    // Log what options are available
+    const availableStates = await page.$$eval('td.dataItem', els => 
+      els.map(e => e.textContent.trim()).slice(0, 20)
+    );
+    console.log('[Automation] Available state options:', JSON.stringify(availableStates));
+    
+    // Find and click the matching state
+    let stateFound = false;
+    
+    // Try to find by state name first
+    for (const el of stateElements) {
+      const text = await page.evaluate(e => e.textContent.trim(), el);
+      if (text.includes(state) || text === state) {
+        console.log(`[Automation] ✓ Found state: ${text}`);
+        await el.click();
+        stateFound = true;
+        break;
       }
     }
     
-    if (!foundSelector) {
-      // Maybe it's still loading - wait a bit more and try again
-      console.log('[Automation] State dropdown not found immediately, waiting longer...');
-      await new Promise(r => setTimeout(r, 3000));
-      
-      for (const selector of stateSelectors) {
-        try {
-          await page.waitForSelector(selector, { timeout: 5000 });
-          foundSelector = selector;
-          console.log(`[Automation] ✓ Found state dropdown after wait: ${selector}`);
-          break;
-        } catch (e) {
-          // Continue to next selector
-        }
-      }
-    }
-    
-    if (!foundSelector) {
-      // Log what IS on the page
-      const html = await page.content();
-      console.log('[Automation] Page HTML snippet:', html.slice(0, 2000));
-      throw new Error('Could not find state dropdown on page');
-    }
-    
-    const optionValue = STATE_MAPPING[state];
-    if (!optionValue) {
-      console.log('[Automation] Available states in mapping:', Object.keys(STATE_MAPPING).join(', '));
-      throw new Error(`State mapping not found for: ${state}`);
-    }
-    
-    console.log(`[Automation] Selecting state value: ${optionValue}`);
-    
-    // Click the dropdown first to open it (required for some dropdowns)
-    await page.click(foundSelector);
-    await new Promise(r => setTimeout(r, 500));
-    
-    // Now select the value
-    try {
-      await page.select(foundSelector, optionValue);
-      console.log('[Automation] ✓ State selected using select()');
-    } catch (selectError) {
-      console.log('[Automation] select() failed, trying to click option directly...');
-      // If select() doesn't work, try clicking the option
-      try {
-        await page.evaluate((selector, value) => {
-          const select = document.querySelector(selector);
-          if (select) {
-            const option = Array.from(select.options).find(o => o.value === value);
-            if (option) {
-              select.value = value;
-              select.dispatchEvent(new Event('change', { bubbles: true }));
-            }
+    // If not found by name, try by state code from our mapping
+    if (!stateFound) {
+      const optionValue = STATE_MAPPING[state];
+      if (optionValue) {
+        console.log(`[Automation] State not found by name, trying option value: ${optionValue}`);
+        for (const el of stateElements) {
+          const text = await page.evaluate(e => e.textContent.trim(), el);
+          if (text.includes(optionValue) || text.includes(optionValue.slice(4, 6))) {
+            console.log(`[Automation] ✓ Found state by code: ${text}`);
+            await el.click();
+            stateFound = true;
+            break;
           }
-        }, foundSelector, optionValue);
-        console.log('[Automation] ✓ State selected using evaluate()');
-      } catch (evalError) {
-        console.log('[Automation] Failed to select state:', evalError.message);
-        throw new Error('Could not select state value');
+        }
       }
     }
     
-    // Wait a moment after selection
-    await new Promise(r => setTimeout(r, 1000));
+    // If still not found, try scrolling the popup and looking again
+    if (!stateFound) {
+      console.log('[Automation] State not found in visible items, trying to scroll...');
+      
+      // Try to scroll within the StateMenu
+      await page.evaluate((targetState) => {
+        const menu = document.querySelector('#StateMenu') || document.body;
+        const items = menu.querySelectorAll('td.dataItem');
+        for (const item of items) {
+          if (item.textContent.includes(targetState)) {
+            item.scrollIntoView({ behavior: 'auto', block: 'center' });
+            return true;
+          }
+        }
+        return false;
+      }, state);
+      
+      await new Promise(r => setTimeout(r, 500));
+      
+      // Try clicking again after scroll
+      const stateElementsAfterScroll = await page.$$('td.dataItem');
+      for (const el of stateElementsAfterScroll) {
+        const text = await page.evaluate(e => e.textContent.trim(), el);
+        if (text.includes(state) || text === state) {
+          console.log(`[Automation] ✓ Found state after scroll: ${text}`);
+          await el.click();
+          stateFound = true;
+          break;
+        }
+      }
+    }
+    
+    if (!stateFound) {
+      console.log('[Automation] Available states in mapping:', Object.keys(STATE_MAPPING).join(', '));
+      throw new Error(`Could not find state "${state}" in popup menu`);
+    }
+    
+    console.log('[Automation] ✓ State selected successfully');
+    
+    // Wait for state selection to process
+    await new Promise(r => setTimeout(r, 1500));
 
     // Part 6: Click Submit button to proceed to application form
     console.log('[Automation] Looking for Submit button...');
     
+    // After state selection, there should be a submit/proceed button
     // Try multiple possible submit button selectors
-    const submitSelectors = ['#BtnNewAppFinal', '#BtnSubmit', 'input[type="submit"][value="Submit"]', 'button[type="submit"]', '#btnSubmit'];
+    const submitSelectors = [
+      '#BtnNewAppFinal', 
+      '#BtnSubmit', 
+      '#btnSubmit',
+      'input[type="submit"][value="Submit"]',
+      'input[type="submit"][value="Continue"]',
+      'button[type="submit"]',
+      'input[value="Submit"]'
+    ];
+    
     let submitFound = false;
+    
+    // Wait a moment for submit button to be available
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // Log available buttons
+    const availableButtons = await page.$$eval('input[type="submit"], button', els => 
+      els.map(e => ({ id: e.id, value: e.value || e.textContent, visible: e.offsetParent !== null }))
+    );
+    console.log('[Automation] Available buttons:', JSON.stringify(availableButtons.slice(0, 10)));
     
     for (const selector of submitSelectors) {
       try {
         const element = await page.$(selector);
         if (element) {
-          console.log(`[Automation] ✓ Found Submit button: ${selector}`);
-          await page.click(selector);
-          submitFound = true;
-          break;
+          const isVisible = await page.evaluate(el => el.offsetParent !== null, element);
+          if (isVisible) {
+            console.log(`[Automation] ✓ Found visible Submit button: ${selector}`);
+            await element.click();
+            submitFound = true;
+            break;
+          }
         }
       } catch (e) {
         // Continue
@@ -510,13 +527,23 @@ export const runAmericanAmicableAutomation = async (data) => {
     }
     
     if (!submitFound) {
-      // Wait and try again
-      await page.waitForSelector('#BtnNewAppFinal', { timeout: 10000 });
-      await page.click('#BtnNewAppFinal');
+      // Try waiting for specific button
+      try {
+        await page.waitForSelector('#BtnNewAppFinal', { timeout: 5000 });
+        await page.click('#BtnNewAppFinal');
+        submitFound = true;
+        console.log('[Automation] ✓ Clicked BtnNewAppFinal after wait');
+      } catch (e) {
+        console.log('[Automation] BtnNewAppFinal not found:', e.message);
+      }
+    }
+    
+    if (!submitFound) {
+      console.log('[Automation] Warning: Submit button not found, but continuing...');
     }
     
     await new Promise(r => setTimeout(r, 3000)); // Wait for form to load
-    console.log('[Automation] ✓ Clicked Submit, waiting for application form...');
+    console.log('[Automation] ✓ Proceeding to application form...');
     
     // Part 7: Customer Information Form
     console.log('[Automation] Filling Customer Information...');
