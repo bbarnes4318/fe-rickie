@@ -8,7 +8,10 @@ const router = express.Router();
 router.post('/run-carrier-app', async (req, res) => {
   const { state } = req.body;
 
+  console.log(`[Automation] Received request for state: "${state}"`);
+
   if (!state) {
+    console.warn('[Automation] Missing state in request');
     return res.status(400).json({ success: false, error: 'State is required' });
   }
 

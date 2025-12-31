@@ -217,7 +217,16 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   // ─────────────────────────────────────────────────────────────────────────
   const triggerCarrierAutomation = useCallback(async (state) => {
     const API_BASE = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
-    console.log(`[IntegratedScriptPanel] Triggering automation for state: ${state}`);
+    const log = (msg, data) => {
+       console.log(msg, data || '');
+       fetch(`${API_BASE}/logs`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ message: msg, data })
+       }).catch(() => {});
+    };
+
+    log(`[IntegratedScriptPanel] Triggering automation for state: ${state}`);
     
     try {
       // Fire and forget - don't block UI
@@ -226,12 +235,14 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ state })
       })
-      .then(res => res.json())
-      .then(data => console.log('[Automation] Result:', data))
-      .catch(err => console.error('[Automation] Error:', err));
+      .then(async (res) => {
+        const data = await res.json();
+        log('[Automation] Response:', data);
+      })
+      .catch(err => log('[Automation] Network Error:', err.message));
       
     } catch (err) {
-      console.error('[Automation] Failed to trigger:', err);
+      log('[Automation] Failed to trigger:', err.message);
     }
   }, []);
 

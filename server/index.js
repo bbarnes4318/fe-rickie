@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import applicationsRouter from './routes/applications.js';
 import automationRouter from './routes/automation.js';
+import logsRouter from './routes/logs.js';
 
 dotenv.config();
 
@@ -21,6 +22,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-change-this';
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Global Request Logger
+app.use((req, res, next) => {
+  console.log(`[Server] ${new Date().toISOString()} ${req.method} ${req.url}`);
+  next();
+});
 
 // Login Route
 app.post('/api/login', (req, res) => {
@@ -39,6 +46,7 @@ app.use(express.static(path.join(__dirname, '../dist')));
 // Routes
 app.use('/api/applications', applicationsRouter);
 app.use('/api/automation', automationRouter);
+app.use('/api/logs', logsRouter);
 
 // Health check (keep this before the catch-all)
 app.get('/api/health', (req, res) => {
