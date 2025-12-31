@@ -117,17 +117,47 @@ export const runAmericanAmicableAutomation = async (data) => {
 
     // Part 2: Access Mobile Portal
     console.log('[Automation] Accessing Mobile Tools...');
-    // This often opens in a new tab/window, need to handle that if so. 
-    // Assuming standard navigation for now based on href.
-    await page.waitForSelector('a[href="https://www.insuranceapplication.com/"]');
-    await page.goto('https://www.insuranceapplication.com/', { waitUntil: 'networkidle0' });
+    
+    // Try multiple selector strategies
+    let foundMobileLink = false;
+    const mobileSelectors = [
+      'a[href="https://www.insuranceapplication.com/"]',
+      'a[href*="insuranceapplication.com"]',
+      'a[href*="webappmobile"]',
+      'a:has-text("Mobile")',
+      'a:has-text("Application")'
+    ];
+    
+    for (const selector of mobileSelectors.slice(0, 3)) { // Only use href-based selectors for waitForSelector
+      try {
+        console.log(`[Automation] Trying selector: ${selector}`);
+        await page.waitForSelector(selector, { timeout: 10000 });
+        console.log(`[Automation] Found: ${selector}`);
+        foundMobileLink = true;
+        break;
+      } catch (e) {
+        console.log(`[Automation] Selector not found: ${selector}`);
+      }
+    }
+    
+    // Navigate directly to the application portal
+    console.log('[Automation] Navigating directly to insuranceapplication.com...');
+    await page.goto('https://www.insuranceapplication.com/', { waitUntil: 'networkidle0', timeout: 60000 });
+    console.log('[Automation] Successfully navigated to Mobile Portal');
 
     // Select Application
     console.log('[Automation] Selecting Mobile Application...');
-    await page.waitForSelector('a[href*="webappmobile"]');
-    await page.click('a[href*="webappmobile"]');
-    // This might redirect or open new page
-    await page.waitForNavigation({ waitUntil: 'networkidle0' });
+    try {
+      await page.waitForSelector('a[href*="webappmobile"]', { timeout: 15000 });
+      await page.click('a[href*="webappmobile"]');
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
+    } catch (e) {
+      console.log('[Automation] webappmobile link not found, trying alternative...');
+      // Try to find any link with "mobile" in it
+      const links = await page.$$eval('a', as => as.map(a => ({ href: a.href, text: a.innerText })));
+      console.log('[Automation] Available links:', JSON.stringify(links.slice(0, 10)));
+      throw new Error('Could not find mobile application link. Available links logged.');
+    }
 
     // Part 3: Mobile Application Authentication
     console.log('[Automation] Mobile Login...');
