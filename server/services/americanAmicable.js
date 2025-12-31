@@ -116,47 +116,42 @@ export const runAmericanAmicableAutomation = async (data) => {
     }
 
     // Part 2: Access Mobile Portal
-    console.log('[Automation] Accessing Mobile Tools...');
+    // The "Mobile Business Tools" link has target="_blank" which opens new tab
+    // We'll navigate directly to avoid new tab complexity in headless mode
+    console.log('[Automation] Accessing Mobile Business Tools...');
     
-    // Try multiple selector strategies
-    let foundMobileLink = false;
-    const mobileSelectors = [
-      'a[href="https://www.insuranceapplication.com/"]',
-      'a[href*="insuranceapplication.com"]',
-      'a[href*="webappmobile"]',
-      'a:has-text("Mobile")',
-      'a:has-text("Application")'
-    ];
-    
-    for (const selector of mobileSelectors.slice(0, 3)) { // Only use href-based selectors for waitForSelector
-      try {
-        console.log(`[Automation] Trying selector: ${selector}`);
-        await page.waitForSelector(selector, { timeout: 10000 });
-        console.log(`[Automation] Found: ${selector}`);
-        foundMobileLink = true;
-        break;
-      } catch (e) {
-        console.log(`[Automation] Selector not found: ${selector}`);
-      }
+    // First verify the link exists on the page
+    const mobileLinkSelector = 'a[href="https://www.insuranceapplication.com/"]';
+    try {
+      await page.waitForSelector(mobileLinkSelector, { timeout: 15000 });
+      console.log('[Automation] ✓ Found Mobile Business Tools link');
+    } catch (e) {
+      console.log('[Automation] Mobile Business Tools link not found, checking page content...');
+      const pageContent = await page.content();
+      console.log('[Automation] Page contains insuranceapplication:', pageContent.includes('insuranceapplication'));
     }
     
-    // Navigate directly to the application portal
-    console.log('[Automation] Navigating directly to insuranceapplication.com...');
+    // Navigate directly to the mobile portal (since the link opens in new tab)
+    console.log('[Automation] Navigating to insuranceapplication.com...');
     await page.goto('https://www.insuranceapplication.com/', { waitUntil: 'networkidle0', timeout: 60000 });
-    console.log('[Automation] Successfully navigated to Mobile Portal');
+    console.log('[Automation] ✓ Successfully navigated to Mobile Portal');
+    
+    // Log the current URL for debugging
+    console.log('[Automation] Current URL:', page.url());
 
-    // Select Application
-    console.log('[Automation] Selecting Mobile Application...');
+    // Select Application - look for the webappmobile link
+    console.log('[Automation] Looking for Mobile Application link...');
     try {
       await page.waitForSelector('a[href*="webappmobile"]', { timeout: 15000 });
+      console.log('[Automation] ✓ Found webappmobile link');
       await page.click('a[href*="webappmobile"]');
       await page.waitForNavigation({ waitUntil: 'networkidle0' });
+      console.log('[Automation] ✓ Navigated to Mobile Application');
     } catch (e) {
-      console.log('[Automation] webappmobile link not found, trying alternative...');
-      // Try to find any link with "mobile" in it
-      const links = await page.$$eval('a', as => as.map(a => ({ href: a.href, text: a.innerText })));
-      console.log('[Automation] Available links:', JSON.stringify(links.slice(0, 10)));
-      throw new Error('Could not find mobile application link. Available links logged.');
+      console.log('[Automation] webappmobile link not found, logging available links...');
+      const links = await page.$$eval('a', as => as.map(a => ({ href: a.href, text: a.innerText.slice(0, 50) })));
+      console.log('[Automation] Available links on page:', JSON.stringify(links.slice(0, 15)));
+      throw new Error('Could not find mobile application link');
     }
 
     // Part 3: Mobile Application Authentication
