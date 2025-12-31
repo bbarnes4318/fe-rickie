@@ -378,32 +378,143 @@ export const runAmericanAmicableAutomation = async (data) => {
       throw new Error('Could not find Senior Choice product');
     }
     
-    // Wait for state dropdown to be available
-    await new Promise(r => setTimeout(r, 1500));
-
+    // Wait for state dropdown popup/modal to fully load
+    await new Promise(r => setTimeout(r, 3000));
+    
+    // Debug: Log current page state
+    console.log('[Automation] Current URL before state selection:', page.url());
+    
     // Part 5: State Selection Logic
-    // Selector: <select id="StateDropDown">
     console.log(`[Automation] Selecting State: ${state}...`);
-    await page.waitForSelector('#StateDropDown', { timeout: 15000 });
-    console.log('[Automation] ✓ Found State dropdown');
+    
+    // Try to find the state dropdown - might be a select, might be a custom dropdown
+    let stateDropdownFound = false;
+    
+    // First, let's see what elements are on the page
+    const pageElements = await page.evaluate(() => {
+      const selects = Array.from(document.querySelectorAll('select')).map(s => ({
+        id: s.id,
+        name: s.name,
+        options: Array.from(s.options).slice(0, 5).map(o => o.text)
+      }));
+      const inputs = Array.from(document.querySelectorAll('input[type="submit"], button')).map(i => ({
+        id: i.id,
+        value: i.value || i.textContent,
+        type: i.type
+      }));
+      return { selects, inputs };
+    });
+    console.log('[Automation] Page elements - Selects:', JSON.stringify(pageElements.selects));
+    console.log('[Automation] Page elements - Buttons:', JSON.stringify(pageElements.inputs));
+    
+    // Try multiple possible selectors for the state dropdown
+    const stateSelectors = ['#StateDropDown', '#ddlState', 'select[name*="State"]', 'select[id*="State"]', '#State'];
+    let foundSelector = null;
+    
+    for (const selector of stateSelectors) {
+      try {
+        const element = await page.$(selector);
+        if (element) {
+          foundSelector = selector;
+          console.log(`[Automation] ✓ Found state dropdown with selector: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        // Continue to next selector
+      }
+    }
+    
+    if (!foundSelector) {
+      // Maybe it's still loading - wait a bit more and try again
+      console.log('[Automation] State dropdown not found immediately, waiting longer...');
+      await new Promise(r => setTimeout(r, 3000));
+      
+      for (const selector of stateSelectors) {
+        try {
+          await page.waitForSelector(selector, { timeout: 5000 });
+          foundSelector = selector;
+          console.log(`[Automation] ✓ Found state dropdown after wait: ${selector}`);
+          break;
+        } catch (e) {
+          // Continue to next selector
+        }
+      }
+    }
+    
+    if (!foundSelector) {
+      // Log what IS on the page
+      const html = await page.content();
+      console.log('[Automation] Page HTML snippet:', html.slice(0, 2000));
+      throw new Error('Could not find state dropdown on page');
+    }
     
     const optionValue = STATE_MAPPING[state];
     if (!optionValue) {
-      // Log available states in mapping
       console.log('[Automation] Available states in mapping:', Object.keys(STATE_MAPPING).join(', '));
       throw new Error(`State mapping not found for: ${state}`);
     }
     
     console.log(`[Automation] Selecting state value: ${optionValue}`);
-    await page.select('#StateDropDown', optionValue);
-    console.log('[Automation] ✓ State selected');
+    
+    // Click the dropdown first to open it (required for some dropdowns)
+    await page.click(foundSelector);
+    await new Promise(r => setTimeout(r, 500));
+    
+    // Now select the value
+    try {
+      await page.select(foundSelector, optionValue);
+      console.log('[Automation] ✓ State selected using select()');
+    } catch (selectError) {
+      console.log('[Automation] select() failed, trying to click option directly...');
+      // If select() doesn't work, try clicking the option
+      try {
+        await page.evaluate((selector, value) => {
+          const select = document.querySelector(selector);
+          if (select) {
+            const option = Array.from(select.options).find(o => o.value === value);
+            if (option) {
+              select.value = value;
+              select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }
+        }, foundSelector, optionValue);
+        console.log('[Automation] ✓ State selected using evaluate()');
+      } catch (evalError) {
+        console.log('[Automation] Failed to select state:', evalError.message);
+        throw new Error('Could not select state value');
+      }
+    }
+    
+    // Wait a moment after selection
+    await new Promise(r => setTimeout(r, 1000));
 
     // Part 6: Click Submit button to proceed to application form
-    // Selector: <input type="submit" id="BtnNewAppFinal" value="Submit">
-    console.log('[Automation] Clicking Submit button to proceed...');
-    await page.waitForSelector('#BtnNewAppFinal', { timeout: 15000 });
-    console.log('[Automation] ✓ Found Submit button');
-    await page.click('#BtnNewAppFinal');
+    console.log('[Automation] Looking for Submit button...');
+    
+    // Try multiple possible submit button selectors
+    const submitSelectors = ['#BtnNewAppFinal', '#BtnSubmit', 'input[type="submit"][value="Submit"]', 'button[type="submit"]', '#btnSubmit'];
+    let submitFound = false;
+    
+    for (const selector of submitSelectors) {
+      try {
+        const element = await page.$(selector);
+        if (element) {
+          console.log(`[Automation] ✓ Found Submit button: ${selector}`);
+          await page.click(selector);
+          submitFound = true;
+          break;
+        }
+      } catch (e) {
+        // Continue
+      }
+    }
+    
+    if (!submitFound) {
+      // Wait and try again
+      await page.waitForSelector('#BtnNewAppFinal', { timeout: 10000 });
+      await page.click('#BtnNewAppFinal');
+    }
+    
     await new Promise(r => setTimeout(r, 3000)); // Wait for form to load
     console.log('[Automation] ✓ Clicked Submit, waiting for application form...');
     
