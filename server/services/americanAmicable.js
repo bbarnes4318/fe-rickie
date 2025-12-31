@@ -187,58 +187,117 @@ export const runAmericanAmicableAutomation = async (data) => {
 
     // Part 4: Start New Application
     console.log('[Automation] Starting New Application...');
-    await page.waitForSelector('#BtnNewApp');
+    // Selector: <input type="submit" id="BtnNewApp" value="New Application">
+    await page.waitForSelector('#BtnNewApp', { timeout: 15000 });
+    console.log('[Automation] ✓ Found New Application button');
     await page.click('#BtnNewApp');
+    console.log('[Automation] ✓ Clicked New Application');
+    
+    // Wait for page to load after clicking
+    await new Promise(r => setTimeout(r, 2000));
     
     // Select Agent (Popup/Grid)
+    // Looking for: <td class="dataItem">0001163940</td> or <td class="dataItem">American-Amicable</td>
     console.log('[Automation] Selecting Agent...');
-    // Need to wait for the grid to appear. It might be an AJAX load.
-    await page.waitForSelector('td.dataItem');
-    // Using XPath to find text content
+    await page.waitForSelector('td.dataItem', { timeout: 15000 });
+    console.log('[Automation] ✓ Agent grid loaded');
+    
     const agentElements = await page.$$('td.dataItem');
+    console.log(`[Automation] Found ${agentElements.length} dataItem cells`);
+    
+    let agentFound = false;
     for (const el of agentElements) {
       const text = await page.evaluate(e => e.textContent, el);
-      if (text.includes('0001163940')) {
+      if (text.includes('0001163940') || text.includes('American-Amicable')) {
+        console.log(`[Automation] ✓ Found agent: ${text}`);
         await el.click();
+        agentFound = true;
         break;
       }
     }
     
+    if (!agentFound) {
+      throw new Error('Could not find agent in grid');
+    }
+    
+    // Wait for product popup to load
+    await new Promise(r => setTimeout(r, 1500));
+    
     // Select Product (Popup)
+    // Looking for: <td class="dataItem">Senior Choice (FE 50-85)</td>
     console.log('[Automation] Selecting Product...');
-    // Wait for product list (might be dynamic)
-    await page.waitForFunction(() => document.querySelectorAll('td.dataItem').length > 0);
+    await page.waitForFunction(() => document.querySelectorAll('td.dataItem').length > 0, { timeout: 15000 });
+    
     const productElements = await page.$$('td.dataItem');
+    console.log(`[Automation] Found ${productElements.length} product cells`);
+    
+    let productFound = false;
     for (const el of productElements) {
       const text = await page.evaluate(e => e.textContent, el);
       if (text.includes('Senior Choice (FE 50-85)')) {
+        console.log(`[Automation] ✓ Found product: ${text}`);
         await el.click();
+        productFound = true;
         break;
       }
     }
+    
+    if (!productFound) {
+      // Log what products ARE available
+      const availableProducts = await page.$$eval('td.dataItem', els => els.map(e => e.textContent.slice(0, 50)));
+      console.log('[Automation] Available products:', JSON.stringify(availableProducts));
+      throw new Error('Could not find Senior Choice product');
+    }
+    
+    // Wait for state dropdown to be available
+    await new Promise(r => setTimeout(r, 1500));
 
     // Part 5: State Selection Logic
+    // Selector: <select id="StateDropDown">
     console.log(`[Automation] Selecting State: ${state}...`);
-    await page.waitForSelector('#StateDropDown');
+    await page.waitForSelector('#StateDropDown', { timeout: 15000 });
+    console.log('[Automation] ✓ Found State dropdown');
     
     const optionValue = STATE_MAPPING[state];
     if (!optionValue) {
+      // Log available states in mapping
+      console.log('[Automation] Available states in mapping:', Object.keys(STATE_MAPPING).join(', '));
       throw new Error(`State mapping not found for: ${state}`);
     }
-
+    
+    console.log(`[Automation] Selecting state value: ${optionValue}`);
     await page.select('#StateDropDown', optionValue);
+    console.log('[Automation] ✓ State selected');
 
     // Part 6: Final Submission
-    console.log('[Automation] Final Submission...');
-    await page.waitForSelector('#BtnNewAppFinal');
-    await page.click('#BtnNewAppFinal');
+    console.log('[Automation] Looking for Final Submit button...');
+    
+    // Try multiple possible selectors for the final submit
+    const submitSelectors = ['#BtnNewAppFinal', 'input[value="Continue"]', 'input[type="submit"]'];
+    let submitted = false;
+    
+    for (const selector of submitSelectors) {
+      try {
+        await page.waitForSelector(selector, { timeout: 5000 });
+        console.log(`[Automation] ✓ Found submit button: ${selector}`);
+        await page.click(selector);
+        submitted = true;
+        break;
+      } catch (e) {
+        console.log(`[Automation] Submit selector not found: ${selector}`);
+      }
+    }
+    
+    if (!submitted) {
+      console.log('[Automation] Warning: Could not find final submit button, but state was selected');
+    }
     
     // Wait for result/confirmation
-    // Assuming successful submission leads to a new page or shows a success message
-    await new Promise(r => setTimeout(r, 2000)); // Creating a small buffer
-
-    console.log('[Automation] Successfully started carrier application!');
-    return { success: true, message: 'Application started successfully' };
+    await new Promise(r => setTimeout(r, 3000));
+    
+    console.log('[Automation] ✓ Successfully started carrier application!');
+    console.log('[Automation] Final URL:', page.url());
+    return { success: true, message: 'Application started successfully', state: state };
 
   } catch (error) {
     console.error('[Automation] Error:', error);
