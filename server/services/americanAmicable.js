@@ -487,70 +487,12 @@ export const runAmericanAmicableAutomation = async (data) => {
     }
     
     console.log('[Automation] ✓ State selection complete');
-
-    // Part 6: Click Submit button to proceed to application form
-    console.log('[Automation] Looking for Submit button...');
     
-    // After state selection, there should be a submit/proceed button
-    // Try multiple possible submit button selectors
-    const submitSelectors = [
-      '#BtnNewAppFinal', 
-      '#BtnSubmit', 
-      '#btnSubmit',
-      'input[type="submit"][value="Submit"]',
-      'input[type="submit"][value="Continue"]',
-      'button[type="submit"]',
-      'input[value="Submit"]'
-    ];
-    
-    let submitFound = false;
-    
-    // Wait a moment for submit button to be available
-    await new Promise(r => setTimeout(r, 1000));
-    
-    // Log available buttons
-    const availableButtons = await page.$$eval('input[type="submit"], button', els => 
-      els.map(e => ({ id: e.id, value: e.value || e.textContent, visible: e.offsetParent !== null }))
-    );
-    console.log('[Automation] Available buttons:', JSON.stringify(availableButtons.slice(0, 10)));
-    
-    for (const selector of submitSelectors) {
-      try {
-        const element = await page.$(selector);
-        if (element) {
-          const isVisible = await page.evaluate(el => el.offsetParent !== null, element);
-          if (isVisible) {
-            console.log(`[Automation] ✓ Found visible Submit button: ${selector}`);
-            await element.click();
-            submitFound = true;
-            break;
-          }
-        }
-      } catch (e) {
-        // Continue
-      }
-    }
-    
-    if (!submitFound) {
-      // Try waiting for specific button
-      try {
-        await page.waitForSelector('#BtnNewAppFinal', { timeout: 5000 });
-        await page.click('#BtnNewAppFinal');
-        submitFound = true;
-        console.log('[Automation] ✓ Clicked BtnNewAppFinal after wait');
-      } catch (e) {
-        console.log('[Automation] BtnNewAppFinal not found:', e.message);
-      }
-    }
-    
-    if (!submitFound) {
-      console.log('[Automation] Warning: Submit button not found, but continuing...');
-    }
-    
-    await new Promise(r => setTimeout(r, 3000)); // Wait for form to load
+    // Wait for the quote form to load after state submission
+    await new Promise(r => setTimeout(r, 3000));
     console.log('[Automation] ✓ Proceeding to application form...');
     
-    // Part 7: Customer Information Form
+    // Part 6: Customer Information / Quote Form
     console.log('[Automation] Filling Customer Information...');
     
     // Wait for the form to be visible
@@ -635,9 +577,21 @@ export const runAmericanAmicableAutomation = async (data) => {
     await page.type('#ReqPolicyDate', policyDate);
     console.log(`[Automation] ✓ Policy date entered: ${policyDate}`);
     
-    // Part 14: Digital Policy (always Yes)
-    await page.click('#DigitalInterestQ_1');
-    console.log('[Automation] ✓ Digital policy set to Yes');
+    // Part 14: Digital Policy (always Yes if visible)
+    try {
+      const digitalSection = await page.$('#DigitalInterestQ_1');
+      if (digitalSection) {
+        const isVisible = await page.evaluate(el => el.offsetParent !== null, digitalSection);
+        if (isVisible) {
+          await page.click('#DigitalInterestQ_1');
+          console.log('[Automation] ✓ Digital policy set to Yes');
+        } else {
+          console.log('[Automation] Digital policy section hidden, skipping');
+        }
+      }
+    } catch (e) {
+      console.log('[Automation] Digital policy section not found, skipping');
+    }
     
     // Part 15: Click Quote button
     console.log('[Automation] Clicking Quote button...');

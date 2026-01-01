@@ -1,247 +1,87 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><span id="iproyal@@extension@@state" data-webrtc-protection="true" data-proxy-connected="false"></span><head><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<html><span id="iproyal@@extension@@state" data-webrtc-protection="true" data-proxy-connected="false"></span><head><meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="format-detection" content="telephone=no">
+
 
 <title>
 	WebApp
 </title>
-    <script src="js/jquery.js"></script>
-    <script src="js/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="css/queue.css?v=1.1"><link rel="stylesheet" href="css/jquery-ui.css"><link rel="stylesheet" href="css/w3.css?v=1.1">
+    <script src="../js/jquery.js"></script>
+    <script src="../js/formattingFields.js"></script>
+    <script src="../js/trigger.js?v=1.1"></script>
+    <script src="../js/intro.min.js"></script>
+    <link href="../css/introjs.min.css" rel="stylesheet"><link href="../css/appStyle.css?v=1.1" rel="stylesheet"><link href="../css/w3.css?v=1.1" rel="stylesheet"><link href="../css/fontawesome/css/font-awesome.min.css" rel="stylesheet">
+    <script src="../js/es6-promise.auto.min.js"></script>
+    <script src="../js/es6-promise.min.js"></script>
+    <script src="../js/html2canvas.min.js"></script>
+
     <style>
-        /*#EditConfirm{
-            min-height:150px;
-        }*/
-    </style>
-    <script type="text/javascript">
-        $(function () {
-
-            $("#BackDropOpacity").click(function () {
-                $('#AgentMenu').css("display", "none");
-            });
-            $("#BackDropOpacity1").click(function () {
-                $('#ProductMenu').css("display", "none");
-            });
-            $("#BackDropOpacity2").click(function () {
-                $('#StateMenu').css("display", "none");
-            });
-            $("#CloseButton").click(function () {
-                $('#AgentMenu').css("display", "none");
-            });
-            $("#CloseButton1").click(function () {
-                $('#ProductMenu').css("display", "none");
-            });
-            $("#CloseButton2").click(function () {
-                $('#StateMenu').css("display", "none");
-            });
-
-            $("#DeleteBtn").click(function () {
-                $("#DeleteConfirm").dialog("open");
-            });
-            //$("#EditBtn").click(function () {
-            //    $("#EditConfirm").dialog("open");
-            //});
-            $("#SubmitToHomeOfficeBtn").click(function () {
-                if (readCookie("MobileSiteInfo") == "wfg") {
-                    $("#EPackage").dialog("open");
-                } else {
-                    $('#AfterDialogBtn').click();
-                }
-                return false;
-            });
-
-            $("#AttachDoc").change(function () {
-                var splitter = $("#AttachDoc").val().split(".");
-                switch (splitter[splitter.length - 1].toUpperCase()) {
-                    case "JPEG":
-                    case "JPG":
-                    case "PNG":
-                    case "PDF":
-                    case "BMP":
-                        var MyFileName = $("#AttachDoc").val().replace(/^.*[\\\/]/, '')
-                        $("#confirmMessageText").text("Attach " + MyFileName + "?");
-                        $("#confirmMessage").dialog("open");
-                        break;
-                    default:
-                        $("#dialogMessageText").text("Error, Invalid File Type. Supported Formats are JPG, BMP, PNG and PDF");
-                        $("#dialogMessage").dialog('option', 'title', 'Attachment Error');
-                        $("#dialogMessage").dialog("open");
-                        break;
-                }
-            });
-            $("#AttachCheck").change(function () {
-                var splitter = $("#AttachCheck").val().split(".");
-                switch (splitter[splitter.length - 1].toUpperCase()) {
-                    case "JPEG":
-                    case "JPG":
-                    case "PNG":
-                    case "PDF":
-                    case "BMP":
-                        var MyFileName = $("#AttachCheck").val().replace(/^.*[\\\/]/, '')
-                        $("#confirmMessageText").text("Attach Check " + MyFileName + "?");
-                        $("#confirmMessage").dialog("open");
-                        break;
-                    default:
-                        $("#dialogMessageText").text("Error, Invalid File Type. Supported Formats are JPG, BMP, PNG and PDF");
-                        $("#dialogMessage").dialog('option', 'title', 'Attachment Error');
-                        $("#dialogMessage").dialog("open");
-                        break;
-                }
-            });
-
-            $("#EditConfirm").dialog({
-                autoOpen: false,
-                resizable: true,
-                height: 350,
-                width: 300,
-                modal: true,
-                buttons: {
-                    "Edit App": function () {
-                        __doPostBack('EditApp', "EditApp");
-                        $(this).dialog("close");
-                    },
-                    Cancel: function () {
-                        $(this).dialog("close");
-                    }
-                },
-                close: function () {
-
-                }
-            });
-            $("#DeleteConfirm").dialog({
-                autoOpen: false,
-                resizable: true,
-                height: 250,
-                width: 300,
-                modal: true,
-                buttons: {
-                    Delete: function () {
-                        __doPostBack('DelAppl', "DelAppl");
-                        $(this).dialog("close");
-                    },
-                    Cancel: function () {
-                        $(this).dialog("close");
-                    }
-                },
-                close: function () {
-
-                }
-            });
-            $("#ImageDialog").dialog({
-                autoOpen: false,
-                resizable: true,
-                height: 500,
-                width: 500,
-                modal: true,
-                close: function () {
-                    $("#ImageDialog img:last-child").remove()
-                }
-            });
-            $("#EPackage").dialog({
-                autoOpen: false,
-                resizable: false,
-                height: 280,
-                modal: true,
-                close: function () {
-                    $('#AfterDialogBtn').click();
-                },
-                buttons: {
-                    Close: function () {
-                        $(this).dialog("close");
-                    }
-                }
-            });
-            $("#dialogMessage").dialog({
-                autoOpen: false,
-                resizable: false,
-                height: 280,
-                modal: true,
-                buttons: {
-                    Close: function () {
-                        $(this).dialog("close");
-                    }
-                }
-            });
-            $("#confirmMessage").dialog({
-                autoOpen: false,
-                resizable: false,
-                height: 200,
-                modal: true,
-                buttons: {
-                    "Attach": function () {
-                        $(this).dialog("close");
-                        __doPostBack('AtchDoc', "AtchDoc");
-                    },
-                    Cancel: function () {
-                        $("#AttachDoc").val("");
-                        $(this).dialog("close");
-                    }
-                }
-            });
-
-            dialog = $("#MobileDialog").dialog({
-                autoOpen: true,
-                width: 550,
-                modal: true,
-                show: function () {
-                    $(this).fadeIn(500);
-                },
-                close: function () {
-                    $('#IsAppSelected').val("False");
-                    $("#AppWindow").css('visibility', 'hidden');
-                },
-                open: function (type, data) {
-                    $(this).parent().appendTo("form");
-                }
-
-            });
-
-        });
-
-        function doRowPostbackReferralFunction(elementRowApp) {
-            var notes = null;
-            $('#IsAppSelected').val("True");
-            for (var i = 0; i < elementRowApp.childNodes.length; i++) {
-                if (elementRowApp.childNodes[i].className == "HiddenFieldGuid") {
-                    for (var ie = 0; ie < elementRowApp.childNodes[i].childNodes.length; ie++) {
-                        if (elementRowApp.childNodes[i].childNodes[ie].type == "hidden") {
-                            notes = elementRowApp.childNodes[i].childNodes[ie].value;
-                        }
-                    }
-                    __doPostBack('clickApp', 'clckRef' + notes);
-                    break;
-                }
-            }
+        form {
+            font-family: Arial, Roboto, 'Times New Roman';
         }
-        function readCookie(name) {
-            var nameEQ = name + "=";
-            var ca = document.cookie.split(';');
-            for (var i = 0; i < ca.length; i++) {
-                var c = ca[i];
-                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+
+        .flex-container {
+            display: flex;
+            justify-content: flex-start;
+            margin: 10px auto;
+            flex-wrap: wrap;
+            align-items:flex-start;
+        }
+
+            .flex-container > div {
+                padding: 8px;
             }
-            return null;
+
+            input[type=checkbox], input[type=radio]{
+                margin-right:3px;
+            }
+            .radioHorizontal label{
+                margin-right:10px;
+            }
+            .radioVertical li{
+                margin-bottom:8px;
+            }
+    </style>
+    <script> 
+        function reportBug() {
+            var captureElement = document.querySelector("#form1");
+
+            html2canvas(
+                captureElement, {
+                    scrollY: 0, x: 0, y: 0
+                }
+            ).then(function (canvas) {
+                var bugContent = document.getElementById("divReportBugContent");
+
+                var dataURL = canvas.toDataURL();
+                document.getElementById("hiddenScreenshot").value = dataURL;
+                document.getElementById("divReportBugModal").style.display = 'block';
+            });
+        }
+        function runDemo() {
+            introJs().setOption('showStepNumbers', 'false');
+            introJs().start();
         }
     </script>
-<style>
+
+    
+    <style>
 				@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap');
 				@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
 				@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
 			</style></head>
-<body>
-    <form method="post" action="./" id="Form2">
+<body><div id="creditCardHintTop" style="width: 100%; color: red; font-weight: bold; text-align: center; padding: 10px; margin-bottom: 10px; display: none;">*Credit Card information will be entered on the following screen*</div>
+    <form method="post" action="./quote.aspx?a=IYU3vFgL8Qs%3d" onsubmit="javascript:return WebForm_OnSubmit();" id="form1">
 <div class="aspNetHidden">
 <input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
 <input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
-<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="MYw6U9I8tfbyyHpPoYuvyG4IcUhcjBAt3oxuGngKVxy9VHOMEIA80r6pjHBFY7VsCcNOEN3CnA3rLN14fjxnYGxLy34wKVamNA8zO27WRVKfleAypnt1BdPE9/do2V2ygGWUk4GA1w6wIVT6lytSyoRzcUx7bEk3ddHRRh3QWf7je48M6ejNmyxXQjoUhlBUfWI8kb9rftm6peJcipVm8MHVkBVYmDkGYojePXBh+Gi2vpZo5XGEZjvKwXqitGP7QT/k78M5N3Tx32g9pqj41sI3Hffpa96P+JGLuttoeoHqnQrvXDMnI0hAfikcdysZeVY7O+fsA9VJVXDp1G4bdNjN69ovO6+gwC41SfnFk6IcVik1HhatdLfeAznwoI4wyLbbuYDABKl9N1eNmuX/8yYDtqKSfmqw9JezsILKLuyDXgC/2AyJ/cG019BPGB4t09rWEKjusXiOHZfcpRgmDgztzQr77pcW+4Eqg2a66ozvlfvAteMr/NSDEx5UfkgPTiR1Y8RrUg+mJtWcaFiJsbKDAJ96vhpe4QCNRizjZe3IwyFlNZQfOvZISKv91/e4MeAwOYClI24lJaU6kLlPrHrYCMn1UG7ASdWGx8lP1huroKNjAaJNw07XwAuSwAXeDObjIlCHtOhVAZhKZ/gG8/oPi3KxCdsf0YronRvGr7tgd54wD2Suzm80BVOQoFFQxgHy8UW9uzXi/ykPSqSw56P/o5Z+icUmYboXN8scKBAYGB6O6i6TE7zbIM4pyE50ezdpyctDWkmmccRwQ0UveX08lNfw/sU6l9nJdPd5n+TXlO70S5AIxbXo07xlFKvUemjwIAL30tGzFqeEZpCk3Qu91h6i1zR11v+qXTmObxAa+j0Jhf14WX6QGtjJoQMoHex/ZkJevVGrHkt30qPgk9FHZ1ePcAHYjdd8kRlj0FGsf7s0taWdDUCbutNk9Zg5ckZ1QMKNbIeX0eI/V5DFWdSHoQpu3bR/z9kZbN/+AwD1syf++OmntB2Pqs4L0dUhvMr2Snmt7SOgQNibdZ2WaSNcP2qGiHFUeYwGDyRuRq7a2mqLx1HMH/DeIULFjT2E">
 </div>
 
 <script type="text/javascript">
 //<![CDATA[
-var theForm = document.forms['Form2'];
+var theForm = document.forms['form1'];
 if (!theForm) {
-    theForm = document.Form2;
+    theForm = document.form1;
 }
 function __doPostBack(eventTarget, eventArgument) {
     if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
@@ -254,198 +94,796 @@ function __doPostBack(eventTarget, eventArgument) {
 </script>
 
 
-<div class="aspNetHidden">
+<script src="/cgi/webappmobile/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZCWdgcUTcWPMa27w6vyhYnUdr4Kk0qkQ-gGyvuBUeonc_hBmHyjOCl085zQdrDvx6w2&amp;t=638901361900000000" type="text/javascript"></script>
 
-	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="9E6983F3">
-	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="oTwGGOGSuJc4Q5u5/2bkRa+biVSkzRqOWsf8Yz10kyyF+oLU1s/da8iODD54qQrG+RYLKSpiuMs1ELZjVzrz4td+uA5MULozPuVySg2ZlFIaseqSwsa2iVfUNMgsNopcf5/Fqmr9dEcY+9v4zatYBLePNgdpmgfAPERD+//XO3AnMdFRQdAuwcY1uVUZQIqFCb7mhk41yV1JwDxubj0YKt68hN41PPYhG/5Q8B0V+hWReIGiSDK55T3+AIqCcuB/WIuHiXphRCNJdiaHYsIWIDqSXLcx/wKvncYms4jeAxG9pmbdB3fEyDYx3nxD8c6zVwInzCauDASwdcXlDEMoj5pF5Vn4AjYjU0sQHxvf8Q4eXusnKde6St3cDtyeNoKoiBdLqTzWAVxW2dEOH4qNplAIv8MB86GYxdvylsBKHM0QDc/cCmq2ynON+zV2cPigR42HZnvHD16CiBT3BmINCC2yTiWab6hnxK/PYOPxRtLl/udrbtRfw1+eyZfSkXe9KUKsHT1iS18l+pvV5dp8zYdSk/W7mO1jTYem7fwUQmflYft2O26xpMOnnBZnhQwMkQD30TDTZn3Ycti58Dy+of6bOxpqRX/H/xsATm8EJfoMFYUEPqrZuP94HzOKjsadEyXfGM6Q7Ug9vYEve2KgVP3nj7Ewwv/U7epXGjzD4FkIznvL2/RUbzsKZ1Hmp7dprZLoliHciRl0daGtRTXd7uUusHRPzkWKlQ/AFdH05PFvnuSGu/SJ/Ur1hwKCjdaYPrheLuZHvhGkXr/2alX/toAEP6gFqx1jueE41CmxePcgokW6VU7pD6Xah8hE0xcX0tcOyZ9HINlA/MTdLYH6G5K96dFLJx/W6NNDQDSSZRfEZGlYWxELSkGeJCAywfpTvC3OE9RZnD8ATRyDmGOtgGCzSbN9gxIUreWgHe6ZHqvC5s5SbXGsUOOycMyiPWA4Mqvtdn+eZtzlsAe7BDtHGpieM88rO86K3iL+/5Oosn+igNU+nPZzr60iLbtUPafrgmIR9+f+3KBeW937ZYaR1+JTLxjaUxFWBpGf13kPBR3iRDzXxCkoUDKtiC5EsK59ZAyOg0DJuP2tpMslaP840jqxO+81AVYJiUyx0i4INcc=">
-</div>
-        <div class="rightAlign">
-            <input type="submit" name="BtnLogout" value="Log Out" onclick="document.getElementById('__EVENTARGUMENT').value = '';document.getElementById('IsAppSelected').value = 'false';" id="BtnLogout" class="btn">
-        </div>
-        <div style="background-color: white; width: 150px; padding: 5px; border: 1px solid black; border-radius: 10px; text-align: center; float: right; margin-top: 15px;">
-            <a href="api/DocHandler.ashx?file=Generic-Mobile Application-FINAL.pdf" id="ClickHereLink" style="text-decoration: underline;" target="_blank">Click Here For Help</a>
-        </div>
-        <div id="ProgramHeader" class="header">American Amicable Group Mobile Application</div>
-        <hr>
-        <div class="w3-card-4 w3-padding w3-center" style="max-width: 75%; margin: 10px auto; display: none;">
-            Welcome to the new version of Mobile App!
-            <br>
-            Applications in progress on the the previous platform are now assigned a new App Number.<br>
-            For issues, comments and/or suggestions, please give us feedback <a href="debugandimprove.aspx">here.</a>
-        </div>
-        <div style="margin-bottom: 5px; margin-left: 0; margin-right: 0; text-align: center">
-
-            <input type="submit" name="BtnNewApp" value="New Application" onclick="document.getElementById('__EVENTARGUMENT').value = '';document.getElementById('IsAppSelected').value = 'false';" id="BtnNewApp" class="btn">
-            
-
-        </div>
-        <div>
-            <div class="centerMe">
-                <font style="font-size: x-large; color: black"><b>Applications in Progress</b></font><font style="font-size: medium; color: black"><i>&nbsp;&nbsp;&nbsp;(90 Day Maximum History) Select Item Below to Display or Make Changes</i></font>
-            </div>
-            
-                    <table>
-                        <tbody><tr>
-                            <th>Name</th>
-                            <th class="w3-hide-small">State</th>
-                            <th>Product</th>
-                            <th class="w3-hide-small w3-hide-medium">Company</th>
-                            <th class="w3-hide-small">Date</th>
-                            <th class="w3-hide-small">Basic Coverage</th>
-                            <th>App Number</th>
-                            <th>Status</th>
-                        </tr>
-                
-                    <tr class="dataRow" onclick="this.getElementsByTagName('a')[0].click();">
-                        <td class="dataItem">Test Testerman</td>
-                        <td class="dataItem w3-hide-small">TN</td>
-                        <td class="dataItem">Senior Choice (FE 50-85)</td>
-                        <td class="dataItem w3-hide-small w3-hide-medium">AA</td>
-                        <td class="dataItem w3-hide-small">12/31/2025 8:22:23 AM</td>
-                        <td class="dataItem w3-hide-small">$20,000.00</td>
-                        <td class="dataItem ">M003108606</td>
-                        <td class="dataItem">Personal Info Incomplete</td>
-                        <td style="display: none" class="HiddenFieldGuid">
-                            <a id="RepeaterPending_BtnSelectApp_0" href="javascript:__doPostBack('RepeaterPending$ctl01$BtnSelectApp','')"></a>
-                        </td>
-                    </tr>
-                
-                    </tbody></table>
-                
-            <br>
-            <div class="centerMe">
-                <font style="font-size: x-large; color: black"><b>Applications Previously Transmitted</b></font><font style="font-size: medium; color: black"><i>&nbsp;&nbsp;&nbsp;(60 Day Maximum History) Select Item Below to Display</i></font>
-            </div>
-            
-                    <table>
-                        <tbody><tr>
-                            <th>Name</th>
-                            <th class="w3-hide-small">State</th>
-                            <th>Product</th>
-                            <th class="w3-hide-small w3-hide-medium">Company</th>
-                            <th class="w3-hide-small">Date</th>
-                            <th class="w3-hide-small">Basic Coverage</th>
-                            <th>App Number</th>
-                            <th>Status</th>
-                            
-                            
-                        </tr>
-                
-                    <tr class="dataRow" onclick="this.getElementsByTagName('a')[0].click();">
-                        <td class="dataItem">Charles Rushin</td>
-                        <td class="dataItem w3-hide-small">MO</td>
-                        <td class="dataItem">Senior Choice (FE 50-85)</td>
-                        <td class="dataItem w3-hide-small w3-hide-medium">AA</td>
-                        <td class="dataItem w3-hide-small">11/12/2025 3:20:47 PM</td>
-                        <td class="dataItem w3-hide-small">$6,000.00</td>
-                        <td class="dataItem ">M002999841</td>
-                        
-                        <td class="dataItem"><a id="RepeaterSubmitted_BtnSelectProcessedApp_0" href="javascript:__doPostBack('RepeaterSubmitted$ctl01$BtnSelectProcessedApp','')" style="text-decoration:none;">Submitted</a></td>
-                        
-                    </tr>
-                
-                    </tbody></table>
-                
-            <input type="hidden" name="HiddenAppNum" id="HiddenAppNum">
-        </div>
-        
-        
-
-        <div id="StateMenu" class="w3-modal" style="display: inherit;">
-            <div class="w3-modal-content w3-round-large" style="max-width: 600px;">
-                <header class="w3-container">
-                    <span class="w3-btn w3-right" onclick="document.getElementById('StateMenu').style.display ='none'">×</span>
-                    <h2 style="text-align: center;">Select A State</h2>
-                </header>
-                <div class="w3-container w3-padding">
-                    <select name="StateDropDown" id="StateDropDown" class="w3-select w3-border w3-margin-bottom">
-	<option value="AASCAKSM0010001163940">Alaska</option>
-	<option value="AASCALSM0010001163940">Alabama</option>
-	<option value="AASCARSM0010001163940">Arkansas</option>
-	<option value="AASCAZSM0010001163940">Arizona</option>
-	<option value="AASCCASM0010001163940">California</option>
-	<option value="AASCCOSM0010001163940">Colorado</option>
-	<option value="AASCCTSM0010001163940">Connecticut</option>
-	<option value="AASCDCSM0010001163940">District of Columbia</option>
-	<option value="AASCDESM0010001163940">Delaware</option>
-	<option value="AASCFLSM0010001163940">Florida</option>
-	<option value="AASCGASM0010001163940">Georgia</option>
-	<option value="AASCHISM0010001163940">Hawaii</option>
-	<option value="AASCIDSM0010001163940">Idaho</option>
-	<option value="AASCILSM0010001163940">Illinois</option>
-	<option value="AASCINSM0010001163940">Indiana</option>
-	<option value="AASCKSSM0010001163940">Kansas</option>
-	<option value="AASCKYSM0010001163940">Kentucky</option>
-	<option value="AASCLASM0010001163940">Louisiana</option>
-	<option value="AASCMDSM0010001163940">Maryland</option>
-	<option value="AASCMESM0010001163940">Maine</option>
-	<option value="AASCMNSM0010001163940">Minnesota</option>
-	<option value="AASCMOSM0010001163940">Missouri</option>
-	<option value="AASCMSSM0010001163940">Mississippi</option>
-	<option value="AASCNCSM0010001163940">North Carolina</option>
-	<option value="AASCNDSM0010001163940">North Dakota</option>
-	<option value="AASCNESM0010001163940">Nebraska</option>
-	<option value="AASCNMSM0010001163940">New Mexico</option>
-	<option value="AASCNVSM0010001163940">Nevada</option>
-	<option value="AASCOHSM0010001163940">Ohio</option>
-	<option value="AASCOKSM0010001163940">Oklahoma</option>
-	<option value="AASCORSM0010001163940">Oregon</option>
-	<option value="AASCPASM0010001163940">Pennsylvania</option>
-	<option value="AASCSCSM0010001163940">South Carolina</option>
-	<option value="AASCSDSM0010001163940">South Dakota</option>
-	<option value="AASCTNSM0010001163940">Tennessee</option>
-	<option value="AASCTXSM0010001163940">Texas</option>
-	<option value="AASCUTSM0010001163940">Utah</option>
-	<option value="AASCVASM0010001163940">Virginia</option>
-	<option value="AASCWASM0010001163940">Washington</option>
-	<option value="AASCWISM0010001163940">Wisconsin</option>
-	<option value="AASCWVSM0010001163940">West Virginia</option>
-	<option value="AASCWYSM0010001163940">Wyoming</option>
-
-</select>
-                    <input type="submit" name="BtnNewAppFinal" value="Submit" id="BtnNewAppFinal" class="btn">
-                </div>
-            </div>
-        </div>
-
-
-        
-
-        
-        
-        
-        
-        
-        
-    
 
 <script type="text/javascript">
 //<![CDATA[
-document.getElementById('StateMenu').style.display = 'inherit';//]]>
+function pageLoad(sender, args) {
+
+MyControlClick('MailTo','Insured','Digital');
+$("input:radio[name='ctl00$ContentPlaceHolderMain$MailTo']:checked").trigger("click");
+
+};//]]>
+</script>
+
+<script src="/cgi/webappmobile/ScriptResource.axd?d=nv7asgRUU0tRmHNR2D6t1IXm4zJRetl9hDEQi5VwHPqTe2uI8zPJu34LIXR2jnwU7Ii-NuT7uRlBTI9rfDJsh0WgU9junXJjxAgy-hiK_JE1xTvThQqBrQ_d3hk-bMrNcAe5NOayI-s1Iy4RxatYdA2&amp;t=7f7f23e2" type="text/javascript"></script>
+<script src="/cgi/webappmobile/ScriptResource.axd?d=NJmAwtEo3Ipnlaxl6CMhvvahZ_sJp1Z7YLDEV-v-ztZo2dgPYY43jTFc0yNn903XxKVYBH3-t7nb9TPrM8yMQQQuNZvYq7UXDIHoFkLpsFVtz4_QULf7fo10DRzFjScnt5FPOJj2GUDPIn8_NDPklnclSQRbNwONfgNpRvP3CDU1&amp;t=5c0e0825" type="text/javascript"></script>
+<script src="/cgi/webappmobile/ScriptResource.axd?d=dwY9oWetJoJoVpgL6Zq8OCbylTOF4BXRxChvvEqqkzQn9CZpxCehQdGEmOaBXAqRTl-9SgYwzdFbOIU0MNJoAAsWP_QPIU4EZy_l-urwOJRdJO-3SRxVM0pGSXT0Sn8W5XcAnHavVD5iimcBtufWfPZWF_y90saUPDnuCKvZcQE1&amp;t=5c0e0825" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+function WebForm_OnSubmit() {
+if (typeof(ValidatorOnSubmit) == "function" && ValidatorOnSubmit() == false) return false;
+return true;
+}
+//]]>
+</script>
+
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="52A0565F">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="5qO1LG5mlM9hSCa2ISnTPGhjRsXcXcxXxTT5l4BY7zuEBT7AJvZxGjRESEOebVXQHO409Ay7dNWvCeqbnQERO6WvrO87tyowTQuV+ND0Gpyg0XJgijwj6tFzCzi8rbZKQD2rVea33tPVKIkvGd21x1mfTWAD3Qi2ufgyTGW2myhxEL/onQSoAKW9AdhXHGmNyIPd1J9ttH5W6hK9yy60Y+z9ORzw8HhhupKDZ1yIH4FjtAiLam8JXNBzZf0TiZOZwpsxCNBXfQ7CReA+Q9iSAi0W1GsjrZr6G0aHOlAI6z4GKHBeC9bf9bClXmCKpzYQcl3Doy5LsEl/uzyv9PoRPwSovhmyq2oiMFgVVSxxrNbIC0eY3PUrjjliFcOW3kPn+7aWpjlzorwQ2N/pGKiESHMCCeqVKRex9sksYE1NXQTnPFJjCjQ5bGkE6z+XtKUbjh4PsIjMcMCIQjpoazhLLIzuWklhkWzPfgH4gjf2GUhb/jTGV8BXXfOqCyPnYxmTENiEQ6Z00sUoKI7NwjztZvAGYapp5CzIQjZm24ML0qq39OkRymOd3yXXC0M2+tWXf11WxlryGQjsi/FBHCfgj/IrXahN55pEKC+fspw3nw492NO/THcc39R2vZW6/HfWBKht7n39obEj7xMnP21pgvTpvVU7QLMvxspYmohu4LxmczRTNfXfF0zC8ZHbmaBot0pb4ZHJSOSx0FKkvLrLFQZrD8+T3XWr1KlzPNHXKLY++fugzVdwmI/USPLyrtK2qGG1B/meoSngOMile2IEU3RXdSX1DxwymBy+SJPDWva9jE8la2dOHGyvGPNqqF3U2Sec+KDyiEGV+4Go59VNwORKmItcZgm7a1EPw9022TYYcv/iUxo6ky2J+jFzFPSgm+2bikHMpsrfyTDFYU392NHw2XD/rsB6cDClylpUbvkQIHVGGfScQtY760q5RGk+BE4PKNMz822Tg2HRVA3f3Eq/QAjGq/t1wgn4se5UsOkZJPd0qHOrEYBTpEqSGyX4/1FWm5cXUxkCnl0V+S7lz9KTdgo90VGZ/0mFQck4sZOONZlgjsfIAv3zdt6NyDxiPfoUloXetH+JucNB62AhdpTOPEgF6EJj9pfZEftJ90pw2pTy26iUAa9Jm6/FvWLW93DxpBRfalcD1vfJ1I9Dttp67QTsFbhsj5HVTsRmy/dRWvo95fSS4TnIGb99NpMItfUE7TwynVEFov26OLSsfSbZ+ICyjM3kMoTI5UgvExdm6310ddFzkXUw1dZ+vecyy7rEpWjRpJbhxfWJDrl0hO4++Wdx/T+87n4VXbfRlcg=">
+</div>
+        <input type="hidden" id="product" value="SC">
+        <input type="submit" name="ctl00$BtnSaveReturn" value="Save and Return to Applications Pending" id="BtnSaveReturn" class="btn" data-step="1" data-intro="Click here to save and return to the applications pending queue anytime." style="display: block; margin: 10px auto; max-width: 800px; text-align: center; align-content: center;">
+
+
+        <table class="Navigation w3-hide-small">
+            <tbody><tr>
+                <td>
+                    <b>Quote</b><br>
+                    <span id="QuoteLabel" style="color:Red;">Incomplete</span>
+                </td>
+                <td>
+                    <b>Underwriting</b>
+                    <br>
+                    <span id="UnderwritingLabel" style="color:Red;">Incomplete</span>
+                </td>
+                <td>
+                    <b>Personal Info</b><br>
+                    <span id="PersonalInfoLabel" style="color:Red;">Incomplete</span>
+                </td>
+                <td>
+                    <b>Agent Statement</b><br>
+                    <span id="AgentStatementLabel" style="color:Red;">Incomplete</span>
+                </td>
+            </tr>
+        </tbody></table>
+
+        <div style="margin-bottom: 2px; text-align: left; width: 100%; display: block; margin-top: 8px; border-collapse: collapse;">
+
+            
+            <b>
+                <span id="ScreenAgentName">AMERICAN BENEFICIARY</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="CompanyHeader">American-Amicable</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="ProductHeader">Senior Choice (FE 50-85)</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="StateHeader">TN</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="CreatedDateHeader"><u>Created:</u> 1/1/2026 10:19:54 AM</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="AppNumberLabel" data-step="2" data-intro="The app number to be referenced in case of any issues is located here"><u>AppNumber:</u><span style="font-size:x-large"> M003110431</span></span></b>
+            <b>
+                <span id="lblInsuredInfo">Insured:</span></b>&nbsp;&nbsp;
+            <div style="background-color: white; width: 150px; padding: 5px; border: 1px solid black; border-radius: 10px; text-align: center; float: right;">
+                <span style="text-decoration: underline; cursor: pointer; color: blue;" onclick="runDemo()">Click Here for help</span> or <a href="../api/DocHandler.ashx?file=Generic-Mobile Application-FINAL.pdf" id="ClickHereLink" style="text-decoration: underline;" target="_blank">view our pdf documentation</a>
+            </div>
+
+        </div>
+
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', 'form1', [], [], [], 90, 'ctl00');
+//]]>
+</script>
+
+
+        
+
+        <div id="dataContent" style="border: 2px solid black; float: none; width: 100%; background: linear-gradient(to right, #718EA4 1%, white 15%, white 84%);">
+            <div style="max-width:1200px;margin:0 auto;">
+                
+    <br>
+    
+    
+    
+    <div style="margin: auto; text-align: center; align-content: center;">
+        <span id="ErrorMessageLabel" style="color:Red;font-size:X-Large;"></span>
+    </div>
+    <div id="Div1" style="width: 100%;">
+        <div style="width: auto; margin-left: auto; margin-right: auto; align-content: center; text-align: center;">
+            <table id="Table2" class="tableContent" style="background-color:#718EA4;border-width:1px;border-style:Solid;width: auto;">
+	<tbody><tr style="color: rgb(249, 229, 229);">
+		<td style="border-width:0px;"><input type="submit" name="ctl00$ContentPlaceHolderMain$BtnJumpToUnderwriting" value="Underwriting Questions" id="BtnJumpToUnderwriting" class="btn" data-step="3" data-intro="Skip to filling out the health questions before running a quote by clicking here. Note that some data on the health questions may disqualify an applicant from certain plans and riders." style=""><br>
+                    </td>
+	</tr>
+</tbody></table>
+
+        </div>
+    </div>
+
+    <br>
+
+<div><div class="tableContent"><div style="font-weight:bold;">Personal Information</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>First Name<span id="InsNameFirstReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><input name="ctl00$ContentPlaceHolderMain$InsNameFirst" type="text" id="InsNameFirst" class=" upperCaseName w3-input w3-border"></div><div>Middle<input name="ctl00$ContentPlaceHolderMain$InsNameMiddle" type="text" id="InsNameMiddle" class=" upperCaseName w3-input w3-border"></div><div>Last<span id="InsNameLastReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><input name="ctl00$ContentPlaceHolderMain$InsNameLast" type="text" id="InsNameLast" class=" upperCaseName w3-input w3-border"></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Date Of Birth<span id="dobReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><input name="ctl00$ContentPlaceHolderMain$dob" type="text" id="dob" class=" w3-input w3-border"></div><div> Insurable Age (Age Last)<span id="dobAgeReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><input name="ctl00$ContentPlaceHolderMain$dobAge" type="text" maxlength="3" id="dobAge" class=" numbersOnly w3-input w3-border" size="3"></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Gender</div><span id="SexReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><span id="Sex" class="radioHorizontal" style="width:100%;text-align:right;"><span style="display:none;"><input id="Sex_0" type="radio" name="ctl00$ContentPlaceHolderMain$Sex" value=""></span><input id="Sex_1" type="radio" name="ctl00$ContentPlaceHolderMain$Sex" value="M"><label for="Sex_1">Male</label><input id="Sex_2" type="radio" name="ctl00$ContentPlaceHolderMain$Sex" value="F"><label for="Sex_2">Female</label></span>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var paymentOptions = document.getElementsByName('ctl00$ContentPlaceHolderMain$Method');
+        
+           if (!document.getElementById('creditCardHintTop')) {
+        var creditCardHintTop = document.createElement('div');
+        creditCardHintTop.id = 'creditCardHintTop';
+        creditCardHintTop.style.width = '100%';
+        creditCardHintTop.style.color = 'red';
+        creditCardHintTop.style.fontWeight = 'bold';
+        creditCardHintTop.style.textAlign = 'center';
+        creditCardHintTop.style.padding = '10px';
+        creditCardHintTop.style.marginBottom = '10px';
+        creditCardHintTop.style.display = 'none'; 
+        creditCardHintTop.innerText = '*Credit Card information will be entered on the following screen*';
+
+        
+        var creditCardHintBottom = creditCardHintTop.cloneNode(true);
+        creditCardHintBottom.id = 'creditCardHintBottom';
+        
+        
+        document.body.insertBefore(creditCardHintTop, document.body.firstChild);
+        document.body.appendChild(creditCardHintBottom);
+        }
+
+        
+        var hintTopElement = document.getElementById('creditCardHintTop');
+        var hintBottomElement = document.getElementById('creditCardHintBottom');
+        
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('change', function () {
+                var displayStyle = (this.value === 'CreditCard') ? 'block' : 'none';
+                hintTopElement.style.display = displayStyle;
+                hintBottomElement.style.display = displayStyle;
+            });
+        });
+
+        
+        var selectedOption = document.querySelector("input[name='ctl00$ContentPlaceHolderMain$Method']:checked");
+        if (selectedOption && selectedOption.value === 'CreditCard') {
+            hintTopElement.style.display = 'block';
+            hintBottomElement.style.display = 'block';
+        }
+    });
+</script></div></div><div class="tableContent"><div style="font-weight:bold;">Tobacco Information</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>During the past 12 months have you used tobacco in any form (excluding occasional pipe and cigar use)?</div><span id="TobaccoReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><span id="Tobacco" class="radioHorizontal" style="width:100%;text-align:right;"><span style="display:none;"><input id="Tobacco_0" type="radio" name="ctl00$ContentPlaceHolderMain$Tobacco" value=""></span><input id="Tobacco_1" type="radio" name="ctl00$ContentPlaceHolderMain$Tobacco" value="N"><label for="Tobacco_1">No</label><input id="Tobacco_2" type="radio" name="ctl00$ContentPlaceHolderMain$Tobacco" value="T"><label for="Tobacco_2">Yes</label></span>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var paymentOptions = document.getElementsByName('ctl00$ContentPlaceHolderMain$Method');
+        
+           if (!document.getElementById('creditCardHintTop')) {
+        var creditCardHintTop = document.createElement('div');
+        creditCardHintTop.id = 'creditCardHintTop';
+        creditCardHintTop.style.width = '100%';
+        creditCardHintTop.style.color = 'red';
+        creditCardHintTop.style.fontWeight = 'bold';
+        creditCardHintTop.style.textAlign = 'center';
+        creditCardHintTop.style.padding = '10px';
+        creditCardHintTop.style.marginBottom = '10px';
+        creditCardHintTop.style.display = 'none'; 
+        creditCardHintTop.innerText = '*Credit Card information will be entered on the following screen*';
+
+        
+        var creditCardHintBottom = creditCardHintTop.cloneNode(true);
+        creditCardHintBottom.id = 'creditCardHintBottom';
+        
+        
+        document.body.insertBefore(creditCardHintTop, document.body.firstChild);
+        document.body.appendChild(creditCardHintBottom);
+        }
+
+        
+        var hintTopElement = document.getElementById('creditCardHintTop');
+        var hintBottomElement = document.getElementById('creditCardHintBottom');
+        
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('change', function () {
+                var displayStyle = (this.value === 'CreditCard') ? 'block' : 'none';
+                hintTopElement.style.display = displayStyle;
+                hintBottomElement.style.display = displayStyle;
+            });
+        });
+
+        
+        var selectedOption = document.querySelector("input[name='ctl00$ContentPlaceHolderMain$Method']:checked");
+        if (selectedOption && selectedOption.value === 'CreditCard') {
+            hintTopElement.style.display = 'block';
+            hintBottomElement.style.display = 'block';
+        }
+    });
+</script></div></div><div class="flex-container"><div class="tableContent"><div style="font-weight:bold;">Plan Type</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Death Benefit</div><span id="PlanReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><ul id="Plan" class="radioVertical" style="list-style-type:none;">
+	<li><span style="display:none;"><input id="Plan_0" type="radio" name="ctl00$ContentPlaceHolderMain$Plan" value=""></span></li>
+	<li><input id="Plan_1" type="radio" name="ctl00$ContentPlaceHolderMain$Plan" value="I"><label for="Plan_1">Immediate</label></li>
+	<li><input id="Plan_2" type="radio" name="ctl00$ContentPlaceHolderMain$Plan" value="G"><label for="Plan_2">Graded</label></li>
+	<li><input id="Plan_3" type="radio" name="ctl00$ContentPlaceHolderMain$Plan" value="R"><label for="Plan_3">ROP</label></li>
+
+</ul>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var paymentOptions = document.getElementsByName('ctl00$ContentPlaceHolderMain$Method');
+        
+           if (!document.getElementById('creditCardHintTop')) {
+        var creditCardHintTop = document.createElement('div');
+        creditCardHintTop.id = 'creditCardHintTop';
+        creditCardHintTop.style.width = '100%';
+        creditCardHintTop.style.color = 'red';
+        creditCardHintTop.style.fontWeight = 'bold';
+        creditCardHintTop.style.textAlign = 'center';
+        creditCardHintTop.style.padding = '10px';
+        creditCardHintTop.style.marginBottom = '10px';
+        creditCardHintTop.style.display = 'none'; 
+        creditCardHintTop.innerText = '*Credit Card information will be entered on the following screen*';
+
+        
+        var creditCardHintBottom = creditCardHintTop.cloneNode(true);
+        creditCardHintBottom.id = 'creditCardHintBottom';
+        
+        
+        document.body.insertBefore(creditCardHintTop, document.body.firstChild);
+        document.body.appendChild(creditCardHintBottom);
+        }
+
+        
+        var hintTopElement = document.getElementById('creditCardHintTop');
+        var hintBottomElement = document.getElementById('creditCardHintBottom');
+        
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('change', function () {
+                var displayStyle = (this.value === 'CreditCard') ? 'block' : 'none';
+                hintTopElement.style.display = displayStyle;
+                hintBottomElement.style.display = displayStyle;
+            });
+        });
+
+        
+        var selectedOption = document.querySelector("input[name='ctl00$ContentPlaceHolderMain$Method']:checked");
+        if (selectedOption && selectedOption.value === 'CreditCard') {
+            hintTopElement.style.display = 'block';
+            hintBottomElement.style.display = 'block';
+        }
+    });
+</script></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div><input id="Acceptance" type="checkbox" name="ctl00$ContentPlaceHolderMain$Acceptance"><label for="Acceptance">Check here if you are willing to accept any plan for which you qualify based on this application. The insurance for which you qualify may have a return of premium death benefit for the first two (2) or three (3) years, a face amount less than any indicated on this application, and riders may not be available.</label></div></div></div><div class="tableContent"><div style="font-weight:bold;">Riders and Benefits</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div><input id="NHWP" type="checkbox" name="ctl00$ContentPlaceHolderMain$NHWP"><label for="NHWP">Nursing Home Waiver of Premium</label></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Accidental Death:<input name="ctl00$ContentPlaceHolderMain$ADB" type="text" id="ADB" class=" numbersOnly w3-input w3-border"></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Children's Insurance Agreement (CIA):<select name="ctl00$ContentPlaceHolderMain$CIA" id="CIA" class="w3-select w3-border" style="margin:0px 8px;">
+	<option value="" style="selected:;disabled:;hidden:;"></option>
+	<option value="1">1 Unit  ($3,000)</option>
+	<option value="2">2 Units ($6,000)</option>
+
+</select></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Grandchild Rider Number Applying (GCIA):<input name="ctl00$ContentPlaceHolderMain$GCIACount" type="text" maxlength="2" id="GCIACount" class=" numbersOnly w3-input w3-border" size="2"></div><div>Coverage Amount:<select name="ctl00$ContentPlaceHolderMain$GCIAUnit" id="GCIAUnit" class="w3-select w3-border" style="margin:0px 8px;">
+	<option value="" style="selected:;disabled:;hidden:;"></option>
+	<option value="1">1 Unit  ($5,000)</option>
+	<option value="2">2 Units ($10,000)</option>
+
+</select></div></div></div></div><div id="FPGroup" class="tableContent" style="display:none;"><div style="font-weight:bold;">Additional Annuity Information:</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Flexible Premium Annuity Rider $ Amount (Year 1 Contribution, if applicable):<span id="FPDARReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><input name="ctl00$ContentPlaceHolderMain$FPDAR" type="text" maxlength="12" id="FPDAR" class=" currenciesOnly w3-input w3-border" size="12"></div></div></div><div class="tableContent"><div style="font-weight:bold;">Amount Of Insurance</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Payment Mode<span id="ModeReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><select name="ctl00$ContentPlaceHolderMain$Mode" id="Mode" class="w3-select w3-border" style="margin:0px 8px;">
+	<option value="" style="selected:;disabled:;hidden:;"></option>
+	<option value="M">Monthly</option>
+	<option value="Q">Quarterly</option>
+	<option value="S">Semi-Annual</option>
+	<option value="A">Annually</option>
+	<option value="B">Bi-Weekly</option>
+
+</select></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><span style="font-weight:normal;">** Check one box below if not Bank Draft or other Payment Type **</span></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div><input id="Allotment" type="checkbox" name="ctl00$ContentPlaceHolderMain$Allotment"><label for="Allotment">Allotment</label></div><div><input id="PayRollDeduction" type="checkbox" name="ctl00$ContentPlaceHolderMain$PayRollDeduction"><label for="PayRollDeduction">Payroll Deduction</label></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Face Amount<input name="ctl00$ContentPlaceHolderMain$Coverage" type="text" id="Coverage" class=" currenciesOnly w3-input w3-border"></div><div>or Premium<input name="ctl00$ContentPlaceHolderMain$Premium" type="text" id="Premium" class=" currenciesOnly w3-input w3-border"></div></div></div><div class="tableContent"><div style="font-weight:bold;">Policy Instructions</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Automatic Premium Loan Elected?</div><span id="APLReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Required</span><span id="APL" class="radioHorizontal" style="width:100%;text-align:right;"><span style="display:none;"><input id="APL_0" type="radio" name="ctl00$ContentPlaceHolderMain$APL" value=""></span><input id="APL_1" type="radio" name="ctl00$ContentPlaceHolderMain$APL" value="Y"><label for="APL_1">Yes</label><input id="APL_2" type="radio" name="ctl00$ContentPlaceHolderMain$APL" value="N"><label for="APL_2">No</label></span>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var paymentOptions = document.getElementsByName('ctl00$ContentPlaceHolderMain$Method');
+        
+           if (!document.getElementById('creditCardHintTop')) {
+        var creditCardHintTop = document.createElement('div');
+        creditCardHintTop.id = 'creditCardHintTop';
+        creditCardHintTop.style.width = '100%';
+        creditCardHintTop.style.color = 'red';
+        creditCardHintTop.style.fontWeight = 'bold';
+        creditCardHintTop.style.textAlign = 'center';
+        creditCardHintTop.style.padding = '10px';
+        creditCardHintTop.style.marginBottom = '10px';
+        creditCardHintTop.style.display = 'none'; 
+        creditCardHintTop.innerText = '*Credit Card information will be entered on the following screen*';
+
+        
+        var creditCardHintBottom = creditCardHintTop.cloneNode(true);
+        creditCardHintBottom.id = 'creditCardHintBottom';
+        
+        
+        document.body.insertBefore(creditCardHintTop, document.body.firstChild);
+        document.body.appendChild(creditCardHintBottom);
+        }
+
+        
+        var hintTopElement = document.getElementById('creditCardHintTop');
+        var hintBottomElement = document.getElementById('creditCardHintBottom');
+        
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('change', function () {
+                var displayStyle = (this.value === 'CreditCard') ? 'block' : 'none';
+                hintTopElement.style.display = displayStyle;
+                hintBottomElement.style.display = displayStyle;
+            });
+        });
+
+        
+        var selectedOption = document.querySelector("input[name='ctl00$ContentPlaceHolderMain$Method']:checked");
+        if (selectedOption && selectedOption.value === 'CreditCard') {
+            hintTopElement.style.display = 'block';
+            hintBottomElement.style.display = 'block';
+        }
+    });
+</script></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Deliver Policy To:</div><span id="MailToReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><ul id="MailTo" class="radioVertical" dynamiccontrol="True" style="list-style-type:none;">
+	<li><span style="display:none;"><input id="MailTo_0" type="radio" name="ctl00$ContentPlaceHolderMain$MailTo" value=""></span></li>
+	<li><input id="MailTo_1" type="radio" name="ctl00$ContentPlaceHolderMain$MailTo" value="Insured"><label for="MailTo_1">Insured (Owner) </label></li>
+	<li><input id="MailTo_2" type="radio" name="ctl00$ContentPlaceHolderMain$MailTo" value="Owner"><label for="MailTo_2">Owner (Other than Insured)</label></li>
+	<li><input id="MailTo_3" type="radio" name="ctl00$ContentPlaceHolderMain$MailTo" value="Agent"><label for="MailTo_3">Agent</label></li>
+
+</ul>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var paymentOptions = document.getElementsByName('ctl00$ContentPlaceHolderMain$Method');
+        
+           if (!document.getElementById('creditCardHintTop')) {
+        var creditCardHintTop = document.createElement('div');
+        creditCardHintTop.id = 'creditCardHintTop';
+        creditCardHintTop.style.width = '100%';
+        creditCardHintTop.style.color = 'red';
+        creditCardHintTop.style.fontWeight = 'bold';
+        creditCardHintTop.style.textAlign = 'center';
+        creditCardHintTop.style.padding = '10px';
+        creditCardHintTop.style.marginBottom = '10px';
+        creditCardHintTop.style.display = 'none'; 
+        creditCardHintTop.innerText = '*Credit Card information will be entered on the following screen*';
+
+        
+        var creditCardHintBottom = creditCardHintTop.cloneNode(true);
+        creditCardHintBottom.id = 'creditCardHintBottom';
+        
+        
+        document.body.insertBefore(creditCardHintTop, document.body.firstChild);
+        document.body.appendChild(creditCardHintBottom);
+        }
+
+        
+        var hintTopElement = document.getElementById('creditCardHintTop');
+        var hintBottomElement = document.getElementById('creditCardHintBottom');
+        
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('change', function () {
+                var displayStyle = (this.value === 'CreditCard') ? 'block' : 'none';
+                hintTopElement.style.display = displayStyle;
+                hintBottomElement.style.display = displayStyle;
+            });
+        });
+
+        
+        var selectedOption = document.querySelector("input[name='ctl00$ContentPlaceHolderMain$Method']:checked");
+        if (selectedOption && selectedOption.value === 'CreditCard') {
+            hintTopElement.style.display = 'block';
+            hintBottomElement.style.display = 'block';
+        }
+    });
+</script></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div><input id="SaveAge" type="checkbox" name="ctl00$ContentPlaceHolderMain$SaveAge"><label for="SaveAge">Save Age? (Requested Policy Date Required)</label></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Requested Policy Date<input name="ctl00$ContentPlaceHolderMain$ReqPolicyDate" type="text" id="ReqPolicyDate" class=" w3-input w3-border"></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><span style="font-weight:normal;">Or</span></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div><input id="PolDateApproval" type="checkbox" name="ctl00$ContentPlaceHolderMain$PolDateApproval"><label for="PolDateApproval">Check here for date on approval</label></div></div></div><div id="Digital" class="tableContent" style="display:none;"><div style="font-weight:bold;color:Blue;">DIGITAL POLICY</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Upon approval of your policy, by opting for a digital policy contract, your Client can gain convenient online access to view, download, and save their policy documents. Additionally, your Client can view a summary of their coverage information, access self-service tools such as online premium payment options and Live Chat with representatives. Would you like to proceed with this option?</div><span id="DigitalInterestQReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><span id="DigitalInterestQ" class="radioHorizontal" style="width:100%;text-align:right;"><span style="display:none;"><input id="DigitalInterestQ_0" type="radio" name="ctl00$ContentPlaceHolderMain$DigitalInterestQ" value=""></span><input id="DigitalInterestQ_1" type="radio" name="ctl00$ContentPlaceHolderMain$DigitalInterestQ" value="Y"><label for="DigitalInterestQ_1">Yes___</label><input id="DigitalInterestQ_2" type="radio" name="ctl00$ContentPlaceHolderMain$DigitalInterestQ" value="N"><label for="DigitalInterestQ_2">No___</label></span>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var paymentOptions = document.getElementsByName('ctl00$ContentPlaceHolderMain$Method');
+        
+           if (!document.getElementById('creditCardHintTop')) {
+        var creditCardHintTop = document.createElement('div');
+        creditCardHintTop.id = 'creditCardHintTop';
+        creditCardHintTop.style.width = '100%';
+        creditCardHintTop.style.color = 'red';
+        creditCardHintTop.style.fontWeight = 'bold';
+        creditCardHintTop.style.textAlign = 'center';
+        creditCardHintTop.style.padding = '10px';
+        creditCardHintTop.style.marginBottom = '10px';
+        creditCardHintTop.style.display = 'none'; 
+        creditCardHintTop.innerText = '*Credit Card information will be entered on the following screen*';
+
+        
+        var creditCardHintBottom = creditCardHintTop.cloneNode(true);
+        creditCardHintBottom.id = 'creditCardHintBottom';
+        
+        
+        document.body.insertBefore(creditCardHintTop, document.body.firstChild);
+        document.body.appendChild(creditCardHintBottom);
+        }
+
+        
+        var hintTopElement = document.getElementById('creditCardHintTop');
+        var hintBottomElement = document.getElementById('creditCardHintBottom');
+        
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('change', function () {
+                var displayStyle = (this.value === 'CreditCard') ? 'block' : 'none';
+                hintTopElement.style.display = displayStyle;
+                hintBottomElement.style.display = displayStyle;
+            });
+        });
+
+        
+        var selectedOption = document.querySelector("input[name='ctl00$ContentPlaceHolderMain$Method']:checked");
+        if (selectedOption && selectedOption.value === 'CreditCard') {
+            hintTopElement.style.display = 'block';
+            hintBottomElement.style.display = 'block';
+        }
+    });
+</script></div></div></div>
+            </div>
+            
+
+            
+
+
+    <div id="Div2" style="margin: auto; text-align: center; align-content: center;">
+        <span id="ErrorMessageLabel1" style="color:Red;font-size:X-Large;"></span>
+    </div>
+    <div id="QuoteButtonView">
+        <table style="margin: 0 auto; text-align: center;">
+	<tbody><tr>
+		<td style="background-color:#718EA4;border-width:1px;border-style:Solid;padding: 20px; border-radius: 25px;"><input type="submit" name="ctl00$ContentPlaceHolderBottomButton$BtnQuote" value="Quote!" onclick="if (HasError()) return false; quoteClick();" id="BtnQuote" class="btn" data-step="4" data-intro="Clicking here will initiate a call to our quote engine. Make sure any required fields are filled out if this button doesn't seem to work." style=""><span id="quoteReturn"></span></td><td style="font-size:X-Large;padding-left: 15px;">If application does not proceed to next step, <br>check screen for "<span style="padding:1px;background-color:white; color:red;font-weight:bold;">Req</span>" on any field</td>
+	</tr>
+</tbody></table>
+
+    </div>
+
+    <div id="Loading" style="display: none; position: fixed; width: 100%; height: 100%; background-color: black; opacity: .6; left: 0; top: 0;">
+        <div style="position: fixed; top: 50%; left: 40%; opacity: 1; color: white; font: bold 25px arial; text-align: center;">
+            <img id="Image2" src="../Images/ajax-loader-2.gif" style="height:30px;width:30px;padding: 5px;">Loading....
+        </div>
+    </div>
+    
+
+    <input type="hidden" name="ctl00$ContentPlaceHolderBottomButton$HiddenCoverage" id="HiddenCoverage">
+    <input type="hidden" name="ctl00$ContentPlaceHolderBottomButton$HiddenPremium" id="HiddenPremium">
+
+
+    <script>
+        //ProgReq#9399 PAR Changes Charmi Sanghavi 02/25/2025
+        document.addEventListener('DOMContentLoaded', function () {
+            var paymentModeDropdown = document.getElementById('Mode');
+            var dividendOptions = document.getElementById('DividendOptions');
+            var radioButtons = document.querySelectorAll('#DividendOptions input[type="radio"]');
+
+            function updatePaymentModeDropdown() {
+                var checkedOption = Array.from(radioButtons).find(radioButton => radioButton.checked);
+                var selectedOptionValue = checkedOption ? checkedOption.value : null;
+
+                localStorage.setItem('selectedOptionValue', selectedOptionValue);
+
+                if (selectedOptionValue && selectedOptionValue.includes("APP")) {
+                    var options = paymentModeDropdown.options;
+                    for (var i = 0; i < options.length; i++) {
+                        if (options[i].value !== 'A') {
+                            options[i].disabled = true;
+                        } else {
+                            options[i].disabled = false;
+                            options[i].selected = true;
+                        }
+                    }
+                } else {
+                    var options = paymentModeDropdown.options;
+                    for (var i = 0; i < options.length; i++) {
+                        options[i].disabled = false;
+                    }
+                }
+
+                localStorage.setItem('paymentModeDropdown', paymentModeDropdown.value);
+            }
+
+            radioButtons.forEach(function (radioButton) {
+                radioButton.addEventListener('change', function () {
+                    updatePaymentModeDropdown();
+                });
+            });
+
+            updatePaymentModeDropdown();
+        });
+
+        function quoteClick() {
+            //
+            if (typeof (Page_ClientValidate) == 'function') {
+                Page_ClientValidate();
+            }
+            if (!Page_IsValid) return;
+            document.getElementById('ErrorMessageLabel').innerText = '';
+            document.getElementById('ErrorMessageLabel1').innerText = '';
+            document.getElementById('Loading').style.display = 'inherit';
+        }
+        var dobField = document.getElementById('dob');
+        if (typeof (dobField) != 'undefined' && dobField != null) {
+            // exists.
+            dobField.addEventListener("input", FormatDate);
+        }
+        var reqPolicyDate = document.getElementById('ReqPolicyDate');
+        if (typeof (reqPolicyDate) != 'undefined' && reqPolicyDate != null) {
+            // exists.
+            reqPolicyDate.addEventListener("input", FormatDate);
+        }
+
+        function FormatDate(e) {
+
+            var patt = /^\d{8}$/;
+            var res = patt.test(e.target.value);
+            if (res == false) return;
+            e.target.value = e.target.value.substring(0, 2) + "/" + e.target.value.substring(2, 4) + "/" + e.target.value.substring(4, 8);
+        }
+
+        var premium = document.getElementById('Premium');
+        var coverage = document.getElementById('Coverage');
+        if (typeof (premium) != 'undefined' && premium != null && typeof (coverage) != 'undefined' && coverage != null) {
+            premium.addEventListener("input", function () { coverage.value = ''; });
+            coverage.addEventListener("input", function () { premium.value = ''; });
+        }        
+
+
+    </script>
+
+            <br>
+            <br>
+            <br>
+        </div>
+
+        <div class="modal" id="divReportBugModal">
+            <div class="modal-content">
+                <button type="button" class="close" onclick="document.getElementById('divReportBugModal').style.display = 'none';">×</button>
+                <div id="divReportBugContent">
+                    <h3>Reporting an Issue</h3>
+                    <i>A screenshot has been captured of this page.</i>
+                    <p>Please provide a description of the issue to go along with the screenshot:</p>
+                    <textarea name="ctl00$txtIssueReport" rows="10" cols="50" id="txtIssueReport" style="width: 100%;"></textarea>
+                    <input type="hidden" name="ctl00$hiddenScreenshot" id="hiddenScreenshot">
+                    <br>
+                    <br>
+                    <input type="submit" name="ctl00$BtnSubmitIssue" value="Submit Issue" id="BtnSubmitIssue" class="btn">
+                </div>
+            </div>
+        </div>
+    
+<script type="text/javascript">
+//<![CDATA[
+var Page_Validators =  new Array(document.getElementById("InsNameFirstReq"), document.getElementById("InsNameLastReq"), document.getElementById("dobReq"), document.getElementById("dobAgeReq"), document.getElementById("SexReq"), document.getElementById("TobaccoReq"), document.getElementById("PlanReq"), document.getElementById("FPDARReq"), document.getElementById("ModeReq"), document.getElementById("APLReq"), document.getElementById("MailToReq"), document.getElementById("DigitalInterestQReq"));
+//]]>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+var InsNameFirstReq = document.all ? document.all["InsNameFirstReq"] : document.getElementById("InsNameFirstReq");
+InsNameFirstReq.controltovalidate = "InsNameFirst";
+InsNameFirstReq.errormessage = "Req";
+InsNameFirstReq.display = "Dynamic";
+InsNameFirstReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+InsNameFirstReq.initialvalue = "";
+var InsNameLastReq = document.all ? document.all["InsNameLastReq"] : document.getElementById("InsNameLastReq");
+InsNameLastReq.controltovalidate = "InsNameLast";
+InsNameLastReq.errormessage = "Req";
+InsNameLastReq.display = "Dynamic";
+InsNameLastReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+InsNameLastReq.initialvalue = "";
+var dobReq = document.all ? document.all["dobReq"] : document.getElementById("dobReq");
+dobReq.controltovalidate = "dob";
+dobReq.errormessage = "Req";
+dobReq.display = "Dynamic";
+dobReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+dobReq.initialvalue = "";
+var dobAgeReq = document.all ? document.all["dobAgeReq"] : document.getElementById("dobAgeReq");
+dobAgeReq.controltovalidate = "dobAge";
+dobAgeReq.errormessage = "Req";
+dobAgeReq.display = "Dynamic";
+dobAgeReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+dobAgeReq.initialvalue = "";
+var SexReq = document.all ? document.all["SexReq"] : document.getElementById("SexReq");
+SexReq.controltovalidate = "Sex";
+SexReq.errormessage = "Req";
+SexReq.display = "Dynamic";
+SexReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+SexReq.initialvalue = "";
+var TobaccoReq = document.all ? document.all["TobaccoReq"] : document.getElementById("TobaccoReq");
+TobaccoReq.controltovalidate = "Tobacco";
+TobaccoReq.errormessage = "Req";
+TobaccoReq.display = "Dynamic";
+TobaccoReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+TobaccoReq.initialvalue = "";
+var PlanReq = document.all ? document.all["PlanReq"] : document.getElementById("PlanReq");
+PlanReq.controltovalidate = "Plan";
+PlanReq.errormessage = "Req";
+PlanReq.display = "Dynamic";
+PlanReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+PlanReq.initialvalue = "";
+var FPDARReq = document.all ? document.all["FPDARReq"] : document.getElementById("FPDARReq");
+FPDARReq.controltovalidate = "FPDAR";
+FPDARReq.errormessage = "Req";
+FPDARReq.display = "Dynamic";
+FPDARReq.enabled = "False";
+FPDARReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+FPDARReq.initialvalue = "";
+var ModeReq = document.all ? document.all["ModeReq"] : document.getElementById("ModeReq");
+ModeReq.controltovalidate = "Mode";
+ModeReq.errormessage = "Req";
+ModeReq.display = "Dynamic";
+ModeReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ModeReq.initialvalue = "";
+var APLReq = document.all ? document.all["APLReq"] : document.getElementById("APLReq");
+APLReq.controltovalidate = "APL";
+APLReq.errormessage = "Required";
+APLReq.display = "Dynamic";
+APLReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+APLReq.initialvalue = "";
+var MailToReq = document.all ? document.all["MailToReq"] : document.getElementById("MailToReq");
+MailToReq.controltovalidate = "MailTo";
+MailToReq.errormessage = "Req";
+MailToReq.display = "Dynamic";
+MailToReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+MailToReq.initialvalue = "";
+var DigitalInterestQReq = document.all ? document.all["DigitalInterestQReq"] : document.getElementById("DigitalInterestQReq");
+DigitalInterestQReq.controltovalidate = "DigitalInterestQ";
+DigitalInterestQReq.errormessage = "Req";
+DigitalInterestQReq.display = "Dynamic";
+DigitalInterestQReq.enabled = "False";
+DigitalInterestQReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+DigitalInterestQReq.initialvalue = "";
+//]]>
+</script>
+
+
+<script type="text/javascript">
+//<![CDATA[
+
+       function setError(message) {
+    var errorContainer = document.getElementById('errorMessageContainer');
+
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'errorMessageContainer';
+
+        
+        errorContainer.style.position = 'relative';
+        errorContainer.style.width = '100%';
+        errorContainer.style.textAlign = 'center';
+        errorContainer.style.color = '#d8000c';
+        errorContainer.style.padding = '10px';
+        errorContainer.style.marginTop = '20px'; // Adds spacing from content
+       
+        document.body.appendChild(errorContainer);
+    }
+
+    errorContainer.textContent = message;
+}
+    function validateMentalHealthSelection() {
+        var container = document.getElementById('QuestMentalInfo');
+
+        
+        if (!container || window.getComputedStyle(container).display === 'none') {
+            
+            return true; // Skip validation if hidden
+        }
+
+        var checkboxes = container.querySelectorAll("input[type='checkbox']");
+        var isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+        if (!isChecked) {
+             setError('Please select at least one condition in the Mental Health Questionnaire.');
+            return false; 
+        }
+          var checkBoxOther = document.getElementById('MHQConditionsOther');
+          var textAreaOther = document.getElementById('OtherComments');
+
+        if (checkBoxOther && checkBoxOther.checked && textAreaOther && textAreaOther.value.trim() === '') {
+             setError('Please provide details in the Other comments section.');
+            textAreaOther.focus();
+            return false; 
+        }
+        return true;
+    }
+
+     document.addEventListener('DOMContentLoaded', function() {
+        var form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                var errorContainer = document.getElementById('errorMessageContainer');
+                if (errorContainer) {
+                    errorContainer.textContent = ''; 
+                }
+                
+                if (!validateMentalHealthSelection()) {
+                    event.preventDefault();
+                }
+            });
+        }
+    });
+    
+var Page_ValidationActive = false;
+if (typeof(ValidatorOnLoad) == "function") {
+    ValidatorOnLoad();
+}
+
+function ValidatorOnSubmit() {
+    if (Page_ValidationActive) {
+        return ValidatorCommonOnSubmit();
+    }
+    else {
+        return true;
+    }
+}
+        
+document.getElementById('InsNameFirstReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('InsNameFirstReq'));
+}
+
+document.getElementById('InsNameLastReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('InsNameLastReq'));
+}
+
+document.getElementById('dobReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('dobReq'));
+}
+
+document.getElementById('dobAgeReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('dobAgeReq'));
+}
+
+document.getElementById('SexReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('SexReq'));
+}
+
+document.getElementById('TobaccoReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('TobaccoReq'));
+}
+
+document.getElementById('PlanReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('PlanReq'));
+}
+
+document.getElementById('FPDARReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('FPDARReq'));
+}
+
+document.getElementById('ModeReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ModeReq'));
+}
+
+document.getElementById('APLReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('APLReq'));
+}
+
+document.getElementById('MailToReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('MailToReq'));
+}
+
+document.getElementById('DigitalInterestQReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('DigitalInterestQReq'));
+}
+//]]>
 </script>
 </form>
+    
+        <script>
+            function HasError() {
+                var isValid = Page_ClientValidate();
+                if (!isValid) {
+                    var spans = document.getElementsByClassName("requiredField");
+                    for (let i = 0; i < spans.length; i++) { if (spans[i].style.display.toLowerCase() != 'none') {  window.scrollTo(0,window.scrollY + spans[i].getBoundingClientRect().top ); break; } }
+                }
+                return !isValid;
+                
+            }
+            
+        </script>
+    
 
 
-<div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable ui-resizable" tabindex="-1" role="dialog" aria-describedby="EditConfirm" aria-labelledby="ui-id-1" style="display: none; position: absolute;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-1" class="ui-dialog-title">Edit Application</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="EditConfirm" style="" class="ui-dialog-content ui-widget-content">
-            <p id="P2" style="width: auto; height: auto; color: red">
-                Any signatures previously captured will be lost &amp; cannnot be recovered!<br>
-                Do You Wish to Continue?
-            </p>
-        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Edit App</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Cancel</span></button></div></div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable ui-resizable" tabindex="-1" role="dialog" aria-describedby="DeleteConfirm" aria-labelledby="ui-id-2" style="display: none; position: absolute;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-2" class="ui-dialog-title">Delete Application</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="DeleteConfirm" style="" class="ui-dialog-content ui-widget-content">
 
-            <p id="P1" style="width: auto; height: auto;">
-                Are You Sure? Warning! This cannot be undone.
-            </p>
-        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Delete</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Cancel</span></button></div></div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-draggable ui-resizable" tabindex="-1" role="dialog" aria-describedby="ImageDialog" aria-labelledby="ui-id-3" style="display: none; position: absolute;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-3" class="ui-dialog-title">Attachment</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="ImageDialog" style="" class="ui-dialog-content ui-widget-content">
-        </div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable" tabindex="-1" role="dialog" aria-describedby="EPackage" aria-labelledby="ui-id-4" style="display: none;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-4" class="ui-dialog-title">Reminder</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="EPackage" style="" class="ui-dialog-content ui-widget-content">
-            <p id="P3" style="width: auto; height: auto;">
-                Ask your client if they know of friends and family members that may be interested in learning more about The Everest Package
-            </p>
-        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Close</span></button></div></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable" tabindex="-1" role="dialog" aria-describedby="dialogMessage" aria-labelledby="ui-id-5" style="display: none;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-5" class="ui-dialog-title">Attachment</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="dialogMessage" style="" class="ui-dialog-content ui-widget-content">
-            <p id="dialogMessageText" style="width: auto; height: auto;">
-            </p>
-        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Close</span></button></div></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable" tabindex="-1" role="dialog" aria-describedby="confirmMessage" aria-labelledby="ui-id-6" style="display: none;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-6" class="ui-dialog-title">Attachment</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="confirmMessage" style="" class="ui-dialog-content ui-widget-content">
-            <p id="confirmMessageText" style="width: auto; height: auto;">
-                Attach Document?
-            </p>
-        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Attach</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Cancel</span></button></div></div></div></body></html>
+
+
+
+<div id="creditCardHintBottom" style="width: 100%; color: red; font-weight: bold; text-align: center; padding: 10px; margin-bottom: 10px; display: none;">*Credit Card information will be entered on the following screen*</div></body></html>
