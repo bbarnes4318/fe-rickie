@@ -434,190 +434,59 @@ export const runAmericanAmicableAutomation = async (data) => {
     console.log('[Automation] ═══════════════════════════════════════');
     
     // Part 5: State Selection
+    // The UI shows a modal #StateMenu with a <select id="StateDropDown"> and a Submit button #BtnNewAppFinal
     console.log(`[Automation] Selecting State: ${state}...`);
     
-    // First: Check if there's a standard HTML select dropdown for state
-    const stateSelectExists = await page.$('select#State, select[name*="State"]');
-    if (stateSelectExists) {
-      console.log('[Automation] Found standard select dropdown for state');
-      try {
-        // Try to select by visible text (state name)
-        await page.select('select#State, select[name*="State"]', state);
-        console.log(`[Automation] ✓ State selected via dropdown: ${state}`);
-      } catch (e) {
-        // Try using the state code from mapping
+    // Wait for the StateMenu modal to be visible
+    await page.waitForSelector('#StateMenu', { timeout: 10000 });
+    console.log('[Automation] ✓ StateMenu modal found');
+    
+    // Check if the StateDropDown select exists
+    const stateDropdown = await page.$('#StateDropDown');
+    if (stateDropdown) {
+      console.log('[Automation] ✓ Found StateDropDown select element');
+      
+      // Get the state code from our mapping
+      const stateCode = STATE_MAPPING[state];
+      if (!stateCode) {
+        throw new Error(`State "${state}" not found in STATE_MAPPING`);
+      }
+      console.log(`[Automation] State code for "${state}": ${stateCode}`);
+      
+      // Select the state by value (the AASCXXSM... code)
+      await page.select('#StateDropDown', stateCode);
+      console.log(`[Automation] ✓ Selected "${state}" in dropdown`);
+      
+      // Wait a moment for the selection to register
+      await new Promise(r => setTimeout(r, 500));
+      
+      // Click the Submit button to proceed
+      console.log('[Automation] Looking for Submit button (BtnNewAppFinal)...');
+      await page.waitForSelector('#BtnNewAppFinal', { timeout: 5000 });
+      
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {}),
+        page.click('#BtnNewAppFinal')
+      ]);
+      console.log('[Automation] ✓ Clicked Submit button');
+      
+    } else {
+      // Fallback: try the name-based selector
+      console.log('[Automation] #StateDropDown not found, trying alternative selectors...');
+      const altDropdown = await page.$('select[name="StateDropDown"], select[name*="State"]');
+      if (altDropdown) {
         const stateCode = STATE_MAPPING[state];
         if (stateCode) {
-          await page.select('select#State, select[name*="State"]', stateCode);
-          console.log(`[Automation] ✓ State selected via code: ${stateCode}`);
-        } else {
-          throw new Error(`Could not select state "${state}" from dropdown`);
+          await page.select('select[name="StateDropDown"]', stateCode);
+          console.log(`[Automation] ✓ Selected state via alternative dropdown`);
+          await page.click('#BtnNewAppFinal');
         }
-      }
-    } else {
-      // Look for popup-based state selection
-      console.log('[Automation] No standard select - checking for popup menu...');
-      
-      // Check if #StateMenu popup exists
-      const stateMenuExists = await page.$('#StateMenu');
-      console.log(`[Automation] #StateMenu element exists: ${!!stateMenuExists}`);
-      
-      // Log all visible popups/menus on the page for debugging
-      const allPopups = await page.evaluate(() => {
-        const popups = [];
-        // Look for common popup containers
-        const candidates = document.querySelectorAll('[id*="Menu"], [id*="Popup"], [class*="popup"], [class*="menu"], [class*="dropdown"]');
-        candidates.forEach(el => {
-          const isVisible = el.offsetParent !== null && el.style.display !== 'none';
-          if (isVisible) {
-            popups.push({ 
-              id: el.id, 
-              class: el.className.slice(0, 50), 
-              childCount: el.querySelectorAll('td.dataItem').length 
-            });
-          }
-        });
-        return popups;
-      });
-      console.log('[Automation] Visible popups/menus:', JSON.stringify(allPopups));
-      
-      let stateFound = false;
-      
-      // If StateMenu exists, search ONLY within it
-      if (stateMenuExists) {
-        const menuInfo = await page.evaluate(() => {
-          const menu = document.querySelector('#StateMenu');
-          const items = menu.querySelectorAll('td.dataItem');
-          return {
-            visible: menu.offsetParent !== null && menu.style.display !== 'none',
-            itemCount: items.length,
-            itemTexts: Array.from(items).map(e => e.textContent.trim()).slice(0, 30)
-          };
-        });
-        console.log(`[Automation] StateMenu: visible=${menuInfo.visible}, items=${menuInfo.itemCount}`);
-        console.log(`[Automation] StateMenu options:`, JSON.stringify(menuInfo.itemTexts));
-        
-        if (menuInfo.itemCount > 0) {
-          // Click the state within the StateMenu
-          stateFound = await page.evaluate((targetState) => {
-            const menu = document.querySelector('#StateMenu');
-            const items = menu.querySelectorAll('td.dataItem');
-            for (const item of items) {
-              const text = item.textContent.trim();
-              if (text === targetState || text.includes(targetState)) {
-                item.click();
-                return true;
-              }
-            }
-            return false;
-          }, state);
-          
-          if (stateFound) {
-            console.log(`[Automation] ✓ Clicked state "${state}" in StateMenu`);
-          }
-        }
-      }
-      
-      // If StateMenu didn't work, look for other visible popup containers with state-like options
-      if (!stateFound) {
-        console.log('[Automation] StateMenu approach failed, looking for alternative popups...');
-        
-        // Get the currently visible/active popup that might contain state options
-        const popupWithStates = await page.evaluate((targetState, stateMapping) => {
-          // Look for a visible popup that contains state-like text
-          const stateNames = Object.keys(JSON.parse(stateMapping));
-          
-          // Check #StateMenu first, then common popup patterns
-          const popupSelectors = ['#StateMenu', '[id*="StateMenu"]', '[id*="Menu"]:not([id*="Agent"]):not([id*="Product"])', '.popup', '.dropdown', '[class*="popup"]'];
-          
-          for (const selector of popupSelectors) {
-            const popup = document.querySelector(selector);
-            if (popup && popup.offsetParent !== null) {
-              const items = popup.querySelectorAll('td.dataItem, li, .item');
-              for (const item of items) {
-                const text = item.textContent.trim();
-                // Check if this item looks like a state name
-                if (stateNames.some(s => text.includes(s))) {
-                  if (text.includes(targetState) || text === targetState) {
-                    item.click();
-                    return { found: true, text: text, selector: selector };
-                  }
-                }
-              }
-            }
-          }
-          return { found: false };
-        }, state, JSON.stringify(STATE_MAPPING));
-        
-        if (popupWithStates.found) {
-          stateFound = true;
-          console.log(`[Automation] ✓ Found state via alternative popup: ${popupWithStates.text} (${popupWithStates.selector})`);
-        }
-      }
-      
-      // Last resort: Maybe the state is a trigger button that opens a popup?
-      if (!stateFound) {
-        console.log('[Automation] Looking for state trigger button...');
-        
-        // Try clicking a state-related button/cell to trigger the popup
-        const triggerClicked = await page.evaluate(() => {
-          // Look for elements that might trigger a state selector
-          const triggers = document.querySelectorAll('[id*="State"], [name*="State"], [onclick*="State"]');
-          for (const trigger of triggers) {
-            if (trigger.tagName === 'INPUT' || trigger.tagName === 'BUTTON' || 
-                trigger.textContent.includes('State') || trigger.textContent.includes('Select')) {
-              trigger.click();
-              return true;
-            }
-          }
-          return false;
-        });
-        
-        if (triggerClicked) {
-          console.log('[Automation] Clicked state trigger, waiting for popup...');
-          await new Promise(r => setTimeout(r, 1500));
-          
-          // Try again to find and click the state
-          stateFound = await page.evaluate((targetState) => {
-            const allItems = document.querySelectorAll('td.dataItem');
-            for (const item of allItems) {
-              const text = item.textContent.trim();
-              if (text === targetState || text.includes(targetState)) {
-                item.click();
-                return true;
-              }
-            }
-            return false;
-          }, state);
-          
-          if (stateFound) {
-            console.log(`[Automation] ✓ Found state after trigger click: ${state}`);
-          }
-        }
-      }
-      
-      if (!stateFound) {
-        // Final debug: dump the entire page DOM structure for popups
-        const debugInfo = await page.evaluate(() => {
-          const all = document.querySelectorAll('td.dataItem');
-          return {
-            totalDataItems: all.length,
-            first20: Array.from(all).slice(0, 20).map(e => ({
-              text: e.textContent.trim().slice(0, 30),
-              parent: e.parentElement?.parentElement?.id || e.parentElement?.parentElement?.className?.slice(0, 20)
-            }))
-          };
-        });
-        console.log('[Automation] Debug - All dataItem cells:', JSON.stringify(debugInfo));
-        console.log('[Automation] Available states in mapping:', Object.keys(STATE_MAPPING).join(', '));
-        throw new Error(`Could not find state "${state}" in popup menu`);
+      } else {
+        throw new Error('Could not find state dropdown selector');
       }
     }
     
-    console.log('[Automation] ✓ State selected successfully');
-    
-    // Wait for state selection to process
-    await new Promise(r => setTimeout(r, 1500));
+    console.log('[Automation] ✓ State selection complete');
 
     // Part 6: Click Submit button to proceed to application form
     console.log('[Automation] Looking for Submit button...');

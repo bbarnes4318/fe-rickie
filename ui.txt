@@ -1,0 +1,451 @@
+<html xmlns="http://www.w3.org/1999/xhtml"><span id="iproyal@@extension@@state" data-webrtc-protection="true" data-proxy-connected="false"></span><head><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="format-detection" content="telephone=no">
+
+<title>
+	WebApp
+</title>
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="css/queue.css?v=1.1"><link rel="stylesheet" href="css/jquery-ui.css"><link rel="stylesheet" href="css/w3.css?v=1.1">
+    <style>
+        /*#EditConfirm{
+            min-height:150px;
+        }*/
+    </style>
+    <script type="text/javascript">
+        $(function () {
+
+            $("#BackDropOpacity").click(function () {
+                $('#AgentMenu').css("display", "none");
+            });
+            $("#BackDropOpacity1").click(function () {
+                $('#ProductMenu').css("display", "none");
+            });
+            $("#BackDropOpacity2").click(function () {
+                $('#StateMenu').css("display", "none");
+            });
+            $("#CloseButton").click(function () {
+                $('#AgentMenu').css("display", "none");
+            });
+            $("#CloseButton1").click(function () {
+                $('#ProductMenu').css("display", "none");
+            });
+            $("#CloseButton2").click(function () {
+                $('#StateMenu').css("display", "none");
+            });
+
+            $("#DeleteBtn").click(function () {
+                $("#DeleteConfirm").dialog("open");
+            });
+            //$("#EditBtn").click(function () {
+            //    $("#EditConfirm").dialog("open");
+            //});
+            $("#SubmitToHomeOfficeBtn").click(function () {
+                if (readCookie("MobileSiteInfo") == "wfg") {
+                    $("#EPackage").dialog("open");
+                } else {
+                    $('#AfterDialogBtn').click();
+                }
+                return false;
+            });
+
+            $("#AttachDoc").change(function () {
+                var splitter = $("#AttachDoc").val().split(".");
+                switch (splitter[splitter.length - 1].toUpperCase()) {
+                    case "JPEG":
+                    case "JPG":
+                    case "PNG":
+                    case "PDF":
+                    case "BMP":
+                        var MyFileName = $("#AttachDoc").val().replace(/^.*[\\\/]/, '')
+                        $("#confirmMessageText").text("Attach " + MyFileName + "?");
+                        $("#confirmMessage").dialog("open");
+                        break;
+                    default:
+                        $("#dialogMessageText").text("Error, Invalid File Type. Supported Formats are JPG, BMP, PNG and PDF");
+                        $("#dialogMessage").dialog('option', 'title', 'Attachment Error');
+                        $("#dialogMessage").dialog("open");
+                        break;
+                }
+            });
+            $("#AttachCheck").change(function () {
+                var splitter = $("#AttachCheck").val().split(".");
+                switch (splitter[splitter.length - 1].toUpperCase()) {
+                    case "JPEG":
+                    case "JPG":
+                    case "PNG":
+                    case "PDF":
+                    case "BMP":
+                        var MyFileName = $("#AttachCheck").val().replace(/^.*[\\\/]/, '')
+                        $("#confirmMessageText").text("Attach Check " + MyFileName + "?");
+                        $("#confirmMessage").dialog("open");
+                        break;
+                    default:
+                        $("#dialogMessageText").text("Error, Invalid File Type. Supported Formats are JPG, BMP, PNG and PDF");
+                        $("#dialogMessage").dialog('option', 'title', 'Attachment Error');
+                        $("#dialogMessage").dialog("open");
+                        break;
+                }
+            });
+
+            $("#EditConfirm").dialog({
+                autoOpen: false,
+                resizable: true,
+                height: 350,
+                width: 300,
+                modal: true,
+                buttons: {
+                    "Edit App": function () {
+                        __doPostBack('EditApp', "EditApp");
+                        $(this).dialog("close");
+                    },
+                    Cancel: function () {
+                        $(this).dialog("close");
+                    }
+                },
+                close: function () {
+
+                }
+            });
+            $("#DeleteConfirm").dialog({
+                autoOpen: false,
+                resizable: true,
+                height: 250,
+                width: 300,
+                modal: true,
+                buttons: {
+                    Delete: function () {
+                        __doPostBack('DelAppl', "DelAppl");
+                        $(this).dialog("close");
+                    },
+                    Cancel: function () {
+                        $(this).dialog("close");
+                    }
+                },
+                close: function () {
+
+                }
+            });
+            $("#ImageDialog").dialog({
+                autoOpen: false,
+                resizable: true,
+                height: 500,
+                width: 500,
+                modal: true,
+                close: function () {
+                    $("#ImageDialog img:last-child").remove()
+                }
+            });
+            $("#EPackage").dialog({
+                autoOpen: false,
+                resizable: false,
+                height: 280,
+                modal: true,
+                close: function () {
+                    $('#AfterDialogBtn').click();
+                },
+                buttons: {
+                    Close: function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+            $("#dialogMessage").dialog({
+                autoOpen: false,
+                resizable: false,
+                height: 280,
+                modal: true,
+                buttons: {
+                    Close: function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+            $("#confirmMessage").dialog({
+                autoOpen: false,
+                resizable: false,
+                height: 200,
+                modal: true,
+                buttons: {
+                    "Attach": function () {
+                        $(this).dialog("close");
+                        __doPostBack('AtchDoc', "AtchDoc");
+                    },
+                    Cancel: function () {
+                        $("#AttachDoc").val("");
+                        $(this).dialog("close");
+                    }
+                }
+            });
+
+            dialog = $("#MobileDialog").dialog({
+                autoOpen: true,
+                width: 550,
+                modal: true,
+                show: function () {
+                    $(this).fadeIn(500);
+                },
+                close: function () {
+                    $('#IsAppSelected').val("False");
+                    $("#AppWindow").css('visibility', 'hidden');
+                },
+                open: function (type, data) {
+                    $(this).parent().appendTo("form");
+                }
+
+            });
+
+        });
+
+        function doRowPostbackReferralFunction(elementRowApp) {
+            var notes = null;
+            $('#IsAppSelected').val("True");
+            for (var i = 0; i < elementRowApp.childNodes.length; i++) {
+                if (elementRowApp.childNodes[i].className == "HiddenFieldGuid") {
+                    for (var ie = 0; ie < elementRowApp.childNodes[i].childNodes.length; ie++) {
+                        if (elementRowApp.childNodes[i].childNodes[ie].type == "hidden") {
+                            notes = elementRowApp.childNodes[i].childNodes[ie].value;
+                        }
+                    }
+                    __doPostBack('clickApp', 'clckRef' + notes);
+                    break;
+                }
+            }
+        }
+        function readCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+    </script>
+<style>
+				@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+			</style></head>
+<body>
+    <form method="post" action="./" id="Form2">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['Form2'];
+if (!theForm) {
+    theForm = document.Form2;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="9E6983F3">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="oTwGGOGSuJc4Q5u5/2bkRa+biVSkzRqOWsf8Yz10kyyF+oLU1s/da8iODD54qQrG+RYLKSpiuMs1ELZjVzrz4td+uA5MULozPuVySg2ZlFIaseqSwsa2iVfUNMgsNopcf5/Fqmr9dEcY+9v4zatYBLePNgdpmgfAPERD+//XO3AnMdFRQdAuwcY1uVUZQIqFCb7mhk41yV1JwDxubj0YKt68hN41PPYhG/5Q8B0V+hWReIGiSDK55T3+AIqCcuB/WIuHiXphRCNJdiaHYsIWIDqSXLcx/wKvncYms4jeAxG9pmbdB3fEyDYx3nxD8c6zVwInzCauDASwdcXlDEMoj5pF5Vn4AjYjU0sQHxvf8Q4eXusnKde6St3cDtyeNoKoiBdLqTzWAVxW2dEOH4qNplAIv8MB86GYxdvylsBKHM0QDc/cCmq2ynON+zV2cPigR42HZnvHD16CiBT3BmINCC2yTiWab6hnxK/PYOPxRtLl/udrbtRfw1+eyZfSkXe9KUKsHT1iS18l+pvV5dp8zYdSk/W7mO1jTYem7fwUQmflYft2O26xpMOnnBZnhQwMkQD30TDTZn3Ycti58Dy+of6bOxpqRX/H/xsATm8EJfoMFYUEPqrZuP94HzOKjsadEyXfGM6Q7Ug9vYEve2KgVP3nj7Ewwv/U7epXGjzD4FkIznvL2/RUbzsKZ1Hmp7dprZLoliHciRl0daGtRTXd7uUusHRPzkWKlQ/AFdH05PFvnuSGu/SJ/Ur1hwKCjdaYPrheLuZHvhGkXr/2alX/toAEP6gFqx1jueE41CmxePcgokW6VU7pD6Xah8hE0xcX0tcOyZ9HINlA/MTdLYH6G5K96dFLJx/W6NNDQDSSZRfEZGlYWxELSkGeJCAywfpTvC3OE9RZnD8ATRyDmGOtgGCzSbN9gxIUreWgHe6ZHqvC5s5SbXGsUOOycMyiPWA4Mqvtdn+eZtzlsAe7BDtHGpieM88rO86K3iL+/5Oosn+igNU+nPZzr60iLbtUPafrgmIR9+f+3KBeW937ZYaR1+JTLxjaUxFWBpGf13kPBR3iRDzXxCkoUDKtiC5EsK59ZAyOg0DJuP2tpMslaP840jqxO+81AVYJiUyx0i4INcc=">
+</div>
+        <div class="rightAlign">
+            <input type="submit" name="BtnLogout" value="Log Out" onclick="document.getElementById('__EVENTARGUMENT').value = '';document.getElementById('IsAppSelected').value = 'false';" id="BtnLogout" class="btn">
+        </div>
+        <div style="background-color: white; width: 150px; padding: 5px; border: 1px solid black; border-radius: 10px; text-align: center; float: right; margin-top: 15px;">
+            <a href="api/DocHandler.ashx?file=Generic-Mobile Application-FINAL.pdf" id="ClickHereLink" style="text-decoration: underline;" target="_blank">Click Here For Help</a>
+        </div>
+        <div id="ProgramHeader" class="header">American Amicable Group Mobile Application</div>
+        <hr>
+        <div class="w3-card-4 w3-padding w3-center" style="max-width: 75%; margin: 10px auto; display: none;">
+            Welcome to the new version of Mobile App!
+            <br>
+            Applications in progress on the the previous platform are now assigned a new App Number.<br>
+            For issues, comments and/or suggestions, please give us feedback <a href="debugandimprove.aspx">here.</a>
+        </div>
+        <div style="margin-bottom: 5px; margin-left: 0; margin-right: 0; text-align: center">
+
+            <input type="submit" name="BtnNewApp" value="New Application" onclick="document.getElementById('__EVENTARGUMENT').value = '';document.getElementById('IsAppSelected').value = 'false';" id="BtnNewApp" class="btn">
+            
+
+        </div>
+        <div>
+            <div class="centerMe">
+                <font style="font-size: x-large; color: black"><b>Applications in Progress</b></font><font style="font-size: medium; color: black"><i>&nbsp;&nbsp;&nbsp;(90 Day Maximum History) Select Item Below to Display or Make Changes</i></font>
+            </div>
+            
+                    <table>
+                        <tbody><tr>
+                            <th>Name</th>
+                            <th class="w3-hide-small">State</th>
+                            <th>Product</th>
+                            <th class="w3-hide-small w3-hide-medium">Company</th>
+                            <th class="w3-hide-small">Date</th>
+                            <th class="w3-hide-small">Basic Coverage</th>
+                            <th>App Number</th>
+                            <th>Status</th>
+                        </tr>
+                
+                    <tr class="dataRow" onclick="this.getElementsByTagName('a')[0].click();">
+                        <td class="dataItem">Test Testerman</td>
+                        <td class="dataItem w3-hide-small">TN</td>
+                        <td class="dataItem">Senior Choice (FE 50-85)</td>
+                        <td class="dataItem w3-hide-small w3-hide-medium">AA</td>
+                        <td class="dataItem w3-hide-small">12/31/2025 8:22:23 AM</td>
+                        <td class="dataItem w3-hide-small">$20,000.00</td>
+                        <td class="dataItem ">M003108606</td>
+                        <td class="dataItem">Personal Info Incomplete</td>
+                        <td style="display: none" class="HiddenFieldGuid">
+                            <a id="RepeaterPending_BtnSelectApp_0" href="javascript:__doPostBack('RepeaterPending$ctl01$BtnSelectApp','')"></a>
+                        </td>
+                    </tr>
+                
+                    </tbody></table>
+                
+            <br>
+            <div class="centerMe">
+                <font style="font-size: x-large; color: black"><b>Applications Previously Transmitted</b></font><font style="font-size: medium; color: black"><i>&nbsp;&nbsp;&nbsp;(60 Day Maximum History) Select Item Below to Display</i></font>
+            </div>
+            
+                    <table>
+                        <tbody><tr>
+                            <th>Name</th>
+                            <th class="w3-hide-small">State</th>
+                            <th>Product</th>
+                            <th class="w3-hide-small w3-hide-medium">Company</th>
+                            <th class="w3-hide-small">Date</th>
+                            <th class="w3-hide-small">Basic Coverage</th>
+                            <th>App Number</th>
+                            <th>Status</th>
+                            
+                            
+                        </tr>
+                
+                    <tr class="dataRow" onclick="this.getElementsByTagName('a')[0].click();">
+                        <td class="dataItem">Charles Rushin</td>
+                        <td class="dataItem w3-hide-small">MO</td>
+                        <td class="dataItem">Senior Choice (FE 50-85)</td>
+                        <td class="dataItem w3-hide-small w3-hide-medium">AA</td>
+                        <td class="dataItem w3-hide-small">11/12/2025 3:20:47 PM</td>
+                        <td class="dataItem w3-hide-small">$6,000.00</td>
+                        <td class="dataItem ">M002999841</td>
+                        
+                        <td class="dataItem"><a id="RepeaterSubmitted_BtnSelectProcessedApp_0" href="javascript:__doPostBack('RepeaterSubmitted$ctl01$BtnSelectProcessedApp','')" style="text-decoration:none;">Submitted</a></td>
+                        
+                    </tr>
+                
+                    </tbody></table>
+                
+            <input type="hidden" name="HiddenAppNum" id="HiddenAppNum">
+        </div>
+        
+        
+
+        <div id="StateMenu" class="w3-modal" style="display: inherit;">
+            <div class="w3-modal-content w3-round-large" style="max-width: 600px;">
+                <header class="w3-container">
+                    <span class="w3-btn w3-right" onclick="document.getElementById('StateMenu').style.display ='none'">×</span>
+                    <h2 style="text-align: center;">Select A State</h2>
+                </header>
+                <div class="w3-container w3-padding">
+                    <select name="StateDropDown" id="StateDropDown" class="w3-select w3-border w3-margin-bottom">
+	<option value="AASCAKSM0010001163940">Alaska</option>
+	<option value="AASCALSM0010001163940">Alabama</option>
+	<option value="AASCARSM0010001163940">Arkansas</option>
+	<option value="AASCAZSM0010001163940">Arizona</option>
+	<option value="AASCCASM0010001163940">California</option>
+	<option value="AASCCOSM0010001163940">Colorado</option>
+	<option value="AASCCTSM0010001163940">Connecticut</option>
+	<option value="AASCDCSM0010001163940">District of Columbia</option>
+	<option value="AASCDESM0010001163940">Delaware</option>
+	<option value="AASCFLSM0010001163940">Florida</option>
+	<option value="AASCGASM0010001163940">Georgia</option>
+	<option value="AASCHISM0010001163940">Hawaii</option>
+	<option value="AASCIDSM0010001163940">Idaho</option>
+	<option value="AASCILSM0010001163940">Illinois</option>
+	<option value="AASCINSM0010001163940">Indiana</option>
+	<option value="AASCKSSM0010001163940">Kansas</option>
+	<option value="AASCKYSM0010001163940">Kentucky</option>
+	<option value="AASCLASM0010001163940">Louisiana</option>
+	<option value="AASCMDSM0010001163940">Maryland</option>
+	<option value="AASCMESM0010001163940">Maine</option>
+	<option value="AASCMNSM0010001163940">Minnesota</option>
+	<option value="AASCMOSM0010001163940">Missouri</option>
+	<option value="AASCMSSM0010001163940">Mississippi</option>
+	<option value="AASCNCSM0010001163940">North Carolina</option>
+	<option value="AASCNDSM0010001163940">North Dakota</option>
+	<option value="AASCNESM0010001163940">Nebraska</option>
+	<option value="AASCNMSM0010001163940">New Mexico</option>
+	<option value="AASCNVSM0010001163940">Nevada</option>
+	<option value="AASCOHSM0010001163940">Ohio</option>
+	<option value="AASCOKSM0010001163940">Oklahoma</option>
+	<option value="AASCORSM0010001163940">Oregon</option>
+	<option value="AASCPASM0010001163940">Pennsylvania</option>
+	<option value="AASCSCSM0010001163940">South Carolina</option>
+	<option value="AASCSDSM0010001163940">South Dakota</option>
+	<option value="AASCTNSM0010001163940">Tennessee</option>
+	<option value="AASCTXSM0010001163940">Texas</option>
+	<option value="AASCUTSM0010001163940">Utah</option>
+	<option value="AASCVASM0010001163940">Virginia</option>
+	<option value="AASCWASM0010001163940">Washington</option>
+	<option value="AASCWISM0010001163940">Wisconsin</option>
+	<option value="AASCWVSM0010001163940">West Virginia</option>
+	<option value="AASCWYSM0010001163940">Wyoming</option>
+
+</select>
+                    <input type="submit" name="BtnNewAppFinal" value="Submit" id="BtnNewAppFinal" class="btn">
+                </div>
+            </div>
+        </div>
+
+
+        
+
+        
+        
+        
+        
+        
+        
+    
+
+<script type="text/javascript">
+//<![CDATA[
+document.getElementById('StateMenu').style.display = 'inherit';//]]>
+</script>
+</form>
+
+
+<div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable ui-resizable" tabindex="-1" role="dialog" aria-describedby="EditConfirm" aria-labelledby="ui-id-1" style="display: none; position: absolute;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-1" class="ui-dialog-title">Edit Application</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="EditConfirm" style="" class="ui-dialog-content ui-widget-content">
+            <p id="P2" style="width: auto; height: auto; color: red">
+                Any signatures previously captured will be lost &amp; cannnot be recovered!<br>
+                Do You Wish to Continue?
+            </p>
+        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Edit App</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Cancel</span></button></div></div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable ui-resizable" tabindex="-1" role="dialog" aria-describedby="DeleteConfirm" aria-labelledby="ui-id-2" style="display: none; position: absolute;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-2" class="ui-dialog-title">Delete Application</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="DeleteConfirm" style="" class="ui-dialog-content ui-widget-content">
+
+            <p id="P1" style="width: auto; height: auto;">
+                Are You Sure? Warning! This cannot be undone.
+            </p>
+        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Delete</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Cancel</span></button></div></div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-draggable ui-resizable" tabindex="-1" role="dialog" aria-describedby="ImageDialog" aria-labelledby="ui-id-3" style="display: none; position: absolute;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-3" class="ui-dialog-title">Attachment</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="ImageDialog" style="" class="ui-dialog-content ui-widget-content">
+        </div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable" tabindex="-1" role="dialog" aria-describedby="EPackage" aria-labelledby="ui-id-4" style="display: none;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-4" class="ui-dialog-title">Reminder</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="EPackage" style="" class="ui-dialog-content ui-widget-content">
+            <p id="P3" style="width: auto; height: auto;">
+                Ask your client if they know of friends and family members that may be interested in learning more about The Everest Package
+            </p>
+        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Close</span></button></div></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable" tabindex="-1" role="dialog" aria-describedby="dialogMessage" aria-labelledby="ui-id-5" style="display: none;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-5" class="ui-dialog-title">Attachment</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="dialogMessage" style="" class="ui-dialog-content ui-widget-content">
+            <p id="dialogMessageText" style="width: auto; height: auto;">
+            </p>
+        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Close</span></button></div></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-dialog-buttons ui-draggable" tabindex="-1" role="dialog" aria-describedby="confirmMessage" aria-labelledby="ui-id-6" style="display: none;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ui-draggable-handle"><span id="ui-id-6" class="ui-dialog-title">Attachment</span><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" title="Close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">Close</span></button></div><div id="confirmMessage" style="" class="ui-dialog-content ui-widget-content">
+            <p id="confirmMessageText" style="width: auto; height: auto;">
+                Attach Document?
+            </p>
+        </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Attach</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button"><span class="ui-button-text">Cancel</span></button></div></div></div></body></html>
