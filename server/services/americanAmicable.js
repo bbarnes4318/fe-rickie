@@ -378,8 +378,60 @@ export const runAmericanAmicableAutomation = async (data) => {
       throw new Error('Could not find Senior Choice product');
     }
     
-    // Wait for state menu popup to appear (same pattern as Agent and Product)
-    await new Promise(r => setTimeout(r, 2000));
+    // Wait for page to process after product click
+    console.log('[Automation] Waiting for page to update after product selection...');
+    await new Promise(r => setTimeout(r, 3000));
+    
+    // DEBUG: Dump the entire page state to understand the UI
+    const pageDebug = await page.evaluate(() => {
+      const result = {
+        url: window.location.href,
+        title: document.title,
+        // All visible inputs
+        inputs: Array.from(document.querySelectorAll('input:not([type="hidden"])')).map(i => ({
+          id: i.id,
+          name: i.name,
+          type: i.type,
+          value: i.value?.slice(0, 30),
+          visible: i.offsetParent !== null
+        })).slice(0, 20),
+        // All selects
+        selects: Array.from(document.querySelectorAll('select')).map(s => ({
+          id: s.id,
+          name: s.name,
+          optionCount: s.options.length,
+          visible: s.offsetParent !== null
+        })),
+        // All buttons
+        buttons: Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"]')).map(b => ({
+          id: b.id,
+          value: b.value || b.textContent?.slice(0, 30),
+          visible: b.offsetParent !== null
+        })).slice(0, 15),
+        // Any elements with "state" in their id/name
+        stateElements: Array.from(document.querySelectorAll('[id*="tate"], [name*="tate"], [id*="State"], [name*="State"]')).map(e => ({
+          tag: e.tagName,
+          id: e.id,
+          name: e.name,
+          class: e.className?.slice(0, 30),
+          text: e.textContent?.slice(0, 50),
+          visible: e.offsetParent !== null
+        })),
+        // Body text preview
+        bodyText: document.body?.innerText?.slice(0, 500)
+      };
+      return result;
+    });
+    
+    console.log('[Automation] ═══ PAGE STATE AFTER PRODUCT CLICK ═══');
+    console.log('[Automation] URL:', pageDebug.url);
+    console.log('[Automation] Title:', pageDebug.title);
+    console.log('[Automation] Inputs:', JSON.stringify(pageDebug.inputs));
+    console.log('[Automation] Selects:', JSON.stringify(pageDebug.selects));
+    console.log('[Automation] Buttons:', JSON.stringify(pageDebug.buttons));
+    console.log('[Automation] State Elements:', JSON.stringify(pageDebug.stateElements));
+    console.log('[Automation] Body Preview:', pageDebug.bodyText?.replace(/\n/g, ' | ').slice(0, 300));
+    console.log('[Automation] ═══════════════════════════════════════');
     
     // Part 5: State Selection
     console.log(`[Automation] Selecting State: ${state}...`);
