@@ -66,6 +66,17 @@ export const runAmericanAmicableAutomation = async (data) => {
     phone = '',
     email = '',
     birthState = '',
+    // ═══ Bank Draft Information ═══
+    accountHolder = '',
+    bankName = '',
+    bankCityState = '',
+    ssPaymentSchedule = null, // true = Yes (coincide with SS), false = No
+    draftDay = '',
+    routingNumber = '',
+    accountNumber = '',
+    accountType = 'Checking', // 'Checking' or 'Saving'
+    // ═══ Email/Personal Info ═══
+    wantsEmail = null, // true = Yes, false = No
     // Height/Weight
     heightFeet = '',
     heightInches = '',
@@ -74,6 +85,15 @@ export const runAmericanAmicableAutomation = async (data) => {
     doctorName = '',
     doctorAddress = '',
     doctorPhone = '',
+    // ═══ Owner/Payor Info ═══
+    ownerIsInsured = true,  // true = Owner is the Insured
+    payorIsInsured = true,  // true = Payor is the Insured
+    // ═══ Existing Coverage ═══
+    hasExistingInsurance = null,
+    existingCompanyName = '',
+    existingPolicyNumber = '',
+    existingCoverageAmount = '',
+    willReplaceExisting = null,
     // Health Questions (Q1-Q8c + Covid)
     healthQ1 = false,
     healthQ2 = false,
@@ -669,77 +689,149 @@ export const runAmericanAmicableAutomation = async (data) => {
     await new Promise(r => setTimeout(r, 2000));
     
     // ═══════════════════════════════════════════════════════════════════════
-    // PART 18: CONTACT & ADDITIONAL INFORMATION
+    // PART 18: PERSONAL INFO PAGE - BANK DRAFT & ADDITIONAL INFO
     // ═══════════════════════════════════════════════════════════════════════
-    console.log('[Automation] Filling Contact Information...');
+    console.log('[Automation] Filling Personal Info / Bank Draft...');
     
-    // Payment Type (always Bank Draft)
+    // Wait for the Personal Info page to load
+    await page.waitForSelector('#Method', { timeout: 15000 }).catch(() => {});
+    console.log('[Automation] ✓ Personal Info page loaded');
+    
+    // === PAYMENT METHOD (Bank Draft) ===
     try {
-      await page.click('#Method_1');
+      await page.click('#Method_1'); // Bank Draft
       console.log('[Automation] ✓ Payment method set to Bank Draft');
+      await new Promise(r => setTimeout(r, 1000)); // Wait for Bank Draft section to appear
     } catch (e) {
       console.log('[Automation] Payment method selector not found');
     }
     
-    // Street Address
-    if (address) {
+    // === BANK DRAFT INFORMATION ===
+    // Account Holder
+    if (accountHolder) {
       try {
-        await page.type('#StreetAddress', address.toUpperCase());
-        console.log('[Automation] ✓ Street address entered');
+        await page.type('#AccountHolder', accountHolder.toUpperCase());
+        console.log('[Automation] ✓ Account Holder entered');
       } catch (e) {
-        console.log('[Automation] Street address field not found');
+        console.log('[Automation] Account Holder field not found');
       }
     }
     
-    // Zip Code
-    if (zip) {
+    // Bank Name
+    if (bankName) {
       try {
-        await page.type('#ZipCode', zip);
-        console.log('[Automation] ✓ Zip code entered');
+        await page.type('#BankName', bankName.toUpperCase());
+        console.log('[Automation] ✓ Bank Name entered');
       } catch (e) {
-        console.log('[Automation] Zip code field not found');
+        console.log('[Automation] Bank Name field not found');
       }
     }
     
-    // Social Security Number
-    if (ssn) {
+    // Bank City/State
+    if (bankCityState) {
       try {
-        await page.type('#SSN', ssn.replace(/[^0-9]/g, '')); // Remove dashes
-        console.log('[Automation] ✓ SSN entered');
+        await page.type('#BankAddress', bankCityState.toUpperCase());
+        console.log('[Automation] ✓ Bank City/State entered');
       } catch (e) {
-        console.log('[Automation] SSN field not found');
+        console.log('[Automation] Bank Address field not found');
       }
     }
     
-    // Phone
-    if (phone) {
+    // Social Security Payment Schedule (Yes/No)
+    if (ssPaymentSchedule !== null) {
       try {
-        await page.type('#Phone', phone.replace(/[^0-9]/g, '')); // Numbers only
-        console.log('[Automation] ✓ Phone entered');
+        if (ssPaymentSchedule === true) {
+          await page.click('#SSP_1'); // Yes - coincide with SS
+          console.log('[Automation] ✓ SS Payment Schedule: Yes');
+        } else {
+          await page.click('#SSP_2'); // No
+          console.log('[Automation] ✓ SS Payment Schedule: No');
+        }
+        await new Promise(r => setTimeout(r, 500)); // Wait for draft day options to update
       } catch (e) {
-        console.log('[Automation] Phone field not found');
+        console.log('[Automation] SS Payment Schedule radio not found');
       }
     }
     
-    // Email - select Yes if we have email
-    if (email) {
+    // Draft Day (depends on SS Payment Schedule answer)
+    if (draftDay) {
       try {
-        await page.click('#EmailAdress_1'); // Yes
-        console.log('[Automation] ✓ Email: Yes selected');
-        // Type email if there's a field for it
+        await page.select('#RequestedDraftDay', draftDay);
+        console.log(`[Automation] ✓ Requested Draft Day: ${draftDay}`);
       } catch (e) {
-        console.log('[Automation] Email radio not found');
+        console.log('[Automation] Draft Day selector not found');
       }
-    } else {
+    }
+    
+    // Routing Number (Transit/ABA)
+    if (routingNumber) {
+      try {
+        await page.type('#TransitNumber', routingNumber.replace(/[^0-9]/g, ''));
+        console.log('[Automation] ✓ Routing Number entered');
+      } catch (e) {
+        console.log('[Automation] Transit Number field not found');
+      }
+    }
+    
+    // Account Number
+    if (accountNumber) {
+      try {
+        await page.type('#AccountNumber', accountNumber.replace(/[^0-9]/g, ''));
+        console.log('[Automation] ✓ Account Number entered');
+      } catch (e) {
+        console.log('[Automation] Account Number field not found');
+      }
+    }
+    
+    // ████ VALIDATE BANK INFO - CRITICAL STEP ████
+    console.log('[Automation] Clicking Validate Bank Info button...');
+    try {
+      await page.waitForSelector('#btValidateBankInfo', { timeout: 5000 });
+      await page.click('#btValidateBankInfo');
+      console.log('[Automation] ✓ Validate Bank Info clicked');
+      // Wait for validation to complete
+      await new Promise(r => setTimeout(r, 5000));
+      console.log('[Automation] ✓ Bank validation complete');
+    } catch (e) {
+      console.log('[Automation] Validate Bank Info button not found or failed');
+    }
+    
+    // Checking/Savings
+    try {
+      if (accountType === 'Checking') {
+        await page.click('#CheckPlan_1'); // Checking
+        console.log('[Automation] ✓ Account Type: Checking');
+      } else {
+        await page.click('#CheckPlan_2'); // Saving
+        console.log('[Automation] ✓ Account Type: Saving');
+      }
+    } catch (e) {
+      console.log('[Automation] Checking/Savings radio not found');
+    }
+    
+    // === EMAIL PREFERENCE ===
+    if (wantsEmail === true && email) {
+      try {
+        await page.click('#EmailAdress_1'); // Yes - wants email
+        console.log('[Automation] ✓ Email preference: Yes');
+        await new Promise(r => setTimeout(r, 500));
+        // Type email in both fields
+        await page.type('#Email1', email);
+        await page.type('#VerifyEmail1', email);
+        console.log('[Automation] ✓ Email entered and verified');
+      } catch (e) {
+        console.log('[Automation] Email fields not found');
+      }
+    } else if (wantsEmail === false) {
       try {
         await page.click('#EmailAdress_2'); // No
-        console.log('[Automation] ✓ Email: No selected');
+        console.log('[Automation] ✓ Email preference: No');
       } catch (e) {
         console.log('[Automation] Email radio not found');
       }
     }
     
-    // Birth State (2 letter code)
+    // === BIRTH STATE ===
     if (birthState) {
       try {
         await page.type('#BirthState', birthState.toUpperCase().slice(0, 2));
@@ -749,18 +841,17 @@ export const runAmericanAmicableAutomation = async (data) => {
       }
     }
     
-    // Height (format: 5'10)
-    if (heightFeet && heightInches) {
+    // === HEIGHT & WEIGHT ===
+    if (heightFeet && heightInches !== undefined) {
       const heightValue = `${heightFeet}'${heightInches}`;
       try {
         await page.select('#Height', heightValue);
         console.log(`[Automation] ✓ Height selected: ${heightValue}`);
       } catch (e) {
-        console.log('[Automation] Height selector not found or value not in list');
+        console.log('[Automation] Height selector not found');
       }
     }
     
-    // Weight
     if (weight) {
       try {
         await page.type('#Weight', String(weight));
@@ -770,7 +861,7 @@ export const runAmericanAmicableAutomation = async (data) => {
       }
     }
     
-    // Doctor Name
+    // === PHYSICIAN INFORMATION ===
     if (doctorName) {
       try {
         await page.type('#DoctorName', doctorName.toUpperCase());
@@ -780,7 +871,6 @@ export const runAmericanAmicableAutomation = async (data) => {
       }
     }
     
-    // Doctor Address
     if (doctorAddress) {
       try {
         await page.type('#DoctorName1', doctorAddress.toUpperCase());
@@ -790,7 +880,6 @@ export const runAmericanAmicableAutomation = async (data) => {
       }
     }
     
-    // Doctor Phone
     if (doctorPhone) {
       try {
         await page.type('#PPhone', doctorPhone.replace(/[^0-9]/g, ''));
@@ -800,20 +889,75 @@ export const runAmericanAmicableAutomation = async (data) => {
       }
     }
     
-    // Owner Information (always Yes/True)
+    // === OWNER INFORMATION ===
     try {
-      await page.click('#OwnerInfo_1');
-      console.log('[Automation] ✓ Owner Info set to True');
+      if (ownerIsInsured) {
+        await page.click('#OwnerInfo_1'); // True = Owner is Insured
+        console.log('[Automation] ✓ Owner is Insured: Yes');
+      } else {
+        await page.click('#OwnerInfo_2'); // False = Owner is different
+        console.log('[Automation] ✓ Owner is Insured: No');
+      }
     } catch (e) {
       console.log('[Automation] Owner Info radio not found');
     }
     
-    // Payor Information (always Yes/True)
+    // === PAYOR INFORMATION ===
     try {
-      await page.click('#PayorInfo_1');
-      console.log('[Automation] ✓ Payor Info set to True');
+      if (payorIsInsured) {
+        await page.click('#PayorInfo_1'); // True = Payor is Insured
+        console.log('[Automation] ✓ Payor is Insured: Yes');
+      } else {
+        await page.click('#PayorInfo_2'); // False = Payor is different
+        console.log('[Automation] ✓ Payor is Insured: No');
+      }
     } catch (e) {
       console.log('[Automation] Payor Info radio not found');
+    }
+    
+    // === EXISTING INSURANCE ===
+    if (hasExistingInsurance !== null) {
+      try {
+        if (hasExistingInsurance) {
+          await page.click('#ExistingInsurance_1'); // Yes
+          console.log('[Automation] ✓ Existing Insurance: Yes');
+          await new Promise(r => setTimeout(r, 500));
+          
+          // Fill in existing coverage details
+          if (existingCompanyName) {
+            await page.type('#Company', existingCompanyName.toUpperCase()).catch(() => {});
+            console.log('[Automation] ✓ Existing Company entered');
+          }
+          if (existingPolicyNumber) {
+            await page.type('#PolicyNum', existingPolicyNumber).catch(() => {});
+            console.log('[Automation] ✓ Existing Policy Number entered');
+          }
+          if (existingCoverageAmount) {
+            await page.type('#AmountofCoverage', String(existingCoverageAmount)).catch(() => {});
+            console.log('[Automation] ✓ Existing Coverage Amount entered');
+          }
+        } else {
+          await page.click('#ExistingInsurance_2'); // No
+          console.log('[Automation] ✓ Existing Insurance: No');
+        }
+      } catch (e) {
+        console.log('[Automation] Existing Insurance fields not found');
+      }
+    }
+    
+    // === REPLACEMENT INSURANCE ===
+    if (willReplaceExisting !== null) {
+      try {
+        if (willReplaceExisting) {
+          await page.click('#RepIns_1'); // Yes
+          console.log('[Automation] ✓ Will Replace: Yes');
+        } else {
+          await page.click('#RepIns_2'); // No
+          console.log('[Automation] ✓ Will Replace: No');
+        }
+      } catch (e) {
+        console.log('[Automation] Replacement Insurance radio not found');
+      }
     }
     
     console.log('[Automation] ✓ Contact information completed');

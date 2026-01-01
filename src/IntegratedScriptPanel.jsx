@@ -148,10 +148,18 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     citizenship: 'Yes',
     email: prospectData?.email || '',
     phone: phoneNumber,
-    bankName: '',
-    routingNumber: '',
-    accountNumber: '',
-    accountType: 'Checking',
+    // ═══ BANK DRAFT INFORMATION ═══
+    accountHolder: '',  // Account holder name
+    bankName: '',       // Bank name
+    bankCityState: '',  // Bank City/State
+    ssPaymentSchedule: null, // "Would you like draft to coincide with SS payment?" (true/false)
+    draftDay: '',       // Draft day (1S, 3S, 2W, 3W, 4W for SS; 1-28 for non-SS)
+    routingNumber: '',  // Transit/ABA routing number
+    accountNumber: '',  // Bank account number
+    accountType: 'Checking', // Checking or Saving
+    // ═══ EMAIL & PERSONAL INFO ═══
+    wantsEmail: null,   // Would you like to provide email? (true/false)
+    // ═══ PHYSICIAN INFORMATION ═══
     // ═══ HEALTH QUESTIONS (American Amicable) ═══
     // Questions 1-3: If Yes = NOT ELIGIBLE
     healthQ1: null, // Hospitalized, nursing facility, oxygen, cancer, ADL assistance
@@ -180,10 +188,18 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     selectedCoverage: 10000,
     selectedPremium: null,
     selectedPlanType: 'Level', // Will be auto-set based on health answers
-    medications: '',
     hospitalizationReason: '',
     callbackDate: '',
     callbackTime: '',
+    // ═══ OWNER & PAYOR INFORMATION ═══
+    ownerIsInsured: true,  // Is the Owner the Proposed Insured? (true = Yes)
+    payorIsInsured: true,  // Is the Payor the Proposed Insured? (true = Yes)
+    // ═══ EXISTING COVERAGE ═══
+    hasExistingInsurance: null, // Do you have existing life/disability insurance? (true/false)
+    existingCompanyName: '',    // If yes: Company Name
+    existingPolicyNumber: '',   // If yes: Policy Number
+    existingCoverageAmount: '', // If yes: Amount of Coverage
+    willReplaceExisting: null,  // Will you replace existing policy? (true/false)
     // ═══ DATA VERIFICATION FLAGS ═══
     locationVerified: false,
     dobVerified: false,

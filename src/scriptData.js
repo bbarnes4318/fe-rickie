@@ -1056,7 +1056,7 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     phase: 8,
     title: "🔢 Routing Number",
     script: `Okay, grab your checkbook real quick. I need to verify the 9-digit routing number to make sure they are a participating bank. Let me know when you have that.`,
-    captureVariable: "routing_number",
+    captureVariable: "routingNumber",
     options: [
       { label: "✅ Provides", nextNode: "account_number_ask" },
       { label: "⚠️ Hesitates", nextNode: "banking_reassurance" },
@@ -1078,27 +1078,230 @@ Just to make sure I've got the right file in front of me... I am speaking with {
     phase: 8,
     title: "🔢 Account Number",
     script: `Perfect, that comes up as {bank_name}. Now, what is the account number right next to it?`,
-    captureVariable: "account_number",
+    captureVariable: "accountNumber",
+    nextNode: "account_holder_ask",
+  },
+
+  account_holder_ask: {
+    id: "account_holder_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "👤 Account Holder Name",
+    script: `And whose name is on the account?`,
+    captureVariable: "accountHolder",
+    nextNode: "bank_name_ask",
+  },
+
+  bank_name_ask: {
+    id: "bank_name_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "🏦 Bank Name",
+    script: `Perfect. And what is the full name of the bank?`,
+    captureVariable: "bankName",
+    nextNode: "bank_city_state_ask",
+  },
+
+  bank_city_state_ask: {
+    id: "bank_city_state_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "📍 Bank City/State",
+    script: `And what city and state is that bank located in?`,
+    captureVariable: "bankCityState",
     nextNode: "draft_date_setup",
   },
 
   draft_date_setup: {
     id: "draft_date_setup",
-    type: NODE_TYPES.DATA_COLLECTION,
+    type: NODE_TYPES.QUESTION,
     phase: 8,
-    title: "📅 Draft Date",
-    script: `And do you receive your Social Security on the 1st, the 3rd, or a Wednesday?`,
-    captureVariable: "ss_payment_date",
-    nextNode: "set_draft_date",
+    title: "📅 Draft Schedule",
+    script: `Would you like your draft to coincide with your Social Security payment schedule? That way the money is always in the account when the payment comes out.`,
+    options: [
+      { label: "✅ Yes - match SS", nextNode: "draft_day_ss", setData: { ssPaymentSchedule: true } },
+      { label: "❌ No - pick date", nextNode: "draft_day_manual", setData: { ssPaymentSchedule: false } },
+    ],
   },
 
-  set_draft_date: {
-    id: "set_draft_date",
-    type: NODE_TYPES.STATEMENT,
+  draft_day_ss: {
+    id: "draft_day_ss",
+    type: NODE_TYPES.QUESTION,
     phase: 8,
-    title: "✅ Set Draft Date",
-    script: `Okay, I'll set the draft for that same day so it aligns with your deposit. That way you never have to worry about it. Fair?`,
-    nextNode: "transition_to_confirmation",
+    title: "📅 SS Draft Day",
+    script: `Perfect. Do you receive your Social Security on the 1st, the 3rd, or a Wednesday of the month?`,
+    options: [
+      { label: "1️⃣ 1st of month", nextNode: "account_type_ask", setData: { draftDay: "1S" } },
+      { label: "3️⃣ 3rd of month", nextNode: "account_type_ask", setData: { draftDay: "3S" } },
+      { label: "2️⃣ 2nd Wednesday", nextNode: "account_type_ask", setData: { draftDay: "2W" } },
+      { label: "3️⃣ 3rd Wednesday", nextNode: "account_type_ask", setData: { draftDay: "3W" } },
+      { label: "4️⃣ 4th Wednesday", nextNode: "account_type_ask", setData: { draftDay: "4W" } },
+    ],
+  },
+
+  draft_day_manual: {
+    id: "draft_day_manual",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "📅 Manual Draft Day",
+    script: `No problem. What day of the month would you like the draft to come out? Pick any day from the 1st to the 28th.`,
+    captureVariable: "draftDay",
+    nextNode: "account_type_ask",
+  },
+
+  account_type_ask: {
+    id: "account_type_ask",
+    type: NODE_TYPES.QUESTION,
+    phase: 8,
+    title: "💳 Account Type",
+    script: `And is this a checking account or a savings account?`,
+    options: [
+      { label: "📝 Checking", nextNode: "email_preference", setData: { accountType: "Checking" } },
+      { label: "💰 Savings", nextNode: "email_preference", setData: { accountType: "Saving" } },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // PERSONAL INFO COLLECTION
+  // ═══════════════════════════════════════════════════════════════
+  email_preference: {
+    id: "email_preference",
+    type: NODE_TYPES.QUESTION,
+    phase: 8,
+    title: "📧 Email Preference",
+    script: `Providing an email address ensures you stay informed about important notifications and is an important part of your policy details. Would you like to provide your email address?`,
+    options: [
+      { label: "✅ Yes", nextNode: "email_collection", setData: { wantsEmail: true } },
+      { label: "❌ No", nextNode: "birth_state_ask", setData: { wantsEmail: false } },
+    ],
+  },
+
+  email_collection: {
+    id: "email_collection",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "📧 Email Address",
+    script: `Great! What is your email address?`,
+    captureVariable: "email",
+    nextNode: "birth_state_ask",
+  },
+
+  birth_state_ask: {
+    id: "birth_state_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "🌎 State of Birth",
+    script: `What state were you born in? Just the two-letter abbreviation like TN for Tennessee.`,
+    captureVariable: "birthState",
+    nextNode: "physician_name_ask",
+  },
+
+  physician_name_ask: {
+    id: "physician_name_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "👨‍⚕️ Physician Name",
+    script: `Who is your personal physician or primary doctor?`,
+    captureVariable: "doctorName",
+    nextNode: "physician_address_ask",
+  },
+
+  physician_address_ask: {
+    id: "physician_address_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "📍 Physician Address",
+    script: `And what is the address of that doctor's office?`,
+    captureVariable: "doctorAddress",
+    nextNode: "physician_phone_ask",
+  },
+
+  physician_phone_ask: {
+    id: "physician_phone_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "📞 Physician Phone",
+    script: `And the phone number for the doctor's office?`,
+    captureVariable: "doctorPhone",
+    nextNode: "owner_check",
+  },
+
+  owner_check: {
+    id: "owner_check",
+    type: NODE_TYPES.QUESTION,
+    phase: 8,
+    title: "👤 Owner Check",
+    script: `Will you be the owner of this policy, or will it be someone else?`,
+    options: [
+      { label: "✅ Yes, I'm the owner", nextNode: "payor_check", setData: { ownerIsInsured: true } },
+      { label: "👥 Someone else", nextNode: "payor_check", setData: { ownerIsInsured: false } },
+    ],
+  },
+
+  payor_check: {
+    id: "payor_check",
+    type: NODE_TYPES.QUESTION,
+    phase: 8,
+    title: "💳 Payor Check",
+    script: `And will you be the one making the monthly payments, or will someone else handle that?`,
+    options: [
+      { label: "✅ Yes, I pay", nextNode: "existing_insurance_check", setData: { payorIsInsured: true } },
+      { label: "👥 Someone else pays", nextNode: "existing_insurance_check", setData: { payorIsInsured: false } },
+    ],
+  },
+
+  existing_insurance_check: {
+    id: "existing_insurance_check",
+    type: NODE_TYPES.QUESTION,
+    phase: 8,
+    title: "📋 Existing Coverage",
+    script: `Do you currently have any other life insurance, disability insurance, or annuity contracts?`,
+    options: [
+      { label: "✅ Yes", nextNode: "existing_company_ask", setData: { hasExistingInsurance: true } },
+      { label: "❌ No", nextNode: "replacement_check", setData: { hasExistingInsurance: false } },
+    ],
+  },
+
+  existing_company_ask: {
+    id: "existing_company_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "🏢 Existing Company",
+    script: `What company is that policy with?`,
+    captureVariable: "existingCompanyName",
+    nextNode: "existing_policy_ask",
+  },
+
+  existing_policy_ask: {
+    id: "existing_policy_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "🔢 Existing Policy Number",
+    script: `And do you know the policy number?`,
+    captureVariable: "existingPolicyNumber",
+    nextNode: "existing_coverage_ask",
+  },
+
+  existing_coverage_ask: {
+    id: "existing_coverage_ask",
+    type: NODE_TYPES.DATA_COLLECTION,
+    phase: 8,
+    title: "💵 Existing Coverage Amount",
+    script: `How much coverage do you have with that policy?`,
+    captureVariable: "existingCoverageAmount",
+    nextNode: "replacement_check",
+  },
+
+  replacement_check: {
+    id: "replacement_check",
+    type: NODE_TYPES.QUESTION,
+    phase: 8,
+    title: "🔄 Replacement Check",
+    script: `Will this new policy replace any existing life insurance, disability, or annuity contracts you have?`,
+    options: [
+      { label: "✅ Yes", nextNode: "transition_to_confirmation", setData: { willReplaceExisting: true } },
+      { label: "❌ No", nextNode: "transition_to_confirmation", setData: { willReplaceExisting: false } },
+    ],
   },
 
   direct_express_pivot: {
