@@ -345,115 +345,52 @@ export const runAmericanAmicableAutomation = async (data) => {
     await new Promise(r => setTimeout(r, 2000));
     
     // ═══════════════════════════════════════════════════════════════
-    // AGENT SELECTION
+    // AGENT SELECTION - Double-click the agent cell
     // ═══════════════════════════════════════════════════════════════
     console.log('[Automation] Selecting Agent...');
     await page.waitForSelector('td.dataItem', { timeout: 15000 });
     console.log('[Automation] ✓ Agent grid loaded');
     
-    // Debug: Show all visible buttons in the current popup
-    const agentPopupButtons = await page.$$eval('input[type="submit"], button', btns => 
-      btns.filter(b => b.offsetParent !== null).map(b => ({ id: b.id, value: b.value || b.textContent?.slice(0,30) }))
-    );
-    console.log('[Automation] Agent popup buttons:', JSON.stringify(agentPopupButtons));
+    const agentCells = await page.$$('td.dataItem');
+    console.log(`[Automation] Found ${agentCells.length} dataItem cells`);
     
-    // Find and SINGLE CLICK the agent row to highlight it
-    const agentRows = await page.$$('tr');
     let agentFound = false;
-    for (const row of agentRows) {
-      const rowText = await page.evaluate(e => e.textContent, row);
-      if (rowText.includes('0001163940') || (rowText.includes('American') && rowText.includes('Amicable'))) {
-        console.log(`[Automation] ✓ Found agent row`);
-        await row.click(); // Single click to highlight
+    for (const cell of agentCells) {
+      const text = await page.evaluate(e => e.textContent, cell);
+      if (text.includes('0001163940')) {
+        console.log(`[Automation] ✓ Found agent cell: ${text}`);
+        await cell.click({ clickCount: 2 }); // DOUBLE-CLICK
+        console.log('[Automation] ✓ Double-clicked agent');
         agentFound = true;
-        await new Promise(r => setTimeout(r, 500));
         break;
       }
     }
     
     if (!agentFound) {
-      // Fallback: click the cell directly
-      const agentCells = await page.$$('td.dataItem');
-      for (const cell of agentCells) {
-        const text = await page.evaluate(e => e.textContent, cell);
-        if (text.includes('0001163940')) {
-          console.log(`[Automation] ✓ Found agent cell: ${text}`);
-          await cell.click();
-          agentFound = true;
-          await new Promise(r => setTimeout(r, 500));
-          break;
-        }
-      }
-    }
-    
-    if (!agentFound) {
-      throw new Error('Could not find agent in grid');
-    }
-    
-    // Now look for a Submit/Select button in the agent popup
-    const agentSubmitBtn = await page.$('input[value="Select"], input[value="Submit"], #BtnSelect, [id*="Select"]');
-    if (agentSubmitBtn) {
-      console.log('[Automation] Found agent select button, clicking...');
-      await agentSubmitBtn.click();
-      await new Promise(r => setTimeout(r, 1500));
-    } else {
-      // Maybe it's double-click to select
-      console.log('[Automation] No select button found, trying double-click on agent...');
-      if (agentFound) {
-        const agentCells = await page.$$('td.dataItem');
-        for (const cell of agentCells) {
-          const text = await page.evaluate(e => e.textContent, cell);
-          if (text.includes('0001163940')) {
-            await cell.click({ clickCount: 2 });
-            break;
-          }
-        }
-      }
+      throw new Error('Could not find agent 0001163940 in grid');
     }
     
     // Wait for product popup to load
     await new Promise(r => setTimeout(r, 2000));
     
     // ═══════════════════════════════════════════════════════════════
-    // PRODUCT SELECTION
+    // PRODUCT SELECTION - Double-click the product cell
     // ═══════════════════════════════════════════════════════════════
     console.log('[Automation] Selecting Product...');
     await page.waitForFunction(() => document.querySelectorAll('td.dataItem').length > 0, { timeout: 15000 });
     
-    // Debug: Show current popup state
-    const productPopupButtons = await page.$$eval('input[type="submit"], button', btns => 
-      btns.filter(b => b.offsetParent !== null).map(b => ({ id: b.id, value: b.value || b.textContent?.slice(0,30) }))
-    );
-    console.log('[Automation] Product popup buttons:', JSON.stringify(productPopupButtons));
-    
     const productCells = await page.$$('td.dataItem');
     console.log(`[Automation] Found ${productCells.length} product cells`);
     
-    // Find and click the product row
     let productFound = false;
-    const productRows = await page.$$('tr');
-    for (const row of productRows) {
-      const rowText = await page.evaluate(e => e.textContent, row);
-      if (rowText.includes('Senior Choice') && rowText.includes('FE 50-85')) {
-        console.log(`[Automation] ✓ Found product row`);
-        await row.click(); // Single click to highlight
+    for (const cell of productCells) {
+      const text = await page.evaluate(e => e.textContent, cell);
+      if (text.includes('Senior Choice (FE 50-85)')) {
+        console.log(`[Automation] ✓ Found product cell: ${text}`);
+        await cell.click({ clickCount: 2 }); // DOUBLE-CLICK
+        console.log('[Automation] ✓ Double-clicked product');
         productFound = true;
-        await new Promise(r => setTimeout(r, 500));
         break;
-      }
-    }
-    
-    if (!productFound) {
-      // Fallback: click the cell directly
-      for (const cell of productCells) {
-        const text = await page.evaluate(e => e.textContent, cell);
-        if (text.includes('Senior Choice (FE 50-85)')) {
-          console.log(`[Automation] ✓ Found product cell: ${text}`);
-          await cell.click();
-          productFound = true;
-          await new Promise(r => setTimeout(r, 500));
-          break;
-        }
       }
     }
     
@@ -463,29 +400,9 @@ export const runAmericanAmicableAutomation = async (data) => {
       throw new Error('Could not find Senior Choice product');
     }
     
-    // Now look for a Submit/Select button in the product popup
-    const productSubmitBtn = await page.$('input[value="Select"], input[value="Submit"], #BtnSelect, [id*="Select"]');
-    if (productSubmitBtn) {
-      console.log('[Automation] Found product select button, clicking...');
-      await productSubmitBtn.click();
-      await new Promise(r => setTimeout(r, 2000));
-    } else {
-      // Maybe it's double-click to select
-      console.log('[Automation] No select button found, trying double-click on product...');
-      for (const cell of productCells) {
-        const text = await page.evaluate(e => e.textContent, cell);
-        if (text.includes('Senior Choice (FE 50-85)')) {
-          await cell.click({ clickCount: 2 });
-          break;
-        }
-      }
-      await new Promise(r => setTimeout(r, 2000));
-    }
-    
-    // ═══════════════════════════════════════════════════════════════
-    // WAIT FOR STATE MENU
-    // ═══════════════════════════════════════════════════════════════
+    // Wait for state menu to appear
     console.log('[Automation] Waiting for StateMenu to appear...');
+    await new Promise(r => setTimeout(r, 2000));
     
     // DEBUG: Dump the entire page state to understand the UI
     const pageDebug = await page.evaluate(() => {
