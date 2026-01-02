@@ -374,27 +374,49 @@ export const runAmericanAmicableAutomation = async (data) => {
     await new Promise(r => setTimeout(r, 2000));
     
     // ═══════════════════════════════════════════════════════════════
-    // PRODUCT SELECTION - Double-click the product cell
+    // PRODUCT SELECTION - Find and double-click product
     // ═══════════════════════════════════════════════════════════════
     console.log('[Automation] Selecting Product...');
-    await page.waitForFunction(() => document.querySelectorAll('td.dataItem').length > 0, { timeout: 15000 });
     
-    const productCells = await page.$$('td.dataItem');
-    console.log(`[Automation] Found ${productCells.length} product cells`);
-    
-    let productFound = false;
-    for (const cell of productCells) {
-      const text = await page.evaluate(e => e.textContent, cell);
-      if (text.includes('Senior Choice (FE 50-85)')) {
-        console.log(`[Automation] ✓ Found product cell: ${text}`);
-        await cell.click({ clickCount: 2 }); // DOUBLE-CLICK
-        console.log('[Automation] ✓ Double-clicked product');
-        productFound = true;
-        break;
+    // Wait for the product grid to be ready
+    await page.waitForFunction(() => {
+      const cells = document.querySelectorAll('td.dataItem');
+      for (const cell of cells) {
+        if (cell.textContent.includes('Senior Choice')) return true;
       }
-    }
+      return false;
+    }, { timeout: 15000 });
     
-    if (!productFound) {
+    // Use page.evaluate to find and double-click the product
+    // This dispatches a proper dblclick event
+    const productClicked = await page.evaluate(() => {
+      const cells = document.querySelectorAll('td.dataItem');
+      for (const cell of cells) {
+        if (cell.textContent.includes('Senior Choice (FE 50-85)') || 
+            cell.textContent.includes('Senior Choice')) {
+          console.log('Found Senior Choice cell, double-clicking...');
+          
+          // Get the parent row
+          const row = cell.closest('tr');
+          const target = row || cell;
+          
+          // Dispatch double-click event
+          const dblClickEvent = new MouseEvent('dblclick', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          });
+          target.dispatchEvent(dblClickEvent);
+          
+          return { success: true, clicked: target.tagName, text: cell.textContent.slice(0, 50) };
+        }
+      }
+      return { success: false, cellCount: cells.length };
+    });
+    
+    console.log('[Automation] Product click result:', JSON.stringify(productClicked));
+    
+    if (!productClicked.success) {
       const availableProducts = await page.$$eval('td.dataItem', els => els.map(e => e.textContent.slice(0, 50)));
       console.log('[Automation] Available products:', JSON.stringify(availableProducts));
       throw new Error('Could not find Senior Choice product');
@@ -402,7 +424,7 @@ export const runAmericanAmicableAutomation = async (data) => {
     
     // Wait for state menu to appear
     console.log('[Automation] Waiting for StateMenu to appear...');
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 3000));
     
     // DEBUG: Dump the entire page state to understand the UI
     const pageDebug = await page.evaluate(() => {
