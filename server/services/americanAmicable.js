@@ -374,51 +374,95 @@ export const runAmericanAmicableAutomation = async (data) => {
     await new Promise(r => setTimeout(r, 2000));
     
     // ═══════════════════════════════════════════════════════════════
-    // PRODUCT SELECTION - Click the product row/cell and any hidden links
+    // PRODUCT SELECTION - Must click within #ProductMenu popup, NOT main page
     // ═══════════════════════════════════════════════════════════════
     console.log('[Automation] Selecting Product...');
     
-    // Wait for dataItem cells
-    await page.waitForSelector('td.dataItem', { timeout: 15000 });
+    // Wait for the ProductMenu popup to be visible
+    try {
+      await page.waitForSelector('#ProductMenu', { visible: true, timeout: 10000 });
+      console.log('[Automation] ✓ ProductMenu popup found');
+    } catch (e) {
+      console.log('[Automation] ProductMenu not found, checking for alternative popup...');
+      // Log visible popups
+      const popups = await page.$$eval('[id*="Menu"], [id*="Popup"], [class*="modal"]', 
+        els => els.filter(e => e.offsetParent !== null).map(e => ({ id: e.id, class: e.className }))
+      );
+      console.log('[Automation] Visible popups:', JSON.stringify(popups));
+    }
     
-    // Find the Senior Choice row and click it, including any hidden links
+    // Find and click Senior Choice ONLY within the ProductMenu popup
     const productResult = await page.evaluate(() => {
-      const cells = document.querySelectorAll('td.dataItem');
-      for (const cell of cells) {
-        if (cell.textContent.includes('Senior Choice (FE 50-85)')) {
-          // Get the parent row
-          const row = cell.closest('tr');
-          
-          // Look for any hidden anchor links in this row (used for PostBack)
-          const hiddenLinks = row?.querySelectorAll('a[href*="__doPostBack"], a[href*="javascript:"]');
-          
-          // First try: click any hidden link
-          if (hiddenLinks && hiddenLinks.length > 0) {
-            hiddenLinks[0].click();
-            return { method: 'hiddenLink', success: true, text: cell.textContent.slice(0, 50) };
+      // First look for ProductMenu popup
+      const productMenu = document.getElementById('ProductMenu');
+      
+      // If no ProductMenu, look for any visible modal/popup
+      let container = productMenu;
+      if (!container || container.style.display === 'none') {
+        // Look for any visible popup that contains product cells
+        const modals = document.querySelectorAll('[id*="Menu"], [id*="Popup"], [class*="modal"]');
+        for (const modal of modals) {
+          if (modal.offsetParent !== null && modal.querySelectorAll('td.dataItem').length > 0) {
+            container = modal;
+            break;
           }
-          
-          // Second try: if row has onclick handler, trigger it
-          if (row && row.onclick) {
-            row.onclick();
-            return { method: 'rowOnclick', success: true, text: cell.textContent.slice(0, 50) };
-          }
-          
-          // Third try: dispatch dblclick on the row
-          if (row) {
-            const dblClickEvent = new MouseEvent('dblclick', {
-              bubbles: true,
-              cancelable: true,
-              view: window
-            });
-            row.dispatchEvent(dblClickEvent);
-            return { method: 'rowDblclick', success: true, text: cell.textContent.slice(0, 50) };
-          }
-          
-          return { method: 'none', success: false, text: cell.textContent.slice(0, 50) };
         }
       }
-      return { success: false, cellCount: cells.length };
+      
+      if (!container) {
+        // Fallback: look for cells NOT in the Applications table
+        // The main table has class "dataRow" with onclick handlers
+        const allCells = document.querySelectorAll('td.dataItem');
+        for (const cell of allCells) {
+          if (cell.textContent.includes('Senior Choice (FE 50-85)')) {
+            const row = cell.closest('tr');
+            // Skip if this row is in the main Applications in Progress table (has onclick)
+            if (row && row.classList.contains('dataRow') && row.onclick) {
+              continue; // Skip main table rows
+            }
+            // This is a popup row
+            const hiddenLinks = row?.querySelectorAll('a[href*="__doPostBack"], a[href*="javascript:"]');
+            if (hiddenLinks && hiddenLinks.length > 0) {
+              hiddenLinks[0].click();
+              return { method: 'hiddenLink-fallback', success: true, text: cell.textContent.slice(0, 50) };
+            }
+            // Try dblclick
+            const dblClickEvent = new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window });
+            (row || cell).dispatchEvent(dblClickEvent);
+            return { method: 'dblclick-fallback', success: true, text: cell.textContent.slice(0, 50) };
+          }
+        }
+        return { success: false, error: 'No popup container found', cellCount: allCells.length };
+      }
+      
+      // Found popup container, now look for Senior Choice within it
+      const cells = container.querySelectorAll('td.dataItem');
+      for (const cell of cells) {
+        if (cell.textContent.includes('Senior Choice (FE 50-85)') || 
+            cell.textContent.includes('Senior Choice')) {
+          const row = cell.closest('tr');
+          
+          // Look for hidden links
+          const hiddenLinks = row?.querySelectorAll('a[href*="__doPostBack"], a[href*="javascript:"]');
+          if (hiddenLinks && hiddenLinks.length > 0) {
+            hiddenLinks[0].click();
+            return { method: 'hiddenLink', success: true, container: container.id, text: cell.textContent.slice(0, 50) };
+          }
+          
+          // Try row onclick
+          if (row && row.onclick) {
+            row.onclick();
+            return { method: 'onclick', success: true, container: container.id, text: cell.textContent.slice(0, 50) };
+          }
+          
+          // Try dblclick
+          const dblClickEvent = new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window });
+          (row || cell).dispatchEvent(dblClickEvent);
+          return { method: 'dblclick', success: true, container: container.id, text: cell.textContent.slice(0, 50) };
+        }
+      }
+      
+      return { success: false, error: 'Senior Choice not found in popup', popupId: container.id, cellCount: cells.length };
     });
     
     console.log('[Automation] Product selection result:', JSON.stringify(productResult));
@@ -426,7 +470,7 @@ export const runAmericanAmicableAutomation = async (data) => {
     if (!productResult.success) {
       const availableProducts = await page.$$eval('td.dataItem', els => els.map(e => e.textContent.slice(0, 50)));
       console.log('[Automation] Available products:', JSON.stringify(availableProducts));
-      throw new Error('Could not find Senior Choice product');
+      throw new Error('Could not find Senior Choice product in popup');
     }
     
     // Wait for state menu to appear after product selection
