@@ -374,55 +374,61 @@ export const runAmericanAmicableAutomation = async (data) => {
     await new Promise(r => setTimeout(r, 2000));
     
     // ═══════════════════════════════════════════════════════════════
-    // PRODUCT SELECTION - Find and double-click product
+    // PRODUCT SELECTION - Use Puppeteer's XPath to find and click
     // ═══════════════════════════════════════════════════════════════
     console.log('[Automation] Selecting Product...');
     
-    // Wait for the product grid to be ready
-    await page.waitForFunction(() => {
-      const cells = document.querySelectorAll('td.dataItem');
-      for (const cell of cells) {
-        if (cell.textContent.includes('Senior Choice')) return true;
-      }
-      return false;
-    }, { timeout: 15000 });
+    // Wait for dataItem cells
+    await page.waitForSelector('td.dataItem', { timeout: 15000 });
     
-    // Use page.evaluate to find and double-click the product
-    // This dispatches a proper dblclick event
-    const productClicked = await page.evaluate(() => {
-      const cells = document.querySelectorAll('td.dataItem');
+    // Find the Senior Choice text using XPath and click it twice using Puppeteer native methods
+    const seniorChoiceXPath = "//td[contains(text(), 'Senior Choice (FE 50-85)')]";
+    
+    try {
+      // Wait for the element to exist
+      await page.waitForFunction(
+        (xpath) => {
+          const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+          return result.singleNodeValue !== null;
+        },
+        { timeout: 10000 },
+        seniorChoiceXPath
+      );
+      
+      // Get all elements matching the selector and click the right one
+      const cells = await page.$$('td.dataItem');
+      console.log(`[Automation] Found ${cells.length} dataItem cells`);
+      
+      let clicked = false;
       for (const cell of cells) {
-        if (cell.textContent.includes('Senior Choice (FE 50-85)') || 
-            cell.textContent.includes('Senior Choice')) {
-          console.log('Found Senior Choice cell, double-clicking...');
+        const text = await cell.evaluate(el => el.textContent);
+        if (text && text.includes('Senior Choice (FE 50-85)')) {
+          console.log(`[Automation] ✓ Found product: ${text}`);
           
-          // Get the parent row
-          const row = cell.closest('tr');
-          const target = row || cell;
+          // Use Puppeteer's click with delay to simulate real double-click
+          await cell.click();
+          console.log('[Automation] First click done');
+          await new Promise(r => setTimeout(r, 100));
+          await cell.click();
+          console.log('[Automation] Second click done (double-click complete)');
           
-          // Dispatch double-click event
-          const dblClickEvent = new MouseEvent('dblclick', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-          });
-          target.dispatchEvent(dblClickEvent);
-          
-          return { success: true, clicked: target.tagName, text: cell.textContent.slice(0, 50) };
+          clicked = true;
+          break;
         }
       }
-      return { success: false, cellCount: cells.length };
-    });
-    
-    console.log('[Automation] Product click result:', JSON.stringify(productClicked));
-    
-    if (!productClicked.success) {
+      
+      if (!clicked) {
+        throw new Error('Could not click Senior Choice');
+      }
+      
+    } catch (e) {
+      console.log('[Automation] XPath approach failed:', e.message);
       const availableProducts = await page.$$eval('td.dataItem', els => els.map(e => e.textContent.slice(0, 50)));
       console.log('[Automation] Available products:', JSON.stringify(availableProducts));
       throw new Error('Could not find Senior Choice product');
     }
     
-    // Wait for state menu to appear
+    // Wait for state menu to appear after product selection
     console.log('[Automation] Waiting for StateMenu to appear...');
     await new Promise(r => setTimeout(r, 3000));
     
