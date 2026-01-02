@@ -374,55 +374,56 @@ export const runAmericanAmicableAutomation = async (data) => {
     await new Promise(r => setTimeout(r, 2000));
     
     // ═══════════════════════════════════════════════════════════════
-    // PRODUCT SELECTION - Use Puppeteer's XPath to find and click
+    // PRODUCT SELECTION - Click the product row/cell and any hidden links
     // ═══════════════════════════════════════════════════════════════
     console.log('[Automation] Selecting Product...');
     
     // Wait for dataItem cells
     await page.waitForSelector('td.dataItem', { timeout: 15000 });
     
-    // Find the Senior Choice text using XPath and click it twice using Puppeteer native methods
-    const seniorChoiceXPath = "//td[contains(text(), 'Senior Choice (FE 50-85)')]";
-    
-    try {
-      // Wait for the element to exist
-      await page.waitForFunction(
-        (xpath) => {
-          const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-          return result.singleNodeValue !== null;
-        },
-        { timeout: 10000 },
-        seniorChoiceXPath
-      );
-      
-      // Get all elements matching the selector and click the right one
-      const cells = await page.$$('td.dataItem');
-      console.log(`[Automation] Found ${cells.length} dataItem cells`);
-      
-      let clicked = false;
+    // Find the Senior Choice row and click it, including any hidden links
+    const productResult = await page.evaluate(() => {
+      const cells = document.querySelectorAll('td.dataItem');
       for (const cell of cells) {
-        const text = await cell.evaluate(el => el.textContent);
-        if (text && text.includes('Senior Choice (FE 50-85)')) {
-          console.log(`[Automation] ✓ Found product: ${text}`);
+        if (cell.textContent.includes('Senior Choice (FE 50-85)')) {
+          // Get the parent row
+          const row = cell.closest('tr');
           
-          // Use Puppeteer's click with delay to simulate real double-click
-          await cell.click();
-          console.log('[Automation] First click done');
-          await new Promise(r => setTimeout(r, 100));
-          await cell.click();
-          console.log('[Automation] Second click done (double-click complete)');
+          // Look for any hidden anchor links in this row (used for PostBack)
+          const hiddenLinks = row?.querySelectorAll('a[href*="__doPostBack"], a[href*="javascript:"]');
           
-          clicked = true;
-          break;
+          // First try: click any hidden link
+          if (hiddenLinks && hiddenLinks.length > 0) {
+            hiddenLinks[0].click();
+            return { method: 'hiddenLink', success: true, text: cell.textContent.slice(0, 50) };
+          }
+          
+          // Second try: if row has onclick handler, trigger it
+          if (row && row.onclick) {
+            row.onclick();
+            return { method: 'rowOnclick', success: true, text: cell.textContent.slice(0, 50) };
+          }
+          
+          // Third try: dispatch dblclick on the row
+          if (row) {
+            const dblClickEvent = new MouseEvent('dblclick', {
+              bubbles: true,
+              cancelable: true,
+              view: window
+            });
+            row.dispatchEvent(dblClickEvent);
+            return { method: 'rowDblclick', success: true, text: cell.textContent.slice(0, 50) };
+          }
+          
+          return { method: 'none', success: false, text: cell.textContent.slice(0, 50) };
         }
       }
-      
-      if (!clicked) {
-        throw new Error('Could not click Senior Choice');
-      }
-      
-    } catch (e) {
-      console.log('[Automation] XPath approach failed:', e.message);
+      return { success: false, cellCount: cells.length };
+    });
+    
+    console.log('[Automation] Product selection result:', JSON.stringify(productResult));
+    
+    if (!productResult.success) {
       const availableProducts = await page.$$eval('td.dataItem', els => els.map(e => e.textContent.slice(0, 50)));
       console.log('[Automation] Available products:', JSON.stringify(availableProducts));
       throw new Error('Could not find Senior Choice product');
