@@ -918,6 +918,48 @@ export const runAmericanAmicableAutomation = async (data) => {
       console.log('[Automation] Checking/Savings radio not found');
     }
     
+    // === PERSONAL INFORMATION - CRITICAL FIELDS ===
+    // Street Address
+    if (address) {
+      try {
+        await page.type('#StreetAddress', address.toUpperCase());
+        console.log('[Automation] ✓ Street Address entered');
+      } catch (e) {
+        console.log('[Automation] Street Address field not found');
+      }
+    }
+    
+    // ZipCode - this auto-fills State and City
+    if (zip) {
+      try {
+        await page.type('#ZipCode', zip.replace(/[^0-9]/g, '').slice(0, 5));
+        console.log('[Automation] ✓ ZipCode entered');
+        await new Promise(r => setTimeout(r, 1000)); // Wait for auto-fill
+      } catch (e) {
+        console.log('[Automation] ZipCode field not found');
+      }
+    }
+    
+    // Social Security Number
+    if (ssn) {
+      try {
+        await page.type('#SSN', ssn.replace(/[^0-9]/g, ''));
+        console.log('[Automation] ✓ SSN entered');
+      } catch (e) {
+        console.log('[Automation] SSN field not found');
+      }
+    }
+    
+    // Phone
+    if (phone) {
+      try {
+        await page.type('#Phone', phone.replace(/[^0-9]/g, ''));
+        console.log('[Automation] ✓ Phone entered');
+      } catch (e) {
+        console.log('[Automation] Phone field not found');
+      }
+    }
+    
     // === EMAIL PREFERENCE ===
     if (wantsEmail === true && email) {
       try {
@@ -1069,7 +1111,138 @@ export const runAmericanAmicableAutomation = async (data) => {
       }
     }
     
+    // ═══════════════════════════════════════════════════════════════════════
+    // PRIMARY BENEFICIARY SECTION
+    // ═══════════════════════════════════════════════════════════════════════
+    console.log('[Automation] Filling Primary Beneficiary...');
+    
+    // Primary Beneficiary Full Name
+    if (beneficiaryName) {
+      try {
+        await page.type('#PrimaryBeneficiary', beneficiaryName.toUpperCase());
+        console.log('[Automation] ✓ Primary Beneficiary Name entered');
+      } catch (e) {
+        console.log('[Automation] Primary Beneficiary field not found');
+      }
+    }
+    
+    // Primary Beneficiary Relationship - Select "Family Member" by clicking the radio
+    // Radio options: Family Member (_1), Multiple Beneficiaries (_2), Life Partner (_3), Fiancé (_4), Estate (_5), Trust (_6), Other (_7)
+    if (beneficiaryRelation) {
+      try {
+        const relationMap = {
+          'family member': 'PrimaryRelationship_1',
+          'spouse': 'PrimaryRelationship_1',
+          'mother': 'PrimaryRelationship_1',
+          'father': 'PrimaryRelationship_1',
+          'child': 'PrimaryRelationship_1',
+          'daughter': 'PrimaryRelationship_1',
+          'son': 'PrimaryRelationship_1',
+          'brother': 'PrimaryRelationship_1',
+          'sister': 'PrimaryRelationship_1',
+          'life partner': 'PrimaryRelationship_3',
+          'fiancé': 'PrimaryRelationship_4',
+          'fiance': 'PrimaryRelationship_4',
+          'multiple': 'PrimaryRelationship_2',
+          'estate': 'PrimaryRelationship_5',
+          'trust': 'PrimaryRelationship_6',
+          'other': 'PrimaryRelationship_7'
+        };
+        
+        const relationLower = beneficiaryRelation.toLowerCase();
+        const radioId = relationMap[relationLower] || 'PrimaryRelationship_1'; // Default to Family Member
+        
+        await page.click(`#${radioId}`);
+        console.log(`[Automation] ✓ Primary Beneficiary Relationship: ${radioId}`);
+        await new Promise(r => setTimeout(r, 500)); // Wait for conditional fields
+        
+        // If Family Member, also select the specific family member type from dropdown
+        if (radioId === 'PrimaryRelationship_1') {
+          const familyMap = {
+            'spouse': 'Spouse',
+            'mother': 'Mother',
+            'father': 'Father',
+            'daughter': 'Daughter',
+            'son': 'Son',
+            'brother': 'Brother',
+            'sister': 'Sister',
+            'cousin': 'Cousin',
+            'aunt': 'Aunt',
+            'uncle': 'Uncle',
+            'grandfather': 'Grandfather',
+            'grandmother': 'Grandmother',
+            'grandchild': 'Grandchild',
+            'niece': 'Niece',
+            'nephew': 'Nephew'
+          };
+          
+          const familyValue = familyMap[relationLower] || 'Spouse'; // Default to Spouse
+          try {
+            await page.select('#PFamilyMember', familyValue);
+            console.log(`[Automation] ✓ Family Member Type: ${familyValue}`);
+          } catch (e) {
+            console.log('[Automation] Family Member dropdown not found');
+          }
+        }
+      } catch (e) {
+        console.log('[Automation] Primary Relationship radio not found');
+      }
+    } else {
+      // Default to Family Member > Spouse if no relationship specified
+      try {
+        await page.click('#PrimaryRelationship_1');
+        console.log('[Automation] ✓ Primary Beneficiary Relationship: Family Member (default)');
+        await new Promise(r => setTimeout(r, 500));
+        await page.select('#PFamilyMember', 'Spouse');
+        console.log('[Automation] ✓ Family Member Type: Spouse (default)');
+      } catch (e) {
+        console.log('[Automation] Could not set default beneficiary relationship');
+      }
+    }
+    
+    console.log('[Automation] ✓ Primary Beneficiary section completed');
+    
     console.log('[Automation] ✓ Contact information completed');
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // CLICK CONTINUE TO AGENT STATEMENT BUTTON
+    // ═══════════════════════════════════════════════════════════════════════
+    console.log('[Automation] Looking for Continue to Agent Statement button...');
+    try {
+      // The button might be BtnAgentStatement, BtnContinue, or similar
+      const continueButton = await page.$('#BtnAgentStatement') || 
+                             await page.$('#BtnContinue') ||
+                             await page.$('input[value*="Continue"]') ||
+                             await page.$('input[value*="Agent Statement"]');
+      
+      if (continueButton) {
+        await continueButton.click();
+        console.log('[Automation] ✓ Clicked Continue to Agent Statement button');
+        await new Promise(r => setTimeout(r, 3000));
+      } else {
+        // Try to find by text
+        const clicked = await page.evaluate(() => {
+          const buttons = document.querySelectorAll('input[type="submit"], button');
+          for (const btn of buttons) {
+            if (btn.value?.includes('Agent') || btn.value?.includes('Continue') || 
+                btn.textContent?.includes('Agent') || btn.textContent?.includes('Continue')) {
+              btn.click();
+              return btn.value || btn.textContent;
+            }
+          }
+          return null;
+        });
+        
+        if (clicked) {
+          console.log(`[Automation] ✓ Clicked button: ${clicked}`);
+          await new Promise(r => setTimeout(r, 3000));
+        } else {
+          console.log('[Automation] Continue to Agent Statement button not found');
+        }
+      }
+    } catch (e) {
+      console.log('[Automation] Error clicking Continue button:', e.message);
+    }
     
     // Wait for final result
     await new Promise(r => setTimeout(r, 3000));
