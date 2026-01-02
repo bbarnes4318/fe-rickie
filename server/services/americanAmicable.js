@@ -108,7 +108,10 @@ export const runAmericanAmicableAutomation = async (data) => {
     healthQ8a = false,
     healthQ8b = false,
     healthQ8c = false,
-    healthCovid = false
+    healthCovid = false,
+    // ═══ Beneficiary Information ═══
+    beneficiaryName = '',
+    beneficiaryRelation = ''
   } = data;
   
   let browser = null;
@@ -120,6 +123,7 @@ export const runAmericanAmicableAutomation = async (data) => {
   console.log(`[PUPPETEER] ${logTs()} State: ${state}, DOB: ${dob}, Age: ${age}, Gender: ${gender}`);
   console.log(`[PUPPETEER] ${logTs()} Coverage: ${selectedCoverage}, Plan: ${selectedPlanType}, Tobacco: ${tobacco}`);
   console.log(`[PUPPETEER] ${logTs()} Address: ${address}, ${zip}`);
+  console.log(`[PUPPETEER] ${logTs()} Beneficiary: ${beneficiaryName} (${beneficiaryRelation || 'not specified'})`);
   console.log('═══════════════════════════════════════════════════════════════');
 
   try {
