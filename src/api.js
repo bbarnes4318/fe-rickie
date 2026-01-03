@@ -68,5 +68,19 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to delete application');
     return res.json();
+  },
+
+  // Run carrier application automation
+  async runAutomation(formData) {
+    const res = await fetch(`${API_BASE}/automation/run-carrier-app`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Automation failed');
+    }
+    return res.json();
   }
 };

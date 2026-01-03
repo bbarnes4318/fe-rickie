@@ -111,7 +111,9 @@ export const runAmericanAmicableAutomation = async (data) => {
     healthCovid = false,
     // ═══ Beneficiary Information ═══
     beneficiaryName = '',
-    beneficiaryRelation = ''
+    beneficiaryRelation = '',
+    // ═══ Illinois Residents (only applicable if state is IL) ═══
+    ilDesigneeChoice = null // 'Will Designate' or 'Will Not Designate'
   } = data;
   
   let browser = null;
@@ -1209,56 +1211,311 @@ export const runAmericanAmicableAutomation = async (data) => {
     console.log('[Automation] ✓ Contact information completed');
     
     // ═══════════════════════════════════════════════════════════════════════
+    // ILLINOIS RESIDENTS SECTION (Only for IL)
+    // ═══════════════════════════════════════════════════════════════════════
+    if (state === 'Illinois' || state === 'IL') {
+      console.log('[Automation] Illinois Residents section - handling designee choice...');
+      try {
+        // Look for the Illinois Residents section
+        // The radio buttons are typically named with 'Designee' or 'ApplicantDesignee'
+        const designeeSection = await page.$('#ApplicantDesignee, [id*="Designee"], [name*="Designee"]');
+        if (designeeSection) {
+          if (ilDesigneeChoice === 'Will Designate') {
+            // Click 'Will Designate' radio - typically _1
+            const willDesignateRadio = await page.$('input[value*="Will Designate"], input[value="WillDesignate"], #ApplicantDesignee_1, [id*="Designee"][value*="Designate"]:not([value*="Not"])');
+            if (willDesignateRadio) {
+              await willDesignateRadio.click();
+              console.log('[Automation] ✓ Illinois Designee Choice: Will Designate');
+            }
+          } else {
+            // Click 'Will Not Designate' radio - typically _2
+            const willNotDesignateRadio = await page.$('input[value*="Will Not Designate"], input[value*="NotDesignate"], input[value="WillNotDesignate"], #ApplicantDesignee_2, [id*="Designee"][value*="Not"]');
+            if (willNotDesignateRadio) {
+              await willNotDesignateRadio.click();
+              console.log('[Automation] ✓ Illinois Designee Choice: Will Not Designate');
+            }
+          }
+        } else {
+          console.log('[Automation] Illinois Designee section not found on page, may not be visible');
+        }
+      } catch (e) {
+        console.log('[Automation] Illinois Designee section error:', e.message);
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
     // CLICK CONTINUE TO AGENT STATEMENT BUTTON
     // ═══════════════════════════════════════════════════════════════════════
     console.log('[Automation] Looking for Continue to Agent Statement button...');
     try {
-      // The button might be BtnAgentStatement, BtnContinue, or similar
-      const continueButton = await page.$('#BtnAgentStatement') || 
-                             await page.$('#BtnContinue') ||
-                             await page.$('input[value*="Continue"]') ||
-                             await page.$('input[value*="Agent Statement"]');
+      // Scroll to bottom of page to ensure the button is visible
+      await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+      await new Promise(r => setTimeout(r, 1000));
       
-      if (continueButton) {
-        await continueButton.click();
-        console.log('[Automation] ✓ Clicked Continue to Agent Statement button');
-        await new Promise(r => setTimeout(r, 3000));
-      } else {
-        // Try to find by text
-        const clicked = await page.evaluate(() => {
-          const buttons = document.querySelectorAll('input[type="submit"], button');
-          for (const btn of buttons) {
-            if (btn.value?.includes('Agent') || btn.value?.includes('Continue') || 
-                btn.textContent?.includes('Agent') || btn.textContent?.includes('Continue')) {
-              btn.click();
-              return btn.value || btn.textContent;
+      // Wait for the button to be available - using exact selector from carrier HTML
+      // <input type="submit" name="ctl00$ContentPlaceHolderBottomButton$BtnContinue" value="Continue to Agent Statement" id="BtnContinue" class="btn">
+      const continueButtonSelector = 'input[name="ctl00$ContentPlaceHolderBottomButton$BtnContinue"]';
+      
+      let buttonClicked = false;
+      
+      // Try the exact name-based selector first
+      const buttonByName = await page.$(continueButtonSelector);
+      if (buttonByName) {
+        await buttonByName.click();
+        console.log('[Automation] ✓ Clicked Continue to Agent Statement button (by name)');
+        buttonClicked = true;
+      }
+      
+      // Fallback: Try by ID
+      if (!buttonClicked) {
+        const buttonById = await page.$('#BtnContinue');
+        if (buttonById) {
+          // Verify it's the right button by checking the value
+          const buttonValue = await page.evaluate(el => el.value, buttonById);
+          if (buttonValue && buttonValue.includes('Agent Statement')) {
+            await buttonById.click();
+            console.log('[Automation] ✓ Clicked Continue to Agent Statement button (by id)');
+            buttonClicked = true;
+          }
+        }
+      }
+      
+      // Fallback: Try by exact value
+      if (!buttonClicked) {
+        const buttonByValue = await page.$('input[value="Continue to Agent Statement"]');
+        if (buttonByValue) {
+          await buttonByValue.click();
+          console.log('[Automation] ✓ Clicked Continue to Agent Statement button (by value)');
+          buttonClicked = true;
+        }
+      }
+      
+      // Last resort: Use JavaScript to find and click
+      if (!buttonClicked) {
+        const result = await page.evaluate(() => {
+          // Find by exact value first
+          let btn = document.querySelector('input[value="Continue to Agent Statement"]');
+          if (!btn) {
+            // Find by partial value
+            const allInputs = document.querySelectorAll('input[type="submit"]');
+            for (const input of allInputs) {
+              if (input.value && input.value.includes('Agent Statement')) {
+                btn = input;
+                break;
+              }
             }
           }
-          return null;
+          if (btn) {
+            btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            btn.click();
+            return { success: true, value: btn.value, id: btn.id };
+          }
+          return { success: false };
         });
         
-        if (clicked) {
-          console.log(`[Automation] ✓ Clicked button: ${clicked}`);
-          await new Promise(r => setTimeout(r, 3000));
-        } else {
-          console.log('[Automation] Continue to Agent Statement button not found');
+        if (result.success) {
+          console.log(`[Automation] ✓ Clicked button via JS: ${result.value} (id: ${result.id})`);
+          buttonClicked = true;
         }
+      }
+      
+      if (!buttonClicked) {
+        console.log('[Automation] ⚠ Continue to Agent Statement button not found');
+      } else {
+        // Wait for navigation after button click
+        await new Promise(r => setTimeout(r, 3000));
       }
     } catch (e) {
       console.log('[Automation] Error clicking Continue button:', e.message);
     }
     
-    // Wait for final result
+    // Wait for Agent Statement page to load
     await new Promise(r => setTimeout(r, 3000));
     
+    // ═══════════════════════════════════════════════════════════════════════
+    // AGENT STATEMENT PAGE
+    // ═══════════════════════════════════════════════════════════════════════
+    console.log('[Automation] ═══ AGENT STATEMENT PAGE ═══');
+    
+    try {
+      // Check if we're on the agent statement page
+      const agentStatementPage = await page.$('#AgentSignature1');
+      if (agentStatementPage) {
+        console.log('[Automation] Agent Statement page loaded');
+        
+        // 1. Agent's Electronic Signature - Always input 'Yazzyl Vasquez'
+        await page.type('#AgentSignature1', 'Yazzyl Vasquez', { delay: 30 });
+        console.log('[Automation] ✓ Agent Signature entered: Yazzyl Vasquez');
+        
+        // 2. City where proposed insured signed - use customer's city
+        const customerCity = data.city || '';
+        if (customerCity) {
+          await page.type('#CitySigned', customerCity, { delay: 30 });
+          console.log(`[Automation] ✓ City Signed entered: ${customerCity}`);
+        }
+        
+        // 3. State where proposed insured signed - select from dropdown
+        // Map full state name to abbreviation if needed
+        const stateAbbreviations = {
+          'Illinois': 'IL', 'Texas': 'TX', 'California': 'CA', 'Florida': 'FL',
+          'New York': 'NY', 'Tennessee': 'TN', 'Georgia': 'GA', 'Ohio': 'OH',
+          'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR',
+          'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Hawaii': 'HI',
+          'Idaho': 'ID', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS',
+          'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+          'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS',
+          'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV',
+          'New Hampshire': 'NH', 'New Jersey': 'NJ', 'New Mexico': 'NM',
+          'North Carolina': 'NC', 'North Dakota': 'ND', 'Oklahoma': 'OK', 'Oregon': 'OR',
+          'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+          'South Dakota': 'SD', 'Utah': 'UT', 'Vermont': 'VT', 'Virginia': 'VA',
+          'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'
+        };
+        
+        const stateCode = stateAbbreviations[state] || state;
+        await page.select('#StateSigned', stateCode);
+        console.log(`[Automation] ✓ State Signed selected: ${stateCode}`);
+        
+        // 4. Replacement Questions - Match the answers from Personal Info page
+        // Does the proposed insured have any existing life insurance or annuity contract?
+        const hasExistingIns = data.hasExistingInsurance === true || data.hasExisting === true;
+        if (hasExistingIns) {
+          await page.click('#AgentExistingInsurance_1'); // Yes
+        } else {
+          await page.click('#AgentExistingInsurance_2'); // No
+        }
+        console.log(`[Automation] ✓ Existing Insurance: ${hasExistingIns ? 'Yes' : 'No'}`);
+        
+        // Is the proposed insurance intended to replace or change any existing life insurance or annuity?
+        const willReplace = data.willReplaceExisting === true || data.willReplace === true;
+        if (willReplace) {
+          await page.click('#AgentRepIns_1'); // Yes
+        } else {
+          await page.click('#AgentRepIns_2'); // No
+        }
+        console.log(`[Automation] ✓ Will Replace: ${willReplace ? 'Yes' : 'No'}`);
+        
+        await new Promise(r => setTimeout(r, 1000));
+        
+        // 5. Click 'Continue to Signatures' button
+        console.log('[Automation] Looking for Continue to Signatures button...');
+        const continueToSigButton = await page.$('input[name="ctl00$ContentPlaceHolderBottomButton$btnContinue"]') ||
+                                     await page.$('#btnContinue') ||
+                                     await page.$('input[value="Continue to Signatures"]');
+        
+        if (continueToSigButton) {
+          await continueToSigButton.click();
+          console.log('[Automation] ✓ Clicked Continue to Signatures');
+          await new Promise(r => setTimeout(r, 3000));
+        } else {
+          console.log('[Automation] Continue to Signatures button not found');
+        }
+      } else {
+        console.log('[Automation] Agent Statement page not detected, may already be past this step');
+      }
+    } catch (e) {
+      console.log('[Automation] Error on Agent Statement page:', e.message);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // SIGNATURE OPTIONS PAGE - Select Voice Recording
+    // ═══════════════════════════════════════════════════════════════════════
+    console.log('[Automation] ═══ SIGNATURE OPTIONS PAGE ═══');
+    
+    let applicationNumber = '';
+    
+    try {
+      // Wait for page to load
+      await new Promise(r => setTimeout(r, 2000));
+      
+      // Check if we're on the signature options page
+      const voiceRecordingBtn = await page.$('#optionVoiceUpload') || 
+                                 await page.$('#BtnUploadVoiceSig');
+      
+      if (voiceRecordingBtn) {
+        console.log('[Automation] Signature Options page loaded');
+        
+        // CAPTURE APPLICATION NUMBER - This is critical!
+        try {
+          applicationNumber = await page.evaluate(() => {
+            // Try to find the app number in various locations
+            const spanAppNumber = document.querySelector('#spanAppNumber');
+            if (spanAppNumber) return spanAppNumber.textContent.trim();
+            
+            const appNumberLabel = document.querySelector('#AppNumberLabel');
+            if (appNumberLabel) {
+              // Extract the number from the span inside
+              const innerSpan = appNumberLabel.querySelector('span[style*="x-large"]');
+              if (innerSpan) return innerSpan.textContent.trim();
+              // Or get full text and extract number
+              const match = appNumberLabel.textContent.match(/M?\d{9,}/);
+              if (match) return match[0].trim();
+            }
+            
+            // Search the page for application number pattern
+            const bodyText = document.body.innerText;
+            const appMatch = bodyText.match(/M?00\d{7,}/);
+            return appMatch ? appMatch[0].trim() : '';
+          });
+          
+          console.log('[Automation] ✓✓✓ APPLICATION NUMBER CAPTURED:', applicationNumber);
+        } catch (e) {
+          console.log('[Automation] Error capturing application number:', e.message);
+        }
+        
+        // Click the Voice Recording button
+        const visibleVoiceBtn = await page.$('#optionVoiceUpload');
+        if (visibleVoiceBtn) {
+          await visibleVoiceBtn.click();
+          console.log('[Automation] ✓ Clicked Voice Recording option');
+        } else {
+          // Fallback: click the hidden button directly
+          await page.click('#BtnUploadVoiceSig');
+          console.log('[Automation] ✓ Clicked Voice Recording (hidden button)');
+        }
+        
+        await new Promise(r => setTimeout(r, 2000));
+      } else {
+        console.log('[Automation] Signature Options page not detected');
+        
+        // Still try to capture application number from current page
+        try {
+          applicationNumber = await page.evaluate(() => {
+            const appNumberLabel = document.querySelector('#AppNumberLabel');
+            if (appNumberLabel) {
+              const innerSpan = appNumberLabel.querySelector('span[style*="x-large"]');
+              if (innerSpan) return innerSpan.textContent.trim();
+            }
+            const spanAppNumber = document.querySelector('#spanAppNumber');
+            if (spanAppNumber) return spanAppNumber.textContent.trim();
+            return '';
+          });
+          if (applicationNumber) {
+            console.log('[Automation] ✓ Application Number captured from current page:', applicationNumber);
+          }
+        } catch (e) {
+          console.log('[Automation] Could not capture application number');
+        }
+      }
+    } catch (e) {
+      console.log('[Automation] Error on Signature Options page:', e.message);
+    }
+    
+    // Final result
+    await new Promise(r => setTimeout(r, 2000));
+    
     console.log('[Automation] ════════════════════════════════════════════════════════');
-    console.log('[Automation] ✓✓✓ SUCCESSFULLY COMPLETED CARRIER APPLICATION! ✓✓✓');
+    console.log('[Automation] ✓✓✓ AUTOMATION COMPLETE - READY FOR VOICE RECORDING ✓✓✓');
     console.log('[Automation] ════════════════════════════════════════════════════════');
+    console.log('[Automation] Application Number:', applicationNumber);
     console.log('[Automation] Final URL:', page.url());
     
     return { 
       success: true, 
-      message: 'Application submitted successfully',
+      message: 'Application ready for voice recording',
+      applicationNumber: applicationNumber,
       customer: `${firstName} ${lastName}`,
       state: state,
       coverage: selectedCoverage

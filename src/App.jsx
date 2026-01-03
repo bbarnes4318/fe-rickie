@@ -69,6 +69,7 @@ import {
   PhoneOutgoing,
   MessageSquare,
   CalendarClock,
+  Mic,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
@@ -259,6 +260,8 @@ const INITIAL_DATA = {
   accountNum: "",
   draftSchedule: "ss_payment",
   draftDate: "",
+  ilDesigneeChoice: null, // Illinois only: 'Will Designate' or 'Will Not Designate'
+  applicationNumber: "", // Carrier application number (captured from automation)
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2130,7 +2133,10 @@ const CustomerForm = ({ onComplete }) => {
   const [data, setData] = useState(INITIAL_DATA);
   const [sortMethod, setSortMethod] = useState("lowest");
   const [filterPlanType, setFilterPlanType] = useState("All");
-  const totalSteps = 8;
+  const [automationLoading, setAutomationLoading] = useState(false);
+  const [automationError, setAutomationError] = useState(null);
+  const [showVoiceScript, setShowVoiceScript] = useState(false);
+  const totalSteps = 9;
 
   const update = (field, val) => setData((prev) => ({ ...prev, [field]: val }));
 
@@ -2143,6 +2149,7 @@ const CustomerForm = ({ onComplete }) => {
     "Coverage",
     "Payment",
     "Review",
+    "Recording",
   ];
 
   // Calculate age from DOB
@@ -3276,79 +3283,373 @@ const CustomerForm = ({ onComplete }) => {
           />
         </div>
       </div>
+
+      {/* Illinois Residents Section - Only shown for IL */}
+      {data.state === "IL" && (
+        <div className="bg-amber-50 rounded-xl p-4 border border-amber-300 mt-3">
+          <h3 className="font-bold text-slate-800 mb-2 text-sm flex items-center gap-2">
+            <AlertTriangle size={18} className="text-amber-600" />
+            Illinois Residents
+          </h3>
+          <p className="text-slate-600 text-xs mb-3 leading-relaxed">
+            You are being provided this notice pursuant to Illinois Insurance Code 215 ILCS 5/235.1. 
+            You have the right to designate a secondary addressee to receive a notice of lapse or 
+            cancellation of your life insurance policy based on nonpayment of premium. You may make 
+            such designation at the time of application or at any time the individual life insurance 
+            policy is in force by submitting a written notice to the Company containing the name and 
+            address of the secondary designee. You may change your designation at any time with 
+            written notice to the Company.
+          </p>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700">
+              Applicant Designee Choice
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="ilDesigneeChoice"
+                  value="Will Designate"
+                  checked={data.ilDesigneeChoice === "Will Designate"}
+                  onChange={(e) => update("ilDesigneeChoice", e.target.value)}
+                  className="w-4 h-4 text-cyan-600"
+                />
+                <span className="text-sm text-slate-700">Will Designate</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="ilDesigneeChoice"
+                  value="Will Not Designate"
+                  checked={data.ilDesigneeChoice === "Will Not Designate"}
+                  onChange={(e) => update("ilDesigneeChoice", e.target.value)}
+                  className="w-4 h-4 text-cyan-600"
+                />
+                <span className="text-sm text-slate-700">Will Not Designate</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
   // Step 8: Review & Submit
-  const renderReview = () => (
-    <div className="animate-slide-up">
+  const renderReview = () => {
+    const handleRunAutomation = async () => {
+      setAutomationLoading(true);
+      setAutomationError(null);
+      
+      try {
+        // Prepare form data for automation
+        const formData = {
+          state: data.state,
+          firstName: data.firstName,
+          middleName: data.middleName,
+          lastName: data.lastName,
+          dob: data.dob,
+          age: data.age,
+          gender: data.gender,
+          tobacco: data.tobacco,
+          selectedCoverage: data.faceAmount,
+          selectedPlanType: data.planType === "Immediate" ? "I" : data.planType === "Graded" ? "G" : "L",
+          address: data.address,
+          city: data.city,
+          zip: data.zip,
+          ssn: data.ssn,
+          phone: data.phone,
+          birthState: data.stateOfBirth,
+          // Banking
+          accountHolder: data.accountName,
+          bankName: data.bankName,
+          bankCityState: data.bankAddress,
+          ssPaymentSchedule: data.draftSchedule === "ss_payment",
+          draftDay: data.draftDate,
+          routingNumber: data.routing,
+          accountNumber: data.accountNum,
+          accountType: data.accountType === "checking" ? "Checking" : "Saving",
+          // Health
+          hasExistingInsurance: data.hasExisting,
+          willReplaceExisting: data.willReplace,
+          healthQ1: data.q1 || false,
+          healthQ2: data.q2 || false,
+          healthQ3: data.q3 || false,
+          healthQ4: data.q4 || false,
+          healthQ5: data.q5 || false,
+          healthQ6: data.q6 || false,
+          healthQ7a: data.q7a || false,
+          healthQ7b: data.q7b || false,
+          healthQ7c: data.q7c || false,
+          healthQ7d: data.q7d || false,
+          healthQ8a: data.q8a || false,
+          healthQ8b: data.q8b || false,
+          healthQ8c: data.q8c || false,
+          // Beneficiary
+          beneficiaryName: data.primaryBenName,
+          beneficiaryRelation: data.primaryBenRel,
+          // Illinois
+          ilDesigneeChoice: data.ilDesigneeChoice,
+        };
+        
+        // Run the automation
+        const result = await api.runAutomation(formData);
+        
+        if (result.success && result.applicationNumber) {
+          // Update data with the captured application number
+          update("applicationNumber", result.applicationNumber);
+          // Move to step 9 (Voice Recording)
+          setStep(9);
+        } else {
+          throw new Error(result.error || "Automation completed but no application number was captured");
+        }
+      } catch (error) {
+        console.error("Automation error:", error);
+        setAutomationError(error.message);
+      } finally {
+        setAutomationLoading(false);
+      }
+    };
+    
+    return (
+      <div className="animate-slide-up">
+        <SectionTitle
+          icon={CheckCircle}
+          title="Review & Submit"
+          subtitle="Please verify all information is correct"
+        />
+
+        <div className="card-flat overflow-hidden mb-4">
+          {/* Summary Header */}
+          <div className="card-dark p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-xs">Applicant</p>
+                <h2 className="text-xl font-bold">
+                  {data.firstName} {data.lastName}
+                </h2>
+              </div>
+              <div className="text-right">
+                <p className="text-slate-400 text-xs">Monthly Premium</p>
+                <p className="text-2xl font-bold text-cyan-400">
+                  ${data.monthlyPremium || "0.00"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Details Grid */}
+          <div className="p-4 grid grid-cols-3 gap-3">
+            <DataField label="Carrier" value={data.carrier} copyable={false} />
+            <DataField label="Plan Type" value={data.planType} copyable={false} />
+            <DataField
+              label="Face Amount"
+              value={`$${data.faceAmount.toLocaleString()}`}
+              copyable={false}
+            />
+            <DataField
+              label="Primary Beneficiary"
+              value={data.primaryBenName}
+              copyable={false}
+            />
+            <DataField label="Bank" value={data.bankName} copyable={false} />
+            <DataField
+              label="Draft Date"
+              value={data.draftDate}
+              copyable={false}
+            />
+          </div>
+        </div>
+
+        {automationError && (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl flex items-center gap-3 mb-4">
+            <AlertTriangle size={18} /> {automationError}
+          </div>
+        )}
+
+        <button
+          onClick={handleRunAutomation}
+          disabled={automationLoading}
+          className="w-full btn-accent py-3 text-base flex items-center justify-center gap-2"
+        >
+          {automationLoading ? (
+            <>
+              <RefreshCw size={20} className="animate-spin" />
+              Running Automation...
+            </>
+          ) : (
+            <>
+              <Zap size={20} />
+              Run Carrier Application
+            </>
+          )}
+        </button>
+      </div>
+    );
+  };
+
+  // Step 9: Voice Recording Instructions
+  const renderVoiceRecording = () => (
+    <div className="animate-slide-up overflow-auto">
       <SectionTitle
-        icon={CheckCircle}
-        title="Review & Submit"
-        subtitle="Please verify all information is correct"
+        icon={Mic}
+        title="Voice Recording"
+        subtitle="Complete the phone interview with the applicant"
       />
 
-      <div className="card-flat overflow-hidden mb-4">
-        {/* Summary Header */}
-        <div className="card-dark p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-400 text-xs">Applicant</p>
-              <h2 className="text-xl font-bold">
-                {data.firstName} {data.lastName}
-              </h2>
+      {/* Application Number - PROMINENTLY DISPLAYED */}
+      <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl p-6 mb-4 text-center shadow-xl">
+        <p className="text-white/80 text-sm font-medium mb-2">APPLICATION NUMBER</p>
+        <div className="bg-white/20 backdrop-blur rounded-xl px-6 py-4 inline-block">
+          <span className="text-4xl font-mono font-bold text-white tracking-wider">
+            {data.applicationNumber || "PENDING"}
+          </span>
+        </div>
+        <p className="text-white/70 text-xs mt-3">
+          Enter this number when prompted during the recording
+        </p>
+      </div>
+
+      {/* Instructions Card */}
+      <div className="card-flat p-5 mb-4">
+        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-lg">
+          <Phone size={20} className="text-cyan-600" />
+          Recording Instructions
+        </h3>
+        
+        <div className="space-y-4 text-sm">
+          <div className="flex gap-3">
+            <div className="w-7 h-7 bg-cyan-100 rounded-full flex items-center justify-center shrink-0">
+              <span className="text-cyan-700 font-bold text-xs">1</span>
             </div>
-            <div className="text-right">
-              <p className="text-slate-400 text-xs">Monthly Premium</p>
-              <p className="text-2xl font-bold text-cyan-400">
-                ${data.monthlyPremium || "0.00"}
+            <div>
+              <p className="text-slate-700 font-medium">Initiate 3-Way Conference Call</p>
+              <p className="text-slate-500 text-xs mt-1">
+                With the applicant on the line, call the American Amicable Recording Service:
+              </p>
+              <div className="flex gap-3 mt-2">
+                <a href="tel:8009271604" className="inline-flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-lg hover:bg-slate-200 transition">
+                  <Phone size={14} className="text-cyan-600" />
+                  <span className="font-mono font-bold text-slate-800">800-927-1604</span>
+                </a>
+                <a href="tel:2542240345" className="inline-flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-lg hover:bg-slate-200 transition">
+                  <Phone size={14} className="text-cyan-600" />
+                  <span className="font-mono font-bold text-slate-800">254-224-0345</span>
+                </a>
+              </div>
+              <p className="text-amber-600 text-xs mt-2 flex items-center gap-1">
+                <AlertTriangle size={12} /> If lines are busy, wait a few moments and try again.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="w-7 h-7 bg-cyan-100 rounded-full flex items-center justify-center shrink-0">
+              <span className="text-cyan-700 font-bold text-xs">2</span>
+            </div>
+            <div>
+              <p className="text-slate-700 font-medium">Enter Application Number</p>
+              <p className="text-slate-500 text-xs mt-1">
+                When prompted, enter <span className="font-mono font-bold text-cyan-600">{data.applicationNumber || "PENDING"}</span> followed by the <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs">#</kbd> key.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="w-7 h-7 bg-cyan-100 rounded-full flex items-center justify-center shrink-0">
+              <span className="text-cyan-700 font-bold text-xs">3</span>
+            </div>
+            <div>
+              <p className="text-slate-700 font-medium">Wait for Recording Prompt</p>
+              <p className="text-slate-500 text-xs mt-1">
+                Follow the prompts until you hear <em>"This call is now being recorded"</em>, then proceed with the script.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="w-7 h-7 bg-cyan-100 rounded-full flex items-center justify-center shrink-0">
+              <span className="text-cyan-700 font-bold text-xs">4</span>
+            </div>
+            <div>
+              <p className="text-slate-700 font-medium">Complete Recording & Terminate</p>
+              <p className="text-slate-500 text-xs mt-1">
+                Press <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs">#</kbd> to end the recording. Verify it was received, then click "Proceed with Application Transmission".
               </p>
             </div>
           </div>
         </div>
-
-        {/* Details Grid */}
-        <div className="p-4 grid grid-cols-3 gap-3">
-          <DataField label="Carrier" value={data.carrier} copyable={false} />
-          <DataField label="Plan Type" value={data.planType} copyable={false} />
-          <DataField
-            label="Face Amount"
-            value={`$${data.faceAmount.toLocaleString()}`}
-            copyable={false}
-          />
-          <DataField
-            label="Primary Beneficiary"
-            value={data.primaryBenName}
-            copyable={false}
-          />
-          <DataField label="Bank" value={data.bankName} copyable={false} />
-          <DataField
-            label="Draft Date"
-            value={data.draftDate}
-            copyable={false}
-          />
-        </div>
       </div>
 
+      {/* Voice Script Section */}
+      <div className="card-flat overflow-hidden mb-4">
+        <button
+          onClick={() => setShowVoiceScript(!showVoiceScript)}
+          className="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition"
+        >
+          <div className="flex items-center gap-3">
+            <FileText size={20} className="text-cyan-600" />
+            <span className="font-bold text-slate-800">Voice Signature Script</span>
+          </div>
+          <ChevronDown size={20} className={`text-slate-400 transition-transform ${showVoiceScript ? "rotate-180" : ""}`} />
+        </button>
+        
+        {showVoiceScript && (
+          <div className="p-4 border-t border-slate-100 text-sm text-slate-700 leading-relaxed max-h-[300px] overflow-auto">
+            <h4 className="font-bold text-slate-800 mb-3">Senior Choice: Voice Signature Script</h4>
+            
+            <p className="mb-3 italic text-slate-600">
+              Record the following with the proposed insured for each application:
+            </p>
+            
+            <p className="mb-3">
+              <strong>Mr/Mrs.</strong> as a final step to completing the application process, I need you to please verify the following:
+            </p>
+            
+            <ul className="space-y-2 ml-4 list-disc">
+              <li>Please state your full name and today's date.</li>
+              <li>Do you understand that you have applied for a Senior Choice Whole Life Final Expense Insurance policy through American-Amicable Life Insurance Company of Texas?</li>
+              <li>Do you understand that the Senior Choice policy is separate from any other insurance policy that you may have been presented?</li>
+              <li>Do you acknowledge that the application for insurance was completed over the telephone and that you were not in the presence of the licensed insurance agent?</li>
+              <li>Do you agree that answers and statements you have provided are true, complete and correctly recorded?</li>
+              <li>Do you acknowledge that you have received and read (or had read to you):
+                <ul className="ml-4 mt-1 space-y-1 list-circle text-slate-600">
+                  <li>Copy of your application</li>
+                  <li>Conditional Receipt (if applicable)</li>
+                  <li>Fair Credit Reporting Act Notice and MIB Pre-Notice</li>
+                  <li>Terminal Illness Accelerated Benefit Rider Disclosure</li>
+                  <li>Accelerated Benefit Rider – Confined Care Disclosure (Immediate Death Benefit Plan only)</li>
+                </ul>
+              </li>
+              <li>Do you understand a copy of your completed application will be provided as part of your policy contract?</li>
+              <li>Do you acknowledge that you have provided bank account information and authorized drafting of premiums?</li>
+              <li>Do you authorize American-Amicable to obtain protected health information including prescription history for determining eligibility?</li>
+              <li>Do you agree to American-Amicable accepting your signature electronically through voice recording?</li>
+            </ul>
+            
+            <p className="mt-4 text-slate-600 italic">
+              Thank you very much for your application. It will now be submitted to the Home Office for consideration.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Verify Recording Button */}
       <button
         onClick={() =>
           onComplete({
             ...data,
-            id: `APP-${new Date().getFullYear()}-${Math.floor(
-              Math.random() * 10000
-            )}`,
+            id: `APP-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
             status: "Lead",
             date: new Date().toISOString().split("T")[0],
-            premium:
-              data.monthlyPremium || (data.faceAmount * 0.003).toFixed(2),
+            premium: data.monthlyPremium || (data.faceAmount * 0.003).toFixed(2),
             plan: data.planType,
             name: `${data.firstName} ${data.lastName}`,
           })
         }
-        className="w-full btn-accent py-3 text-base"
+        className="w-full btn-accent py-4 text-base flex items-center justify-center gap-2 font-bold"
       >
-        <CheckCircle size={20} />
-        Submit Application
+        <CheckCircle2 size={22} />
+        Click to verify recording has been received
       </button>
     </div>
   );
@@ -3357,8 +3658,8 @@ const CustomerForm = ({ onComplete }) => {
   const nextStep = () => setStep(Math.min(totalSteps, step + 1));
   const prevStep = () => setStep(Math.max(1, step - 1));
 
-  // Determine if this step should scroll (only health questions)
-  const isScrollableStep = step === 5;
+  // Determine if this step should scroll (health questions and voice recording)
+  const isScrollableStep = step === 5 || step === 9;
 
   return (
     <div
@@ -3392,6 +3693,7 @@ const CustomerForm = ({ onComplete }) => {
             {step === 6 && renderCoverageOptions()}
             {step === 7 && renderPayment()}
             {step === 8 && renderReview()}
+            {step === 9 && renderVoiceRecording()}
           </div>
         </div>
 
@@ -3399,13 +3701,14 @@ const CustomerForm = ({ onComplete }) => {
         <div className="flex justify-between items-center pt-2 shrink-0">
           <button
             onClick={prevStep}
-            disabled={step === 1}
+            disabled={step === 1 || step === 9}
             className="btn-ghost disabled:opacity-0"
           >
             <ChevronLeft size={20} /> Back
           </button>
 
-          {step < totalSteps && (
+          {/* Show Continue only for steps 1-7, step 8 has Run Automation button, step 9 has Complete button */}
+          {step < 8 && (
             <button onClick={nextStep} className="btn-primary">
               Continue <ChevronRight size={20} />
             </button>

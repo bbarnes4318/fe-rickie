@@ -1,0 +1,409 @@
+<html><span id="iproyal@@extension@@state" data-webrtc-protection="true" data-proxy-connected="false"></span><head><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>
+	WebApp
+</title>
+    <script src="../js/jquery.js"></script>
+    <script src="../js/formattingFields.js"></script>
+    <script src="../js/trigger.js?v=1.1"></script>
+    <script src="../js/intro.min.js"></script>
+    <link href="../css/introjs.min.css" rel="stylesheet"><link href="../css/appStyle.css?v=1.1" rel="stylesheet"><link href="../css/w3.css?v=1.1" rel="stylesheet"><link href="../css/fontawesome/css/font-awesome.min.css" rel="stylesheet">
+    <script src="../js/es6-promise.auto.min.js"></script>
+    <script src="../js/es6-promise.min.js"></script>
+    <script src="../js/html2canvas.min.js"></script>
+
+    <style>
+        form {
+            font-family: Arial, Roboto, 'Times New Roman';
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: flex-start;
+            margin: 10px auto;
+            flex-wrap: wrap;
+            align-items:flex-start;
+        }
+
+            .flex-container > div {
+                padding: 8px;
+            }
+
+            input[type=checkbox], input[type=radio]{
+                margin-right:3px;
+            }
+            .radioHorizontal label{
+                margin-right:10px;
+            }
+            .radioVertical li{
+                margin-bottom:8px;
+            }
+    </style>
+    <script> 
+        function reportBug() {
+            var captureElement = document.querySelector("#form1");
+
+            html2canvas(
+                captureElement, {
+                    scrollY: 0, x: 0, y: 0
+                }
+            ).then(function (canvas) {
+                var bugContent = document.getElementById("divReportBugContent");
+
+                var dataURL = canvas.toDataURL();
+                document.getElementById("hiddenScreenshot").value = dataURL;
+                document.getElementById("divReportBugModal").style.display = 'block';
+            });
+        }
+        function runDemo() {
+            introJs().setOption('showStepNumbers', 'false');
+            introJs().start();
+        }
+    </script>
+
+    
+
+    <link rel="stylesheet" href="css\custom-theme.css">
+    <link href="css/fontawesome/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        .w3-card-4, .w3-hover-shadow:hover {
+            margin: 8px 0px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) !important;
+        }
+
+        .w3-container {
+            padding: 0.01em 16px;
+        }
+
+        .w3-padding-right {
+            padding-right: 8px;
+        }
+
+        .w3-center {
+            text-align: center !important;
+        }
+
+        .w3-xlarge {
+            font-size: 24px !important;
+        }
+
+        .w3-btn-block {
+            width: 100%;
+        }
+
+        .w3-margin {
+            margin: 16px !important;
+        }
+
+        .w3-btn, .w3-btn-block {
+            border: none;
+            display: inline-block;
+            outline: 0;
+            padding: 6px 16px;
+            vertical-align: middle;
+            overflow: hidden;
+            text-decoration: none !important;
+            color: #fff;
+            background-color: #000;
+            text-align: center;
+            cursor: pointer;
+            white-space: nowrap;
+            background-color: #496D89;
+        }
+
+            .w3-btn-block:hover {
+                position: relative;
+                left: 1px;
+                top: 1px;
+            }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 8px;
+            
+        }
+
+        .row {
+            margin:0 auto;
+            display: table-row;
+            /*  flex-direction: row;
+            justify-content: space-around;
+            font-size: 1em;*/
+            align-items: baseline;
+            /*//align-content:space-evenly;*/
+        }
+
+            .row i {
+                margin:0 auto;
+                display: table-cell;
+                padding-left: 8px;
+                padding-right: 8px;
+                width: 65px;
+            }
+
+            .row span {
+                margin:0 auto;
+                display: table-cell;
+            }
+    </style>
+<style>
+				@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+			</style></head>
+<body>
+    <form method="post" action="./signatureoption.aspx?a=KLsck%2fxDAAo%3d" id="form1">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="AQ69zKvJhWRDRhisP0HMgDHRbFFo/CqsIatqQMQGVcOk4uCQWex5FXP0cIT8BTAv1fltJDa8lnKkbFaWmjZa6hIr3B48jEWB1wRIQf2gdWHEoIhPdy4RXqz8mx/5Q7oR9zl9Esr/5Sl5xtKJBdd/srW/6K6Por1VpySrDFOWuVX7UABhFm7Z6bNTdjnh8sCCS6lC21GWt0CdrVLeEsmJF5BQsm2yWQj+gTSYbSf1ygoYTRo6uKwhgXdqRWAkk1s15ibJsq09Y50hwaMGabigrNUqr2rigROP8afYzW4e/1OtWD1/Elk7OGFyYfFV8jIUm+dGzD1o1qOVHDVtB6sj4W2T2d/zUSC4ixQAkhaanJ2enHLrCv5ZefKyZKtQzyECKc32EZNOgB96KPRQfmuPN4IHz9yw5AyBneYBOMcH2iRIs7eKFkBtVDjnFCOrOjDtKEvcX82yL0I5Ush0y1yQPwr7519oJr8EnHcdQCcUq2L79JKo+mBthpBEE8RC8C3sIT/Eq+mVU8Ihpn0irAyqAaW3nHiSr3pqvoIzJG3Q/XPEzOM3L3H6B224cY0045zy1TJ82hBT31cc333Q4dWcif6zFyd2D2OVUo4b9GybPKtmBZxhQSD3CDir4bzifkTAsXY+2lQ8fwZ6WH+H6zEAytzRHbdAmBkNobYj37432Oc=">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/cgi/webappmobile/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZCWdgcUTcWPMa27w6vyhYnUdr4Kk0qkQ-gGyvuBUeonc_hBmHyjOCl085zQdrDvx6w2&amp;t=638901361900000000" type="text/javascript"></script>
+
+
+<script src="/cgi/webappmobile/ScriptResource.axd?d=NJmAwtEo3Ipnlaxl6CMhvvahZ_sJp1Z7YLDEV-v-ztZo2dgPYY43jTFc0yNn903XxKVYBH3-t7nb9TPrM8yMQQQuNZvYq7UXDIHoFkLpsFVtz4_QULf7fo10DRzFjScnt5FPOJj2GUDPIn8_NDPklnclSQRbNwONfgNpRvP3CDU1&amp;t=5c0e0825" type="text/javascript"></script>
+<script src="/cgi/webappmobile/ScriptResource.axd?d=dwY9oWetJoJoVpgL6Zq8OCbylTOF4BXRxChvvEqqkzQn9CZpxCehQdGEmOaBXAqRTl-9SgYwzdFbOIU0MNJoAAsWP_QPIU4EZy_l-urwOJRdJO-3SRxVM0pGSXT0Sn8W5XcAnHavVD5iimcBtufWfPZWF_y90saUPDnuCKvZcQE1&amp;t=5c0e0825" type="text/javascript"></script>
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="1186EBDD">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="jjr3eQAnkdkDiT9LARn/S3V2Lck/gLqgZxH3zrFe4wP+QfmiCFYM38bxt7TbAekt4ReUgQozUYXc0To0kNf/W/kq7kHMky9jIVjChYZ5P5Uf0ArugjeHncSeoDtk344aCMyi526ojL5CIzzb6SnUPEqh798NRg0Nyx1q5R7yZY2XT1gZbWL2UEDqbM0j+Qd+xqrEq1WkAACk5h7iSqdU0qMNCToqmoJZ7Vyo3MzkzPuRerCZOnthTm1zrzxYaQAHi2GH9xWcJQiMmFBb5aHDzw==">
+</div>
+        <input type="hidden" id="product" value="SC">
+        <input type="submit" name="ctl00$BtnSaveReturn" value="Save and Return to Applications Pending" id="BtnSaveReturn" class="btn" data-step="1" data-intro="Click here to save and return to the applications pending queue anytime." style="display: block; margin: 10px auto; max-width: 800px; text-align: center; align-content: center;">
+
+
+        <table class="Navigation w3-hide-small">
+            <tbody><tr>
+                <td>
+                    <b>Quote</b><br>
+                    <span id="QuoteLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Underwriting</b>
+                    <br>
+                    <span id="UnderwritingLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Personal Info</b><br>
+                    <span id="PersonalInfoLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Agent Statement</b><br>
+                    <span id="AgentStatementLabel" style="color:Green;">Complete</span>
+                </td>
+            </tr>
+        </tbody></table>
+
+        <div style="margin-bottom: 2px; text-align: left; width: 100%; display: block; margin-top: 8px; border-collapse: collapse;">
+
+            
+            <b>
+                <span id="ScreenAgentName">AMERICAN BENEFICIARY</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="CompanyHeader">American-Amicable</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="ProductHeader">Senior Choice (FE 50-85)</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="StateHeader">IL</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="CreatedDateHeader"><u>Created:</u> 1/2/2026 5:34:37 PM</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="AppNumberLabel" data-step="2" data-intro="The app number to be referenced in case of any issues is located here"><u>AppNumber:</u><span style="font-size:x-large"> M003111390</span></span></b>
+            <b>
+                <span id="lblInsuredInfo">Insured:JANE WILLIAMS</span></b>&nbsp;&nbsp;
+            <div style="background-color: white; width: 150px; padding: 5px; border: 1px solid black; border-radius: 10px; text-align: center; float: right;">
+                <span style="text-decoration: underline; cursor: pointer; color: blue;" onclick="runDemo()">Click Here for help</span> or <a href="../api/DocHandler.ashx?file=Generic-Mobile Application-FINAL.pdf" id="ClickHereLink" style="text-decoration: underline;" target="_blank">view our pdf documentation</a>
+            </div>
+
+        </div>
+
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', 'form1', [], [], [], 90, 'ctl00');
+//]]>
+</script>
+
+
+        
+
+        <div id="dataContent" style="border: 2px solid black; float: none; width: 100%; background: linear-gradient(to right, #718EA4 1%, white 15%, white 84%);">
+            <div style="max-width:1200px;margin:0 auto;">
+                
+    <div class="w3-container w3-center" style="max-width: 400px; margin: 0 auto;padding:16px;">
+        <div class="w3-card-4" style="padding:16px;">
+
+            <header class="w3-container w3-theme-dark">
+                <h2>Choose a Signature Option</h2>
+            </header>
+            <div class="container">
+                <button id="optionScreenSign" type="button" class="row w3-btn-block w3-theme w3-xlarge sigBtn" onclick="$('#BtnSignOnScreen').click();">
+                    <i class="fa fa-pencil"></i>
+                    <span>Sign on Screen</span>
+                </button>
+                <button id="optionEmailForSig" type="button" class="row w3-btn-block w3-theme w3-xlarge" onclick="$('#BtnEmailForSignature').click();">
+                    <i class="fa fa-envelope"></i>
+                    <span>Email</span>
+                </button>
+                <button id="optionVoiceUpload" type="button" class="row w3-btn-block w3-theme w3-xlarge" onclick="$('#BtnUploadVoiceSig').click();">
+                    <i class="fa fa-microphone"></i>
+                    <span>Voice Recording</span>
+
+                </button>
+                <button id="optionTextForSig" type="button" class="row w3-btn-block w3-theme w3-xlarge" onclick="$('#BtnSmsSignature').click();">
+                    <i class="fa fa-comment"></i>
+                    <span>Text Message</span></button>
+            </div>
+        </div>
+      
+
+        <input type="submit" name="ctl00$ContentPlaceHolderMain$BtnSignOnScreen" value="" id="BtnSignOnScreen" style="display: none;">
+        <input type="submit" name="ctl00$ContentPlaceHolderMain$BtnEmailForSignature" value="" id="BtnEmailForSignature" style="display: none;">
+        <input type="submit" name="ctl00$ContentPlaceHolderMain$BtnUploadVoiceSig" value="" id="BtnUploadVoiceSig" style="display: none;">
+        <input type="submit" name="ctl00$ContentPlaceHolderMain$BtnSmsSignature" value="" id="BtnSmsSignature" style="display: none;">
+
+    </div>
+      <div class="w3-card-4">
+          <div class="w3-container" style="background-color:white;">
+              <h2 style="color: red;">Warning, changing the signature method will delete any prior signatures captured on this app!</h2>
+          </div>
+      </div>
+
+
+            </div>
+            
+
+            
+
+            <br>
+            <br>
+            <br>
+        </div>
+
+        <div class="modal" id="divReportBugModal">
+            <div class="modal-content">
+                <button type="button" class="close" onclick="document.getElementById('divReportBugModal').style.display = 'none';">×</button>
+                <div id="divReportBugContent">
+                    <h3>Reporting an Issue</h3>
+                    <i>A screenshot has been captured of this page.</i>
+                    <p>Please provide a description of the issue to go along with the screenshot:</p>
+                    <textarea name="ctl00$txtIssueReport" rows="10" cols="50" id="txtIssueReport" style="width: 100%;"></textarea>
+                    <input type="hidden" name="ctl00$hiddenScreenshot" id="hiddenScreenshot">
+                    <br>
+                    <br>
+                    <input type="submit" name="ctl00$BtnSubmitIssue" value="Submit Issue" id="BtnSubmitIssue" class="btn">
+                </div>
+            </div>
+        </div>
+    
+
+<script type="text/javascript">
+//<![CDATA[
+
+       function setError(message) {
+    var errorContainer = document.getElementById('errorMessageContainer');
+
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'errorMessageContainer';
+
+        
+        errorContainer.style.position = 'relative';
+        errorContainer.style.width = '100%';
+        errorContainer.style.textAlign = 'center';
+        errorContainer.style.color = '#d8000c';
+        errorContainer.style.padding = '10px';
+        errorContainer.style.marginTop = '20px'; // Adds spacing from content
+       
+        document.body.appendChild(errorContainer);
+    }
+
+    errorContainer.textContent = message;
+}
+    function validateMentalHealthSelection() {
+        var container = document.getElementById('QuestMentalInfo');
+
+        
+        if (!container || window.getComputedStyle(container).display === 'none') {
+            
+            return true; // Skip validation if hidden
+        }
+
+        var checkboxes = container.querySelectorAll("input[type='checkbox']");
+        var isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+        if (!isChecked) {
+             setError('Please select at least one condition in the Mental Health Questionnaire.');
+            return false; 
+        }
+          var checkBoxOther = document.getElementById('MHQConditionsOther');
+          var textAreaOther = document.getElementById('OtherComments');
+
+        if (checkBoxOther && checkBoxOther.checked && textAreaOther && textAreaOther.value.trim() === '') {
+             setError('Please provide details in the Other comments section.');
+            textAreaOther.focus();
+            return false; 
+        }
+        return true;
+    }
+
+     document.addEventListener('DOMContentLoaded', function() {
+        var form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                var errorContainer = document.getElementById('errorMessageContainer');
+                if (errorContainer) {
+                    errorContainer.textContent = ''; 
+                }
+                
+                if (!validateMentalHealthSelection()) {
+                    event.preventDefault();
+                }
+            });
+        }
+    });
+    //]]>
+</script>
+</form>
+    
+        <script>
+            function HasError() {
+                var isValid = Page_ClientValidate();
+                if (!isValid) {
+                    var spans = document.getElementsByClassName("requiredField");
+                    for (let i = 0; i < spans.length; i++) { if (spans[i].style.display.toLowerCase() != 'none') {  window.scrollTo(0,window.scrollY + spans[i].getBoundingClientRect().top ); break; } }
+                }
+                return !isValid;
+                
+            }
+            
+        </script>
+    
+
+
+
+
+
+
+</body></html>
