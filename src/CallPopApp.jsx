@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Phone, Bell, Copy, ExternalLink, FileText, User, LogIn, CheckCircle, X, Mic, MicOff, Pause, Play, Users, PhoneForwarded, PhoneOff, Circle, Settings, Clock, Plus, Hash, Delete, PhoneIncoming, PhoneCall, UserPlus, Headphones, Shield, RefreshCw } from 'lucide-react';
+import { Phone, Bell, Copy, ExternalLink, FileText, User, LogIn, CheckCircle, X, Mic, MicOff, Pause, Play, Users, PhoneForwarded, PhoneOff, Circle, Settings, Clock, Plus, Hash, Delete, PhoneIncoming, PhoneCall, UserPlus, Headphones, Shield, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import ScreenPopDisplay from './ScreenPopDisplay';
 import WebhookHandler from './WebhookHandler';
 import { POST_FIELD_DEFINITIONS } from './types';
 import { api } from './api';
 import IntegratedScriptPanel from './IntegratedScriptPanel';
+import './styles/colors.css';
 
 // Health question tooltips - full question text for Q1-Q8
 const HEALTH_QUESTIONS = {
@@ -92,6 +93,8 @@ const CallPopApp = () => {
   const [loadingApplications, setLoadingApplications] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [activeCallView, setActiveCallView] = useState('script'); // 'script' | 'data'
+  const [showEndCallConfirm, setShowEndCallConfirm] = useState(false); // End Call confirmation dialog
+  const [expandedQuickInfo, setExpandedQuickInfo] = useState(false); // Progressive disclosure for QuickInfo
   const callTimerRef = useRef(null);
   const notesAutoSaveRef = useRef(null);
 
@@ -612,6 +615,10 @@ const CallPopApp = () => {
             0% { transform: scale(0.8); opacity: 1; }
             100% { transform: scale(1.4); opacity: 0; }
           }
+          @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 200px; }
+          }
           .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
           .pulse-ring::before {
             content: '';
@@ -625,6 +632,9 @@ const CallPopApp = () => {
             background: rgba(19, 19, 26, 0.8);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          .animate-slideDown {
+            animation: slideDown 200ms ease-out;
           }
         `}</style>
 
@@ -850,16 +860,49 @@ const CallPopApp = () => {
                     </div>
                   )}
 
-                  {/* Hang Up Button */}
+                  {/* End Call Button - De-emphasized with Confirmation */}
                   <div className="mt-auto">
                     <button
-                      onClick={handleHangup}
-                      className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors shadow-lg shadow-red-500/30"
+                      onClick={() => setShowEndCallConfirm(true)}
+                      className="w-full py-3 text-white font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors border border-[var(--border-standard)]"
+                      style={{ 
+                        backgroundColor: 'var(--btn-end-call)',
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--btn-end-call-hover)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--btn-end-call)'}
                     >
                       <PhoneOff className="w-5 h-5" />
                       <span>End Call</span>
                     </button>
                   </div>
+
+                  {/* End Call Confirmation Modal */}
+                  {showEndCallConfirm && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                      <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-[var(--border-subtle)]">
+                        <h3 className="text-lg font-bold text-white mb-2">End Call?</h3>
+                        <p className="text-gray-400 text-sm mb-6">Are you sure you want to end this call?</p>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => setShowEndCallConfirm(false)}
+                            autoFocus
+                            className="flex-1 py-2.5 bg-[var(--bg-tertiary)] hover:bg-[var(--border-standard)] text-white rounded-lg font-medium transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowEndCallConfirm(false);
+                              handleHangup();
+                            }}
+                            className="flex-1 py-2.5 bg-[#E74C3C] hover:bg-[#C0392B] text-white rounded-lg font-medium transition-colors"
+                          >
+                            Yes, End Call
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1066,7 +1109,13 @@ const CallPopApp = () => {
                       </div>
                       <div className="glass-panel rounded-xl p-3">
                         <h3 className="text-xs font-bold text-emerald-400 mb-2">Quick Info</h3>
+                        
+                        {/* Tier 1: Always Visible - Essential info only */}
                         <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Customer:</span>
+                            <span className="text-white font-medium">{activeCallData?.first_name || activeCallData?.firstName} {activeCallData?.last_name || activeCallData?.lastName}</span>
+                          </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">Coverage:</span>
                             <span className="text-emerald-400 font-bold">${(activeCallData?.faceAmount || 0).toLocaleString()}</span>
@@ -1076,14 +1125,47 @@ const CallPopApp = () => {
                             <span className="text-white">${activeCallData?.premium || activeCallData?.monthlyPremium || '—'}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">Carrier:</span>
-                            <span className="text-white">{activeCallData?.carrier || 'TBD'}</span>
-                          </div>
-                          <div className="flex justify-between">
                             <span className="text-gray-500">Beneficiary:</span>
                             <span className="text-cyan-400">{activeCallData?.primaryBenName || activeCallData?.beneficiary || 'N/A'}</span>
                           </div>
                         </div>
+                        
+                        {/* Tier 2: Expandable - Secondary info */}
+                        <button
+                          onClick={() => setExpandedQuickInfo(!expandedQuickInfo)}
+                          className="w-full mt-2 py-1.5 text-xs text-gray-400 hover:text-white flex items-center justify-center gap-1 border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--bg-tertiary)] transition-all"
+                        >
+                          {expandedQuickInfo ? (
+                            <>
+                              <ChevronUp className="w-3 h-3" />
+                              Less details
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="w-3 h-3" />
+                              More details
+                            </>
+                          )}
+                        </button>
+                        
+                        {expandedQuickInfo && (
+                          <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] space-y-1 text-xs animate-slideDown">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Carrier:</span>
+                              <span className="text-white">{activeCallData?.carrier || 'TBD'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Plan Type:</span>
+                              <span className="text-white">{activeCallData?.planType || activeCallData?.plan || 'TBD'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">State:</span>
+                              <span className="text-white">{activeCallData?.state || 'N/A'}</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Tier 3: Hidden from agents (webhook, system IDs) - NOT shown */}
                       </div>
                     </div>
                   </div>

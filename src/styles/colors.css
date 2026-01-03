@@ -1,0 +1,150 @@
+/* ==========================================================================
+   AGENT DIALER COLOR SYSTEM - Solarized Based
+   ========================================================================== 
+   
+   WCAG 2.1 AA Compliant | Material Design Dark Mode Standards
+   All components should use these CSS variables, no hardcoded colors.
+*/
+
+:root {
+  /* =========================================================================
+     PRIMITIVE COLORS (DO NOT USE DIRECTLY IN COMPONENTS)
+     ========================================================================= */
+  
+  /* Solarized Base Palette */
+  --color-sol-base03: #002B36;    /* Darkest - Primary background */
+  --color-sol-base02: #073642;    /* Dark - Secondary background */
+  --color-sol-base01: #586E75;    /* Medium gray */
+  --color-sol-base00: #657B83;    /* Lighter gray */
+  --color-sol-base0:  #839496;    /* Light gray text */
+  --color-sol-base1:  #93A1A1;    /* Lighter gray text */
+  --color-sol-base2:  #EEE8D5;    /* Light cream */
+  --color-sol-base3:  #FDF6E3;    /* Lightest cream - High contrast text */
+  
+  /* Accent Colors (Semantic meaning) */
+  --color-green-soft: #2ECC71;    /* Status: Connected, Success */
+  --color-blue-calm: #3498DB;     /* Primary accent, focus states */
+  --color-orange-warn: #E67E22;   /* Warnings (NOT red) */
+  --color-gray-dark: #34495E;     /* De-emphasized actions (End Call) */
+  --color-gray-darker: #2C3E50;   /* Hover state for dark gray */
+
+  /* =========================================================================
+     SEMANTIC TOKENS (USE THESE IN COMPONENTS)
+     ========================================================================= */
+  
+  /* Backgrounds */
+  --bg-primary: var(--color-sol-base03);      /* #002B36 - Main app background */
+  --bg-secondary: var(--color-sol-base02);    /* #073642 - Panels, cards */
+  --bg-tertiary: var(--color-sol-base01);     /* #586E75 - Hover states */
+  --bg-light: var(--color-sol-base3);         /* #FDF6E3 - Script area (light for reading) */
+  --bg-warning: rgba(230, 126, 34, 0.15);     /* Orange with 15% opacity */
+  
+  /* Text Colors */
+  --text-primary: var(--color-sol-base3);     /* #FDF6E3 - Light cream on dark */
+  --text-secondary: var(--color-sol-base1);   /* #93A1A1 - Lighter gray */
+  --text-tertiary: var(--color-sol-base0);    /* #839496 - Medium gray */
+  --text-dark: var(--color-sol-base03);       /* #002B36 - For light backgrounds */
+  --text-inverse: var(--color-sol-base3);     /* Light text on dark */
+  
+  /* Button Colors */
+  --btn-end-call: var(--color-gray-dark);     /* #34495E - Dark gray, NOT red */
+  --btn-end-call-hover: var(--color-gray-darker); /* #2C3E50 - Darker on hover */
+  --btn-primary: var(--color-blue-calm);      /* #3498DB */
+  --btn-primary-hover: #2980B9;               /* Darker blue on hover */
+  
+  /* Status Indicators */
+  --status-connected: var(--color-green-soft);/* #2ECC71 */
+  --status-disconnected: #95A5A6;             /* Gray */
+  --status-on-hold: #F39C12;                  /* Amber */
+  
+  /* Borders & Dividers */
+  --border-subtle: rgba(147, 161, 161, 0.2);  /* Light border, low opacity */
+  --border-standard: rgba(147, 161, 161, 0.4);/* Medium border */
+  --border-strong: rgba(147, 161, 161, 0.6);  /* Strong border */
+  
+  /* Script Area (Light Mode for Readability) */
+  --script-bg: var(--color-sol-base3);        /* #FDF6E3 - Cream background */
+  --script-text: var(--color-sol-base03);     /* #002B36 - Dark text */
+  --script-accent: var(--color-blue-calm);    /* Highlights */
+  
+  /* Semantic Highlighting (for compliance scripts) */
+  --script-highlight-compliance: #E3F2FD;     /* Light blue background */
+  --script-highlight-compliance-border: #3498DB;
+  --script-highlight-action: #FFFACD;         /* Light yellow */
+  --script-highlight-action-border: #F39C12;
+  --script-highlight-decision: #F0F8F0;       /* Light green */
+  --script-highlight-decision-border: #2ECC71;
+  --script-highlight-warning: #FFF8DC;        /* Light orange - NOT RED */
+  --script-highlight-warning-border: #E67E22;
+  
+  /* Typography */
+  --font-serif: 'Georgia', 'Charter', 'Garamond', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Monaco', 'Courier New', monospace;
+  
+  /* Spacing (for consistency) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-base: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+}
+
+/* =========================================================================
+   UTILITY CLASSES FOR SEMANTIC HIGHLIGHTING
+   ========================================================================= */
+
+.highlight-compliance {
+  background-color: var(--script-highlight-compliance);
+  border-left: 3px solid var(--script-highlight-compliance-border);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.highlight-action {
+  background-color: var(--script-highlight-action);
+  border-left: 3px solid var(--script-highlight-action-border);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.highlight-decision {
+  background-color: var(--script-highlight-decision);
+  border-left: 3px solid var(--script-highlight-decision-border);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.highlight-warning {
+  background-color: var(--script-highlight-warning);
+  border-left: 3px solid var(--script-highlight-warning-border);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* =========================================================================
+   END CALL BUTTON - DE-EMPHASIZED (Dark Gray instead of Red)
+   ========================================================================= */
+
+.btn-end-call {
+  background-color: var(--btn-end-call) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-standard) !important;
+}
+
+.btn-end-call:hover {
+  background-color: var(--btn-end-call-hover) !important;
+}
