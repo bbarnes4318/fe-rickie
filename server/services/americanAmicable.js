@@ -1244,6 +1244,35 @@ export const runAmericanAmicableAutomation = async (data) => {
     }
     
     // ═══════════════════════════════════════════════════════════════════════
+    // CLICK VALIDATE BANK ACCOUNT BUTTON
+    // ═══════════════════════════════════════════════════════════════════════
+    // This MUST be clicked before Continue to Agent Statement, otherwise the 
+    // onclick handler blocks: onclick="if (HasError() || IsValidatedBankInfo()) return false;"
+    console.log('[Automation] Looking for Validate Bank Account button...');
+    try {
+      // Button HTML: <input type="button" id="btValidateBankInfo" value="Validate Bank Account" class="btn">
+      const validateBtn = await page.$('#btValidateBankInfo');
+      if (validateBtn) {
+        await validateBtn.click();
+        console.log('[Automation] ✓ Clicked Validate Bank Account button');
+        // Wait for validation to complete
+        await new Promise(r => setTimeout(r, 3000));
+      } else {
+        // Try by value
+        const validateBtnByValue = await page.$('input[value="Validate Bank Account"]');
+        if (validateBtnByValue) {
+          await validateBtnByValue.click();
+          console.log('[Automation] ✓ Clicked Validate Bank Account button (by value)');
+          await new Promise(r => setTimeout(r, 3000));
+        } else {
+          console.log('[Automation] ⚠ Validate Bank Account button not found');
+        }
+      }
+    } catch (e) {
+      console.log('[Automation] Error clicking Validate Bank Account:', e.message);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
     // CLICK CONTINUE TO AGENT STATEMENT BUTTON
     // ═══════════════════════════════════════════════════════════════════════
     console.log('[Automation] Looking for Continue to Agent Statement button...');
