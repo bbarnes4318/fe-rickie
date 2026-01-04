@@ -2135,6 +2135,7 @@ const CustomerForm = ({ onComplete }) => {
   const [filterPlanType, setFilterPlanType] = useState("All");
   const [automationLoading, setAutomationLoading] = useState(false);
   const [automationError, setAutomationError] = useState(null);
+  const [automationSteps, setAutomationSteps] = useState([]); // Live status steps from SSE
   const [showVoiceScript, setShowVoiceScript] = useState(false);
   const totalSteps = 9;
 
@@ -3339,6 +3340,9 @@ const CustomerForm = ({ onComplete }) => {
     const handleRunAutomation = async () => {
       setAutomationLoading(true);
       setAutomationError(null);
+      setAutomationSteps([]); // Clear previous steps
+      
+      let eventSource = null;
       
       try {
         // Prepare form data for automation
@@ -3391,8 +3395,29 @@ const CustomerForm = ({ onComplete }) => {
           ilDesigneeChoice: data.ilDesigneeChoice,
         };
         
-        // Run the automation
+        // Run the automation - this returns jobId for SSE subscription
         const result = await api.runAutomation(formData);
+        
+        // Subscribe to SSE for live status updates
+        if (result.jobId) {
+          eventSource = api.subscribeToAutomationStatus(
+            result.jobId,
+            (statusUpdate) => {
+              // Add new status to the steps array
+              if (statusUpdate.step && statusUpdate.message) {
+                setAutomationSteps((prev) => {
+                  // Avoid duplicates
+                  const exists = prev.some(s => s.step === statusUpdate.step && s.message === statusUpdate.message);
+                  if (exists) return prev;
+                  return [...prev, statusUpdate];
+                });
+              }
+            },
+            (error) => {
+              console.error('SSE error:', error);
+            }
+          );
+        }
         
         if (result.success && result.applicationNumber) {
           // Update data with the captured application number
@@ -3407,6 +3432,10 @@ const CustomerForm = ({ onComplete }) => {
         setAutomationError(error.message);
       } finally {
         setAutomationLoading(false);
+        // Clean up SSE connection
+        if (eventSource) {
+          eventSource.close();
+        }
       }
     };
     
@@ -3457,32 +3486,77 @@ const CustomerForm = ({ onComplete }) => {
               value={data.draftDate}
               copyable={false}
             />
-          </div>
+        </div>
         </div>
 
-        {automationError && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl flex items-center gap-3 mb-4">
-            <AlertTriangle size={18} /> {automationError}
+        {/* Live Status Panel - Shows during and after automation */}
+        {(automationLoading || automationSteps.length > 0) && (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+            <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+              <Activity size={16} className="text-cyan-600" />
+              Application Submission Progress
+            </h4>
+            <div className="space-y-2">
+              {automationSteps.map((stepData, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-sm">
+                  {stepData.status === 'completed' ? (
+                    <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+                  ) : stepData.status === 'failed' ? (
+                    <XCircle size={16} className="text-red-500 shrink-0" />
+                  ) : (
+                    <RefreshCw size={16} className="text-cyan-500 animate-spin shrink-0" />
+                  )}
+                  <span className={stepData.status === 'failed' ? 'text-red-600' : 'text-slate-600'}>
+                    {stepData.message}
+                  </span>
+                </div>
+              ))}
+              {automationLoading && automationSteps.length === 0 && (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <RefreshCw size={16} className="text-cyan-500 animate-spin" />
+                  Connecting to automation service...
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        <button
-          onClick={handleRunAutomation}
-          disabled={automationLoading}
-          className="w-full btn-accent py-3 text-base flex items-center justify-center gap-2"
-        >
-          {automationLoading ? (
-            <>
-              <RefreshCw size={20} className="animate-spin" />
-              Running Automation...
-            </>
-          ) : (
-            <>
-              <Zap size={20} />
-              Run Carrier Application
-            </>
-          )}
-        </button>
+        {/* Error Message with Retry Button */}
+        {automationError && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl mb-4">
+            <div className="flex items-center gap-3 text-red-600 text-sm mb-3">
+              <AlertTriangle size={18} /> {automationError}
+            </div>
+            <button
+              onClick={handleRunAutomation}
+              className="w-full bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition"
+            >
+              <RefreshCw size={16} />
+              Retry Automation
+            </button>
+          </div>
+        )}
+
+        {/* Primary Action Button */}
+        {!automationError && (
+          <button
+            onClick={handleRunAutomation}
+            disabled={automationLoading}
+            className="w-full btn-accent py-3 text-base flex items-center justify-center gap-2"
+          >
+            {automationLoading ? (
+              <>
+                <RefreshCw size={20} className="animate-spin" />
+                Running Automation...
+              </>
+            ) : (
+              <>
+                <Zap size={20} />
+                {automationSteps.length > 0 ? 'Retry Automation' : 'Run Carrier Application'}
+              </>
+            )}
+          </button>
+        )}
       </div>
     );
   };

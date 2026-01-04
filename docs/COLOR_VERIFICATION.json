@@ -1,0 +1,607 @@
+{
+  "timestamp": "2026-01-03T18:32:14.586Z",
+  "colorsFile": {
+    "exists": true,
+    "variableCount": 104,
+    "primitives": [
+      {
+        "name": "--color-sol-base03",
+        "value": "#002B36"
+      },
+      {
+        "name": "--color-sol-base02",
+        "value": "#073642"
+      },
+      {
+        "name": "--color-sol-base01",
+        "value": "#586E75"
+      },
+      {
+        "name": "--color-sol-base00",
+        "value": "#657B83"
+      },
+      {
+        "name": "--color-sol-base0",
+        "value": "#839496"
+      },
+      {
+        "name": "--color-sol-base1",
+        "value": "#93A1A1"
+      },
+      {
+        "name": "--color-sol-base2",
+        "value": "#EEE8D5"
+      },
+      {
+        "name": "--color-sol-base3",
+        "value": "#FDF6E3"
+      },
+      {
+        "name": "--color-green-soft",
+        "value": "#2ECC71"
+      },
+      {
+        "name": "--color-blue-calm",
+        "value": "#3498DB"
+      },
+      {
+        "name": "--color-orange-warn",
+        "value": "#E67E22"
+      },
+      {
+        "name": "--color-gray-dark",
+        "value": "#34495E"
+      },
+      {
+        "name": "--color-gray-darker",
+        "value": "#2C3E50"
+      },
+      {
+        "name": "--color-cyan",
+        "value": "#22d3ee"
+      },
+      {
+        "name": "--color-emerald",
+        "value": "#10b981"
+      },
+      {
+        "name": "--color-purple",
+        "value": "#c084fc"
+      },
+      {
+        "name": "--color-yellow",
+        "value": "#fde047"
+      },
+      {
+        "name": "--color-red-light",
+        "value": "#fca5a5"
+      },
+      {
+        "name": "--color-red-strong",
+        "value": "#ef4444"
+      },
+      {
+        "name": "--color-cyan-500",
+        "value": "#06b6d4"
+      }
+    ],
+    "semanticTokens": [
+      {
+        "name": "--wizard-blue-50",
+        "value": "#eff6ff"
+      },
+      {
+        "name": "--wizard-blue-100",
+        "value": "#dbeafe"
+      },
+      {
+        "name": "--wizard-blue-500",
+        "value": "#3b82f6"
+      },
+      {
+        "name": "--wizard-blue-600",
+        "value": "#2563eb"
+      },
+      {
+        "name": "--wizard-blue-700",
+        "value": "#1d4ed8"
+      },
+      {
+        "name": "--wizard-emerald-50",
+        "value": "#ecfdf5"
+      },
+      {
+        "name": "--wizard-emerald-500",
+        "value": "#10b981"
+      },
+      {
+        "name": "--wizard-emerald-600",
+        "value": "#059669"
+      },
+      {
+        "name": "--wizard-amber-50",
+        "value": "#fffbeb"
+      },
+      {
+        "name": "--wizard-amber-100",
+        "value": "#fef3c7"
+      },
+      {
+        "name": "--wizard-amber-500",
+        "value": "#f59e0b"
+      },
+      {
+        "name": "--wizard-amber-600",
+        "value": "#d97706"
+      },
+      {
+        "name": "--wizard-red-50",
+        "value": "#fef2f2"
+      },
+      {
+        "name": "--wizard-red-500",
+        "value": "#ef4444"
+      },
+      {
+        "name": "--wizard-red-600",
+        "value": "#dc2626"
+      },
+      {
+        "name": "--wizard-slate-50",
+        "value": "#f8fafc"
+      },
+      {
+        "name": "--wizard-slate-100",
+        "value": "#f1f5f9"
+      },
+      {
+        "name": "--wizard-slate-200",
+        "value": "#e2e8f0"
+      },
+      {
+        "name": "--wizard-slate-300",
+        "value": "#cbd5e1"
+      },
+      {
+        "name": "--wizard-slate-400",
+        "value": "#94a3b8"
+      },
+      {
+        "name": "--wizard-slate-500",
+        "value": "#64748b"
+      },
+      {
+        "name": "--wizard-slate-600",
+        "value": "#475569"
+      },
+      {
+        "name": "--wizard-slate-700",
+        "value": "#334155"
+      },
+      {
+        "name": "--wizard-slate-800",
+        "value": "#1e293b"
+      },
+      {
+        "name": "--wizard-slate-900",
+        "value": "#0f172a"
+      },
+      {
+        "name": "--wizard-purple-50",
+        "value": "#f3e8ff"
+      },
+      {
+        "name": "--wizard-purple-500",
+        "value": "#a855f7"
+      },
+      {
+        "name": "--wizard-purple-700",
+        "value": "#7c3aed"
+      },
+      {
+        "name": "--bg-app",
+        "value": "#0a0a0f"
+      },
+      {
+        "name": "--bg-header",
+        "value": "#13131a"
+      },
+      {
+        "name": "--bg-panel",
+        "value": "#1e1e2e"
+      },
+      {
+        "name": "--bg-hover",
+        "value": "#2e2e3e"
+      },
+      {
+        "name": "--bg-primary",
+        "value": "var(--color-sol-base03)"
+      },
+      {
+        "name": "--bg-secondary",
+        "value": "var(--color-sol-base02)"
+      },
+      {
+        "name": "--bg-tertiary",
+        "value": "var(--color-sol-base01)"
+      },
+      {
+        "name": "--bg-light",
+        "value": "var(--color-sol-base3)"
+      },
+      {
+        "name": "--bg-warning",
+        "value": "rgba(230, 126, 34, 0.15)"
+      },
+      {
+        "name": "--text-primary",
+        "value": "var(--color-sol-base3)"
+      },
+      {
+        "name": "--text-secondary",
+        "value": "var(--color-sol-base1)"
+      },
+      {
+        "name": "--text-tertiary",
+        "value": "var(--color-sol-base0)"
+      },
+      {
+        "name": "--text-dark",
+        "value": "var(--color-sol-base03)"
+      },
+      {
+        "name": "--text-inverse",
+        "value": "var(--color-sol-base3)"
+      },
+      {
+        "name": "--btn-end-call",
+        "value": "var(--color-gray-dark)"
+      },
+      {
+        "name": "--btn-end-call-hover",
+        "value": "var(--color-gray-darker)"
+      },
+      {
+        "name": "--btn-primary",
+        "value": "var(--color-blue-calm)"
+      },
+      {
+        "name": "--btn-primary-hover",
+        "value": "#2980B9"
+      },
+      {
+        "name": "--status-connected",
+        "value": "var(--color-green-soft)"
+      },
+      {
+        "name": "--status-disconnected",
+        "value": "#95A5A6"
+      },
+      {
+        "name": "--status-on-hold",
+        "value": "#F39C12"
+      },
+      {
+        "name": "--border-subtle",
+        "value": "rgba(147, 161, 161, 0.2)"
+      },
+      {
+        "name": "--border-standard",
+        "value": "rgba(147, 161, 161, 0.4)"
+      },
+      {
+        "name": "--border-strong",
+        "value": "rgba(147, 161, 161, 0.6)"
+      },
+      {
+        "name": "--script-bg",
+        "value": "var(--color-sol-base3)"
+      },
+      {
+        "name": "--script-text",
+        "value": "var(--color-sol-base03)"
+      },
+      {
+        "name": "--script-accent",
+        "value": "var(--color-blue-calm)"
+      },
+      {
+        "name": "--script-highlight-compliance",
+        "value": "#E3F2FD"
+      },
+      {
+        "name": "--script-highlight-compliance-hover",
+        "value": "#BBDEFB"
+      },
+      {
+        "name": "--script-highlight-compliance-border",
+        "value": "#3498DB"
+      },
+      {
+        "name": "--script-highlight-action",
+        "value": "#FFFACD"
+      },
+      {
+        "name": "--script-highlight-action-hover",
+        "value": "#FFF8A8"
+      },
+      {
+        "name": "--script-highlight-action-border",
+        "value": "#F39C12"
+      },
+      {
+        "name": "--script-highlight-decision",
+        "value": "#F0F8F0"
+      },
+      {
+        "name": "--script-highlight-decision-hover",
+        "value": "#E8F5E9"
+      },
+      {
+        "name": "--script-highlight-decision-border",
+        "value": "#2ECC71"
+      },
+      {
+        "name": "--script-highlight-warning",
+        "value": "#FFF8DC"
+      },
+      {
+        "name": "--script-highlight-warning-hover",
+        "value": "#FFEED8"
+      },
+      {
+        "name": "--script-highlight-warning-border",
+        "value": "#E67E22"
+      },
+      {
+        "name": "--font-serif",
+        "value": "'Georgia', 'Charter', 'Garamond', serif"
+      },
+      {
+        "name": "--font-sans",
+        "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      },
+      {
+        "name": "--font-mono",
+        "value": "'Monaco', 'Courier New', monospace"
+      },
+      {
+        "name": "--space-1",
+        "value": "4px"
+      },
+      {
+        "name": "--space-2",
+        "value": "8px"
+      },
+      {
+        "name": "--space-3",
+        "value": "12px"
+      },
+      {
+        "name": "--space-4",
+        "value": "16px"
+      },
+      {
+        "name": "--space-6",
+        "value": "24px"
+      },
+      {
+        "name": "--space-8",
+        "value": "32px"
+      },
+      {
+        "name": "--radius-sm",
+        "value": "4px"
+      },
+      {
+        "name": "--radius-base",
+        "value": "8px"
+      },
+      {
+        "name": "--radius-md",
+        "value": "12px"
+      },
+      {
+        "name": "--radius-lg",
+        "value": "16px"
+      },
+      {
+        "name": "--radius-xl",
+        "value": "24px"
+      },
+      {
+        "name": "--transition-fast",
+        "value": "150ms ease"
+      },
+      {
+        "name": "--transition-normal",
+        "value": "200ms ease"
+      },
+      {
+        "name": "--transition-slow",
+        "value": "300ms ease"
+      }
+    ],
+    "errors": [
+      "Semantic token --font-serif does not reference a primitive variable: 'Georgia', 'Charter', 'Garamond', serif",
+      "Semantic token --font-sans does not reference a primitive variable: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "Semantic token --font-mono does not reference a primitive variable: 'Monaco', 'Courier New', monospace",
+      "Semantic token --space-1 does not reference a primitive variable: 4px",
+      "Semantic token --space-2 does not reference a primitive variable: 8px",
+      "Semantic token --space-3 does not reference a primitive variable: 12px",
+      "Semantic token --space-4 does not reference a primitive variable: 16px",
+      "Semantic token --space-6 does not reference a primitive variable: 24px",
+      "Semantic token --space-8 does not reference a primitive variable: 32px",
+      "Semantic token --radius-sm does not reference a primitive variable: 4px",
+      "Semantic token --radius-base does not reference a primitive variable: 8px",
+      "Semantic token --radius-md does not reference a primitive variable: 12px",
+      "Semantic token --radius-lg does not reference a primitive variable: 16px",
+      "Semantic token --radius-xl does not reference a primitive variable: 24px",
+      "Semantic token --transition-fast does not reference a primitive variable: 150ms ease",
+      "Semantic token --transition-normal does not reference a primitive variable: 200ms ease",
+      "Semantic token --transition-slow does not reference a primitive variable: 300ms ease"
+    ]
+  },
+  "components": {
+    "filesChecked": 47,
+    "violations": [],
+    "allowedExceptions": [
+      {
+        "file": "src\\CallPopApp.jsx",
+        "color": "#E74C3C",
+        "position": 103148
+      },
+      {
+        "file": "src\\CallPopApp.jsx",
+        "color": "#C0392B",
+        "position": 103167
+      },
+      {
+        "file": "src\\components\\AgentDashboardV2\\AgentDashboardV2.module.css",
+        "color": "#0a0a0f (var fallback)",
+        "position": 268
+      },
+      {
+        "file": "src\\components\\AgentDashboardV2\\AgentDashboardV2.module.css",
+        "color": "#1e1e2e (var fallback)",
+        "position": 816
+      },
+      {
+        "file": "src\\components\\AgentDashboardV2\\AgentDashboardV2.module.css",
+        "color": "#93a1a1 (var fallback)",
+        "position": 900
+      },
+      {
+        "file": "src\\components\\AgentDashboardV2\\AgentDashboardV2.module.css",
+        "color": "#22d3ee (var fallback)",
+        "position": 1518
+      },
+      {
+        "file": "src\\components\\AgentDashboardV2\\AgentDashboardV2.module.css",
+        "color": "#1e1e2e (var fallback)",
+        "position": 1674
+      },
+      {
+        "file": "src\\components\\AgentDashboardV2\\AgentDashboardV2.module.css",
+        "color": "#2e2e3e (var fallback)",
+        "position": 1721
+      },
+      {
+        "file": "src\\components\\AgentDashboardV2\\AgentDashboardV2.module.css",
+        "color": "#22d3ee (var fallback)",
+        "position": 1973
+      },
+      {
+        "file": "src\\components\\AgentDashboardV2\\AgentDashboardV2.module.css",
+        "color": "#93a1a1 (var fallback)",
+        "position": 2051
+      },
+      {
+        "file": "src\\components\\ScriptHighlighter\\ScriptHighlighter.module.css",
+        "color": "#E3F2FD (var fallback)",
+        "position": 425
+      },
+      {
+        "file": "src\\components\\ScriptHighlighter\\ScriptHighlighter.module.css",
+        "color": "#3498DB (var fallback)",
+        "position": 503
+      },
+      {
+        "file": "src\\components\\ScriptHighlighter\\ScriptHighlighter.module.css",
+        "color": "#F39C12 (var fallback)",
+        "position": 840
+      },
+      {
+        "file": "src\\components\\ScriptHighlighter\\ScriptHighlighter.module.css",
+        "color": "#2ECC71 (var fallback)",
+        "position": 1180
+      },
+      {
+        "file": "src\\components\\ScriptHighlighter\\ScriptHighlighter.module.css",
+        "color": "#E67E22 (var fallback)",
+        "position": 1512
+      },
+      {
+        "file": "src\\index.css",
+        "color": "#ea580c (var fallback)",
+        "position": 13964
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#0ff",
+        "position": 10997
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#f00",
+        "position": 11083
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#fff",
+        "position": 11096
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#0ff",
+        "position": 11249
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#0f0",
+        "position": 11866
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#0f0",
+        "position": 12138
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#0f0",
+        "position": 12332
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#000",
+        "position": 12345
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#f00",
+        "position": 12456
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#fff",
+        "position": 12469
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#f00",
+        "position": 12626
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#fff",
+        "position": 12639
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#ff0",
+        "position": 13876
+      },
+      {
+        "file": "src\\IntegratedScriptPanel.jsx",
+        "color": "#000",
+        "position": 13889
+      }
+    ]
+  },
+  "summary": {
+    "status": "PASS",
+    "totalViolations": 0,
+    "message": "All color checks passed"
+  }
+}

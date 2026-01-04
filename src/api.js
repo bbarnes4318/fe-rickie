@@ -82,5 +82,33 @@ export const api = {
       throw new Error(error.error || 'Automation failed');
     }
     return res.json();
+  },
+
+  // Subscribe to automation status updates via SSE
+  subscribeToAutomationStatus(jobId, onMessage, onError) {
+    // Build SSE URL - use the same base as API but without the /api prefix for SSE
+    const sseUrl = import.meta.env.DEV 
+      ? `http://localhost:3001/api/automation/status/${jobId}`
+      : `/api/automation/status/${jobId}`;
+    
+    const eventSource = new EventSource(sseUrl);
+    
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        onMessage(data);
+      } catch (e) {
+        console.error('Error parsing SSE message:', e);
+      }
+    };
+    
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      if (onError) onError(error);
+      eventSource.close();
+    };
+    
+    // Return the eventSource so caller can close it when done
+    return eventSource;
   }
 };

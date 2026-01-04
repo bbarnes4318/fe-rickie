@@ -1,5 +1,6 @@
 
 import puppeteer from 'puppeteer';
+import { emitStatus } from './automationStatus.js';
 
 const STATE_MAPPING = {
   "Alaska": "AASCAKSM0010001163940",
@@ -46,7 +47,10 @@ const STATE_MAPPING = {
   "Wyoming": "AASCWYSM0010001163940"
 };
 
-export const runAmericanAmicableAutomation = async (data) => {
+// Total automation steps for progress tracking
+const TOTAL_STEPS = 12;
+
+export const runAmericanAmicableAutomation = async (data, jobId = null) => {
   // Extract all customer data from formData
   const {
     state,
@@ -118,6 +122,13 @@ export const runAmericanAmicableAutomation = async (data) => {
   
   let browser = null;
   const logTs = () => new Date().toISOString();
+  
+  // Helper to emit status if jobId provided
+  const updateStatus = (step, message) => {
+    if (jobId) {
+      emitStatus(jobId, step, TOTAL_STEPS, 'in_progress', message);
+    }
+  };
 
   console.log('═══════════════════════════════════════════════════════════════');
   console.log(`[PUPPETEER] ${logTs()} ▶▶▶ AUTOMATION FUNCTION CALLED ◀◀◀`);
@@ -129,6 +140,8 @@ export const runAmericanAmicableAutomation = async (data) => {
   console.log('═══════════════════════════════════════════════════════════════');
 
   try {
+    // STEP 1: Launch browser
+    updateStatus(1, 'Launching browser...');
     console.log(`[PUPPETEER] ${logTs()} Launching browser...`);
     
     // Use system Chromium in Docker/production, bundled Chrome locally
@@ -148,13 +161,15 @@ export const runAmericanAmicableAutomation = async (data) => {
       ]
     });
     console.log(`[PUPPETEER] ${logTs()} ✓ Browser launched successfully`);
+    updateStatus(1, 'Browser launched');
 
     const page = await browser.newPage();
     
     // Set viewport for consistent rendering
     await page.setViewport({ width: 1280, height: 800 });
 
-    // Part 1: Initial Authentication
+    // STEP 2: Login to carrier portal
+    updateStatus(2, 'Logging into carrier portal...');
     console.log('[Automation] Navigating to Agent Login...');
     await page.goto('https://www.americanamicable.com/v4/AgentLogin.php', { waitUntil: 'networkidle0' });
 
@@ -186,7 +201,8 @@ export const runAmericanAmicableAutomation = async (data) => {
       ]);
     }
 
-    // Part 2: Access Mobile Portal
+    // STEP 3: Access Mobile Portal
+    updateStatus(3, 'Accessing mobile application portal...');
     // The "Mobile Business Tools" link has target="_blank" which opens new tab
     console.log('[Automation] Accessing Mobile Business Tools...');
     
@@ -340,7 +356,8 @@ export const runAmericanAmicableAutomation = async (data) => {
       page.waitForNavigation({ waitUntil: 'networkidle0' })
     ]);
 
-    // Part 4: Start New Application
+    // STEP 4: Start New Application
+    updateStatus(4, 'Starting new application...');
     console.log('[Automation] Starting New Application...');
     await page.waitForSelector('#BtnNewApp', { timeout: 15000 });
     console.log('[Automation] ✓ Found New Application button');
@@ -351,8 +368,9 @@ export const runAmericanAmicableAutomation = async (data) => {
     await new Promise(r => setTimeout(r, 2000));
     
     // ═══════════════════════════════════════════════════════════════
-    // AGENT SELECTION - Double-click the agent cell
+    // STEP 5: AGENT SELECTION - Double-click the agent cell
     // ═══════════════════════════════════════════════════════════════
+    updateStatus(5, 'Selecting agent...');
     console.log('[Automation] Selecting Agent...');
     await page.waitForSelector('td.dataItem', { timeout: 15000 });
     console.log('[Automation] ✓ Agent grid loaded');
