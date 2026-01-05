@@ -3343,6 +3343,7 @@ const CustomerForm = ({ onComplete }) => {
       setAutomationSteps([]); // Clear previous steps
       
       let eventSource = null;
+      let currentJobId = null;
       
       try {
         // Prepare form data for automation
@@ -3395,44 +3396,74 @@ const CustomerForm = ({ onComplete }) => {
           ilDesigneeChoice: data.ilDesigneeChoice,
         };
         
-        // Run the automation - this returns jobId for SSE subscription
-        const result = await api.runAutomation(formData);
+        // Start automation - returns jobId IMMEDIATELY (automation runs in background)
+        const startResult = await api.runAutomation(formData);
+        
+        if (!startResult.jobId) {
+          throw new Error('Failed to start automation - no job ID received');
+        }
+        
+        currentJobId = startResult.jobId;
+        console.log('Automation started, subscribing to SSE for job:', currentJobId);
         
         // Subscribe to SSE for live status updates
-        if (result.jobId) {
-          eventSource = api.subscribeToAutomationStatus(
-            result.jobId,
-            (statusUpdate) => {
-              // Add new status to the steps array
-              if (statusUpdate.step && statusUpdate.message) {
-                setAutomationSteps((prev) => {
-                  // Avoid duplicates
-                  const exists = prev.some(s => s.step === statusUpdate.step && s.message === statusUpdate.message);
-                  if (exists) return prev;
-                  return [...prev, statusUpdate];
-                });
-              }
-            },
-            (error) => {
-              console.error('SSE error:', error);
+        // This runs while automation is in progress on the server
+        eventSource = api.subscribeToAutomationStatus(
+          currentJobId,
+          async (statusUpdate) => {
+            console.log('SSE Status Update:', statusUpdate);
+            
+            // Add status update to the steps array
+            if (statusUpdate.step !== undefined && statusUpdate.message) {
+              setAutomationSteps((prev) => {
+                // Avoid duplicates based on message
+                const exists = prev.some(s => s.message === statusUpdate.message);
+                if (exists) return prev;
+                return [...prev, statusUpdate];
+              });
             }
-          );
-        }
+            
+            // Handle completion
+            if (statusUpdate.status === 'completed') {
+              console.log('Automation completed! Fetching result...');
+              try {
+                // Fetch the final result to get application number
+                const finalResult = await api.getAutomationResult(currentJobId);
+                console.log('Final result:', finalResult);
+                
+                if (finalResult.applicationNumber) {
+                  update("applicationNumber", finalResult.applicationNumber);
+                  setStep(9); // Move to Voice Recording step
+                } else {
+                  setAutomationError('Automation completed but no application number was captured');
+                }
+              } catch (e) {
+                console.error('Error fetching result:', e);
+                setAutomationError(e.message);
+              }
+              setAutomationLoading(false);
+              if (eventSource) eventSource.close();
+            }
+            
+            // Handle failure
+            if (statusUpdate.status === 'failed') {
+              console.log('Automation failed:', statusUpdate.message);
+              setAutomationError(statusUpdate.message || 'Automation failed');
+              setAutomationLoading(false);
+              if (eventSource) eventSource.close();
+            }
+          },
+          (error) => {
+            console.error('SSE connection error:', error);
+            setAutomationError('Lost connection to automation service');
+            setAutomationLoading(false);
+          }
+        );
         
-        if (result.success && result.applicationNumber) {
-          // Update data with the captured application number
-          update("applicationNumber", result.applicationNumber);
-          // Move to step 9 (Voice Recording)
-          setStep(9);
-        } else {
-          throw new Error(result.error || "Automation completed but no application number was captured");
-        }
       } catch (error) {
         console.error("Automation error:", error);
         setAutomationError(error.message);
-      } finally {
         setAutomationLoading(false);
-        // Clean up SSE connection
         if (eventSource) {
           eventSource.close();
         }

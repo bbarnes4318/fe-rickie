@@ -1,7 +1,7 @@
 
 import express from 'express';
 import { runAmericanAmicableAutomation } from '../services/americanAmicable.js';
-import { automationEvents, generateJobId, getJobStatus, emitStatus } from '../services/automationStatus.js';
+import { automationEvents, generateJobId, getJobStatus, emitStatus, activeJobs } from '../services/automationStatus.js';
 
 const router = express.Router();
 
@@ -54,13 +54,12 @@ router.get('/status/:jobId', (req, res) => {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AUTOMATION ROUTE - POST /api/automation/run-carrier-app
-// Now returns jobId immediately for SSE subscription
+// SYNCHRONOUS - Waits for automation to complete before returning
 // ═══════════════════════════════════════════════════════════════════════════
 router.post('/run-carrier-app', async (req, res) => {
   const ts = new Date().toISOString();
   const jobId = generateJobId();
   
-  // AGGRESSIVE LOGGING - FIRST THING
   console.log('═══════════════════════════════════════════════════════════════');
   console.log(`[AUTOMATION] ${ts} ▶▶▶ REQUEST RECEIVED ◀◀◀ JobID: ${jobId}`);
   console.log(`[AUTOMATION] ${ts} Request Body:`, JSON.stringify(req.body));
@@ -80,6 +79,7 @@ router.post('/run-carrier-app', async (req, res) => {
   
   try {
     // Pass the FULL request body (all customer data) AND jobId to the automation
+    // WAIT for result before responding
     const result = await runAmericanAmicableAutomation(req.body, jobId);
     
     console.log(`[AUTOMATION] ${new Date().toISOString()} Automation completed:`, JSON.stringify(result));
@@ -101,7 +101,25 @@ router.post('/run-carrier-app', async (req, res) => {
   }
 });
 
-// Also add a GET endpoint for testing
+// GET JOB RESULT
+router.get('/result/:jobId', (req, res) => {
+  const { jobId } = req.params;
+  const job = activeJobs.get(jobId);
+  
+  if (!job) {
+    return res.status(404).json({ success: false, error: 'Job not found' });
+  }
+  
+  res.json({
+    jobId,
+    status: job.status,
+    applicationNumber: job.applicationNumber,
+    result: job.result || null,
+    error: job.error || null
+  });
+});
+
+// Test endpoint
 router.get('/test', (req, res) => {
   console.log(`[AUTOMATION] ${new Date().toISOString()} TEST ENDPOINT HIT`);
   res.json({ status: 'Automation route is working', timestamp: new Date().toISOString() });

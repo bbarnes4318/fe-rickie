@@ -18,7 +18,12 @@ import {
   MapPin,
   Calendar,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  Settings,
+  RefreshCw,
+  Zap,
+  XCircle,
+  Send
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -45,6 +50,12 @@ import { getStateFromAreaCode } from './utils/areaCodeLookup';
 // IMPORT THE GOLDEN PATH SCRIPT VIA ADAPTER
 // ═══════════════════════════════════════════════════════════════════════════
 import { getAdaptedNodes, STARTING_NODE, replaceVariables as replaceScriptVariables } from './scriptAdapter';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SETTINGS PANEL FOR CARRIER SELECTION
+// ═══════════════════════════════════════════════════════════════════════════
+import SettingsPanel from './components/SettingsPanel';
+import { subscribeToSettings, getEnabledCarriers } from './settingsService';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // HELPER: Calculate age from DOB
@@ -208,11 +219,17 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   });
   
   const [showQuotePanel, setShowQuotePanel] = useState(false);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false); // Settings modal
   const [copied, setCopied] = useState(false);
   const [showTip, setShowTip] = useState(false);
   const [ratesLoaded, setRatesLoaded] = useState(isRatesLoaded());
   const [ratesVersion, setRatesVersion] = useState(0); // Forces re-render on rate update
+  const [settingsVersion, setSettingsVersion] = useState(0); // Forces re-render on settings change
   const [automationStarted, setAutomationStarted] = useState(false); // Track if background automation has started
+  const [automationLoading, setAutomationLoading] = useState(false); // Track if automation is running
+  const [automationError, setAutomationError] = useState(null); // Error message if automation fails
+  const [automationSteps, setAutomationSteps] = useState([]); // Live SSE status updates
+  const [applicationNumber, setApplicationNumber] = useState(null); // Application number after success
   const scrollRef = useRef(null);
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -238,6 +255,18 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
+  // CARRIER SETTINGS SUBSCRIPTION - Refresh quotes when settings change
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const unsubscribe = subscribeToSettings((settings) => {
+      console.log('[IntegratedScriptPanel] Carrier settings updated:', settings.enabledCarriers?.length, 'carriers enabled');
+      setSettingsVersion(v => v + 1);
+    });
+    
+    return () => unsubscribe();
+  }, []);
+
+  // ─────────────────────────────────────────────────────────────────────────
   // SYNC DATA TO PARENT (Customer Data tab, Admin Dashboard)
   // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -254,21 +283,26 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   }, [nodeId]);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // AUTOMATION TRIGGER - BACKGROUND CARRIER APP
+  // AUTOMATION TRIGGER - BACKGROUND CARRIER APP WITH SSE STATUS
   // ─────────────────────────────────────────────────────────────────────────
   
-  // Manual trigger function - can be called from button or automatically
+  // Manual trigger function - API waits for completion, SSE provides live updates
   const triggerCarrierAutomation = useCallback(async (customerData) => {
     const API_BASE = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
     const ts = new Date().toISOString();
+    
+    // Reset state
+    setAutomationLoading(true);
+    setAutomationError(null);
+    setAutomationSteps([]);
+    setApplicationNumber(null);
     
     console.log('%c═══════════════════════════════════════════════════════════════', 'color: #0ff');
     console.log('%c[AUTOMATION] TRIGGERING CARRIER AUTOMATION', 'background: #f00; color: #fff; font-weight: bold; font-size: 14px; padding: 4px;');
     console.log('%c═══════════════════════════════════════════════════════════════', 'color: #0ff');
     console.log(`[AUTOMATION] ${ts} Customer Data:`, customerData);
-    console.log(`[AUTOMATION] ${ts} API_BASE: ${API_BASE}`);
     
-    // Also log to server
+    // Log to server
     fetch(`${API_BASE}/logs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -285,19 +319,27 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
         body: JSON.stringify(customerData)
       });
       
-      console.log('%c[AUTOMATION] Response status:', 'color: #0f0', response.status, response.statusText);
-      
       const data = await response.json();
+      console.log('%c[AUTOMATION] Response:', 'color: #0f0', data);
       
+      // Backend now waits for completion and returns result directly
       if (data.success) {
         console.log('%c[AUTOMATION] ✅ SUCCESS', 'background: #0f0; color: #000; font-weight: bold;', data);
+        if (data.applicationNumber) {
+          setApplicationNumber(data.applicationNumber);
+        }
+        setAutomationLoading(false);
       } else {
         console.log('%c[AUTOMATION] ❌ FAILED', 'background: #f00; color: #fff; font-weight: bold;', data);
+        setAutomationError(data.error || 'Automation failed');
+        setAutomationLoading(false);
       }
       
       return data;
     } catch (err) {
       console.error('%c[AUTOMATION] 💥 EXCEPTION', 'background: #f00; color: #fff; font-weight: bold;', err);
+      setAutomationError(err.message);
+      setAutomationLoading(false);
       fetch(`${API_BASE}/logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -333,6 +375,7 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   // NOTE: Auto-trigger DISABLED - automation only happens when agent clicks "Submit App" button
   // This ensures all customer data is collected before submitting to American Amicable
 
+
   // ─────────────────────────────────────────────────────────────────────────
   // UPDATE FORM DATA
   // ─────────────────────────────────────────────────────────────────────────
@@ -367,7 +410,7 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
       formData.selectedCoverage, 
       eligibility
     );
-  }, [formData.age, formData.gender, formData.tobacco, formData.selectedCoverage, eligibility, ratesLoaded, ratesVersion]);
+  }, [formData.age, formData.gender, formData.tobacco, formData.selectedCoverage, eligibility, ratesLoaded, ratesVersion, settingsVersion]);
 
   const bestQuote = useMemo(() => {
     const eligible = quotes.filter(q => q.isEligible && q.premium);
@@ -652,12 +695,21 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
               </p>
             </div>
           </div>
-          <button 
-            onClick={() => setShowQuotePanel(false)} 
-            className="p-2 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-white/20"
-          >
-            <X className="w-5 h-5 text-white" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowSettingsPanel(true)} 
+              className="p-2 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-white/20 group"
+              title="Carrier Settings"
+            >
+              <Settings className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+            </button>
+            <button 
+              onClick={() => setShowQuotePanel(false)} 
+              className="p-2 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-white/20"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
         </div>
         
         {/* Scrollable Content */}
@@ -1376,8 +1428,55 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
         )}
       </div>
 
+      {/* AUTOMATION STATUS - Only visible during/after automation */}
+      {(automationLoading || automationSteps.length > 0 || automationError || applicationNumber) && (
+        <div className="px-3 py-2 border-t border-gray-700/50 bg-gray-900/80">
+          <div className="space-y-1">
+            {automationSteps.slice(-3).map((stepData, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-xs">
+                {stepData.status === 'completed' ? (
+                  <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                ) : stepData.status === 'failed' ? (
+                  <XCircle size={12} className="text-red-400 shrink-0" />
+                ) : (
+                  <RefreshCw size={12} className="text-cyan-400 animate-spin shrink-0" />
+                )}
+                <span className={stepData.status === 'failed' ? 'text-red-400' : 'text-gray-400'}>
+                  {stepData.message}
+                </span>
+              </div>
+            ))}
+            {automationLoading && automationSteps.length === 0 && (
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <RefreshCw size={12} className="text-cyan-400 animate-spin" />
+                Starting automation...
+              </div>
+            )}
+            {applicationNumber && (
+              <div className="text-emerald-400 text-xs font-medium">
+                ✓ App #{applicationNumber}
+              </div>
+            )}
+            {automationError && (
+              <div className="flex items-center justify-between">
+                <span className="text-red-400 text-xs">{automationError}</span>
+                <button onClick={handleStartApplication} className="text-xs text-red-400 underline">
+                  Retry
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* QUOTE PANEL OVERLAY */}
       {renderQuotePanel()}
+      
+      {/* SETTINGS PANEL MODAL */}
+      <SettingsPanel 
+        isOpen={showSettingsPanel} 
+        onClose={() => setShowSettingsPanel(false)} 
+      />
     </div>
   );
 };

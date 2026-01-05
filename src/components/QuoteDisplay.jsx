@@ -1,9 +1,13 @@
 // QuoteDisplay.jsx - Integrated quote grid (NOT a popup)
 // Auto-calculates using inherited prospect data from WizardContext
+// Now includes settings for carrier selection
 
 import React, { useEffect, useState } from 'react';
+import { Settings } from 'lucide-react';
 import { useWizard } from '../WizardContext';
 import CarrierCard from './CarrierCard';
+import SettingsPanel from './SettingsPanel';
+import { subscribeToSettings, getEnabledCarriers } from '../settingsService';
 
 const FACE_AMOUNT_OPTIONS = [3000, 5000, 7500, 10000, 15000, 20000, 25000];
 
@@ -20,6 +24,8 @@ export default function QuoteDisplay() {
   
   const [sortBy, setSortBy] = useState('price'); // 'price' or 'eligibility'
   const [selectedFaceAmount, setSelectedFaceAmount] = useState(faceAmount || 10000);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsVersion, setSettingsVersion] = useState(0); // Forces re-render on settings change
   
   // Calculate quotes when component mounts or face amount changes
   useEffect(() => {
@@ -27,7 +33,21 @@ export default function QuoteDisplay() {
       updateProspect({ faceAmount: selectedFaceAmount });
       calculateQuotes();
     }
-  }, [age, selectedFaceAmount, calculateQuotes, updateProspect]);
+  }, [age, selectedFaceAmount, calculateQuotes, updateProspect, settingsVersion]);
+  
+  // Subscribe to settings changes
+  useEffect(() => {
+    const unsubscribe = subscribeToSettings((settings) => {
+      console.log('[QuoteDisplay] Carrier settings updated');
+      setSettingsVersion(v => v + 1);
+      // Recalculate quotes with new carrier settings
+      if (age) {
+        calculateQuotes();
+      }
+    });
+    
+    return () => unsubscribe();
+  }, [age, calculateQuotes]);
   
   // Sort quotes
   const sortedQuotes = [...(quotes || [])].sort((a, b) => {
@@ -111,6 +131,13 @@ export default function QuoteDisplay() {
           >
             ✓ By Approval
           </button>
+          <button 
+            className="sort-btn settings-btn"
+            onClick={() => setShowSettings(true)}
+            title="Carrier Settings"
+          >
+            <Settings className="w-4 h-4" /> Settings
+          </button>
         </div>
         
         <div className="prospect-summary">
@@ -165,6 +192,12 @@ export default function QuoteDisplay() {
           </button>
         </div>
       )}
+      
+      {/* Settings Panel Modal */}
+      <SettingsPanel 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+      />
     </div>
   );
 }

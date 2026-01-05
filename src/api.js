@@ -110,5 +110,15 @@ export const api = {
     
     // Return the eventSource so caller can close it when done
     return eventSource;
+  },
+
+  // Get final automation result (poll this after SSE shows completed)
+  async getAutomationResult(jobId) {
+    const res = await fetch(`${API_BASE}/automation/result/${jobId}`);
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to get automation result');
+    }
+    return res.json();
   }
 };

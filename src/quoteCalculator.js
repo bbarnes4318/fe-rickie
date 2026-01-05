@@ -2,6 +2,7 @@
  * Quote Calculator - Shared module for insurance premium calculations
  * NOW USES GOOGLE SHEETS FOR LIVE RATE DATA
  * Fallback to hardcoded rates if API fails
+ * Carrier filtering based on user settings
  */
 
 import {
@@ -14,6 +15,9 @@ import {
   subscribeToRates,
   TAB_TO_CARRIER
 } from './googleSheetsService';
+
+// Import settings service for carrier filtering
+import { getEnabledCarriers } from './settingsService';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INITIALIZATION - Start loading rates immediately
@@ -199,28 +203,39 @@ export const calculateMonthlyPremium = (carrier, age, gender, tobacco, faceAmoun
 /**
  * Get all carrier quotes for comparison
  * Returns array format for QuoteDisplay component
+ * Filters based on enabled carriers in settings
  */
 export const getAllCarrierQuotes = (age, gender, tobacco, faceAmount, eligibility) => {
   const availableCarriers = eligibility?.availableCarriers || Object.keys(CARRIERS);
   
-  console.log('[QuoteCalc] getAllCarrierQuotes called:', { age, gender, tobacco, faceAmount, isLoaded: isRatesLoaded() });
+  // Get enabled carriers from user settings
+  const enabledCarriers = getEnabledCarriers();
+  
+  console.log('[QuoteCalc] getAllCarrierQuotes called:', { 
+    age, gender, tobacco, faceAmount, 
+    isLoaded: isRatesLoaded(),
+    enabledCarriers: enabledCarriers.length
+  });
   
   // Use Google Sheets data if loaded
   if (isRatesLoaded()) {
     const allQuotes = getAllQuotesFromSheet(age, gender, tobacco, faceAmount);
     
-    console.log('[QuoteCalc] Raw quotes from sheet:', allQuotes);
+    console.log('[QuoteCalc] Raw quotes from sheet:', allQuotes.length);
     
-    // Filter and mark eligibility
-    return allQuotes.map(quote => ({
-      ...quote,
-      isEligible: availableCarriers.includes(quote.carrier) && quote.premium !== null
-    })).sort((a, b) => {
-      // Eligible first, then by premium
-      if (a.isEligible && !b.isEligible) return -1;
-      if (!a.isEligible && b.isEligible) return 1;
-      return (a.premium || 9999) - (b.premium || 9999);
-    });
+    // Filter by enabled carriers from settings, mark eligibility
+    return allQuotes
+      .filter(quote => enabledCarriers.includes(quote.carrier)) // Only show enabled carriers
+      .map(quote => ({
+        ...quote,
+        isEligible: availableCarriers.includes(quote.carrier) && quote.premium !== null
+      }))
+      .sort((a, b) => {
+        // Eligible first, then by premium
+        if (a.isEligible && !b.isEligible) return -1;
+        if (!a.isEligible && b.isEligible) return 1;
+        return (a.premium || 9999) - (b.premium || 9999);
+      });
   }
   
   // Return empty if not loaded
