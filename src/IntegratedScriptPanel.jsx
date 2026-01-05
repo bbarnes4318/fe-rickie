@@ -537,6 +537,10 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
       .replace(/{monthly_premium_high}/g, highPremium ? `$${highPremium.toFixed(2)}` : '$—')
       .replace(/{monthly_premium_mid}/g, midPremium ? `$${midPremium.toFixed(2)}` : '$—')
       .replace(/{monthly_premium_low}/g, lowPremium ? `$${lowPremium.toFixed(2)}` : '$—')
+      // Congratulations recap variables
+      .replace(/{coverage_amount}/g, `$${formData.selectedCoverage?.toLocaleString() || '10,000'}`)
+      .replace(/{monthly_premium}/g, activeQuote?.premium ? `$${activeQuote.premium.toFixed(2)}/month` : '$0.00/month')
+      .replace(/{draft_date}/g, formData.draftDay ? `the ${formData.draftDay}${['1','21','31'].includes(formData.draftDay) ? 'st' : ['2','22'].includes(formData.draftDay) ? 'nd' : ['3','23'].includes(formData.draftDay) ? 'rd' : 'th'}` : 'your selected draft date')
       // Legacy premium variables
       .replace(/{p15k}/g, `$${premiums.p15k?.toFixed(2) || '0.00'}`)
       .replace(/{p10k}/g, `$${premiums.p10k?.toFixed(2) || '0.00'}`)
