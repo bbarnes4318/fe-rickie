@@ -130,6 +130,256 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RECOVERY FLOW: Save, Return to Applications, Re-enter, and Navigate to Agent Statement
+  // This is called when bank validation fails and we need to retry via a different path
+  // ═══════════════════════════════════════════════════════════════════════════
+  const attemptRecoveryFlow = async (page, customerName) => {
+    console.log('[Recovery] ▶▶▶ STARTING RECOVERY FLOW ◀◀◀');
+    console.log('[Recovery] Customer to find:', customerName);
+    
+    try {
+      // STEP 1: Click "Save and Return to Applications" button
+      console.log('[Recovery] Step 1: Looking for Save and Return to Applications button...');
+      
+      // Scroll to find the button
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await new Promise(r => setTimeout(r, 1000));
+      
+      // Try multiple selectors for the Save button
+      const saveButtonSelectors = [
+        'input[value*="Save and Return"]',
+        'input[value*="Return to Applications"]',
+        '#BtnSave',
+        'input[name*="BtnSave"]',
+        'input[type="submit"][value*="Save"]'
+      ];
+      
+      let saveClicked = false;
+      for (const selector of saveButtonSelectors) {
+        try {
+          const btn = await page.$(selector);
+          if (btn) {
+            await btn.click();
+            console.log(`[Recovery] ✓ Clicked Save button (${selector})`);
+            saveClicked = true;
+            break;
+          }
+        } catch (e) {
+          // Continue to next selector
+        }
+      }
+      
+      if (!saveClicked) {
+        // Try JavaScript click as fallback
+        saveClicked = await page.evaluate(() => {
+          const inputs = document.querySelectorAll('input[type="submit"]');
+          for (const inp of inputs) {
+            if (inp.value && inp.value.toLowerCase().includes('save')) {
+              inp.click();
+              return true;
+            }
+          }
+          return false;
+        });
+        if (saveClicked) console.log('[Recovery] ✓ Clicked Save button via JS');
+      }
+      
+      if (!saveClicked) {
+        console.log('[Recovery] ✗ Could not find Save button');
+        return false;
+      }
+      
+      // Wait for navigation to pending applications
+      await new Promise(r => setTimeout(r, 5000));
+      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
+      console.log('[Recovery] Navigated to:', page.url());
+      
+      // STEP 2: Find our application in the pending list
+      console.log('[Recovery] Step 2: Finding application in pending list...');
+      await new Promise(r => setTimeout(r, 2000));
+      
+      // Look for the customer name in the table and click it
+      const appFound = await page.evaluate((name) => {
+        // Look for table rows or links containing the customer name
+        const rows = document.querySelectorAll('table tr, .application-row');
+        for (const row of rows) {
+          if (row.textContent && row.textContent.includes(name.split(' ')[0])) {
+            const link = row.querySelector('a') || row.querySelector('input[type="button"]');
+            if (link) {
+              link.click();
+              return true;
+            }
+          }
+        }
+        // Try clicking any link with the name
+        const links = document.querySelectorAll('a');
+        for (const link of links) {
+          if (link.textContent && link.textContent.includes(name.split(' ')[0])) {
+            link.click();
+            return true;
+          }
+        }
+        return false;
+      }, customerName);
+      
+      if (!appFound) {
+        console.log('[Recovery] ✗ Could not find application in pending list');
+        // Try clicking the first pending application
+        const firstApp = await page.evaluate(() => {
+          const firstRow = document.querySelector('table tbody tr:first-child a');
+          if (firstRow) {
+            firstRow.click();
+            return true;
+          }
+          return false;
+        });
+        if (!firstApp) return false;
+        console.log('[Recovery] Using first pending application instead');
+      } else {
+        console.log('[Recovery] ✓ Found and clicked application');
+      }
+      
+      await new Promise(r => setTimeout(r, 3000));
+      
+      // STEP 3: Click the Edit button
+      console.log('[Recovery] Step 3: Clicking Edit button...');
+      try {
+        await page.waitForSelector('#EditBtn', { timeout: 10000 });
+        await page.click('#EditBtn');
+        console.log('[Recovery] ✓ Clicked Edit button');
+      } catch (e) {
+        // Try alternative selectors
+        const editClicked = await page.evaluate(() => {
+          const btn = document.querySelector('input[value="Edit"]') || document.querySelector('#EditBtn');
+          if (btn) {
+            btn.click();
+            return true;
+          }
+          return false;
+        });
+        if (!editClicked) {
+          console.log('[Recovery] ✗ Could not find Edit button');
+          return false;
+        }
+        console.log('[Recovery] ✓ Clicked Edit button via JS');
+      }
+      
+      await new Promise(r => setTimeout(r, 3000));
+      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
+      console.log('[Recovery] On page:', page.url());
+      
+      // STEP 4: Scroll to bottom and click Quote button
+      console.log('[Recovery] Step 4: Scrolling and clicking Quote button...');
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await new Promise(r => setTimeout(r, 1000));
+      
+      try {
+        const quoteBtn = await page.$('input[value*="Quote"]') || await page.$('#BtnQuote');
+        if (quoteBtn) {
+          await quoteBtn.click();
+          console.log('[Recovery] ✓ Clicked Quote button');
+        } else {
+          // Try via JS
+          const clicked = await page.evaluate(() => {
+            const inputs = document.querySelectorAll('input[type="submit"]');
+            for (const inp of inputs) {
+              if (inp.value && inp.value.includes('Quote')) {
+                inp.click();
+                return true;
+              }
+            }
+            return false;
+          });
+          if (!clicked) throw new Error('Quote button not found');
+          console.log('[Recovery] ✓ Clicked Quote button via JS');
+        }
+      } catch (e) {
+        console.log('[Recovery] ⚠ Quote button not found, proceeding...');
+      }
+      
+      await new Promise(r => setTimeout(r, 3000));
+      
+      // STEP 5: Click Continue Application button
+      console.log('[Recovery] Step 5: Clicking Continue Application button...');
+      try {
+        const continueAppBtn = await page.$('input[value="Continue Application"]');
+        if (continueAppBtn) {
+          await continueAppBtn.click();
+          console.log('[Recovery] ✓ Clicked Continue Application button');
+        } else {
+          await page.evaluate(() => {
+            const btn = document.querySelector('input[value="Continue Application"]') || 
+                       document.querySelector('#BtnContinue');
+            if (btn) btn.click();
+          });
+          console.log('[Recovery] ✓ Clicked Continue Application via JS');
+        }
+      } catch (e) {
+        console.log('[Recovery] Continue Application button not found');
+      }
+      
+      await new Promise(r => setTimeout(r, 3000));
+      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
+      
+      // STEP 6: Scroll and click Continue button
+      console.log('[Recovery] Step 6: Scrolling and clicking Continue button...');
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await new Promise(r => setTimeout(r, 1000));
+      
+      try {
+        const continueBtn = await page.$('input[value="Continue"][id="BtnContinue"]') || 
+                           await page.$('input[value="Continue"]');
+        if (continueBtn) {
+          await continueBtn.click();
+          console.log('[Recovery] ✓ Clicked Continue button');
+        }
+      } catch (e) {
+        console.log('[Recovery] Continue button error:', e.message);
+      }
+      
+      await new Promise(r => setTimeout(r, 3000));
+      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
+      
+      // STEP 7: Click Continue to Agent Statement button
+      console.log('[Recovery] Step 7: Clicking Continue to Agent Statement button...');
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await new Promise(r => setTimeout(r, 1000));
+      
+      try {
+        const agentStmtBtn = await page.$('input[value="Continue to Agent Statement"]');
+        if (agentStmtBtn) {
+          await agentStmtBtn.click();
+          console.log('[Recovery] ✓ Clicked Continue to Agent Statement button');
+        } else {
+          await page.evaluate(() => {
+            const inputs = document.querySelectorAll('input[type="submit"]');
+            for (const inp of inputs) {
+              if (inp.value && inp.value.includes('Agent Statement')) {
+                inp.click();
+                return true;
+              }
+            }
+          });
+          console.log('[Recovery] ✓ Clicked Continue to Agent Statement via JS');
+        }
+      } catch (e) {
+        console.log('[Recovery] Agent Statement button error:', e.message);
+      }
+      
+      await new Promise(r => setTimeout(r, 3000));
+      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
+      
+      console.log('[Recovery] ✓✓✓ RECOVERY FLOW COMPLETE ✓✓✓');
+      console.log('[Recovery] Now on:', page.url());
+      return true;
+      
+    } catch (error) {
+      console.log('[Recovery] ✗ Recovery flow failed:', error.message);
+      return false;
+    }
+  };
+
   console.log('═══════════════════════════════════════════════════════════════');
   console.log(`[PUPPETEER] ${logTs()} ▶▶▶ AUTOMATION FUNCTION CALLED ◀◀◀`);
   console.log(`[PUPPETEER] ${logTs()} RAW DATA RECEIVED:`, JSON.stringify({ 
@@ -1731,12 +1981,60 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       
       if (!buttonClicked) {
         console.log('[Automation] ⚠ Continue to Agent Statement button not found');
+        
+        // ═══ TRIGGER RECOVERY FLOW ═══
+        console.log('[Automation] ⚠ INITIATING RECOVERY FLOW...');
+        const recoverySuccess = await attemptRecoveryFlow(page, `${firstName} ${lastName}`);
+        
+        if (!recoverySuccess) {
+          console.log('[Automation] ✗ Recovery flow failed - cannot proceed');
+          throw new Error('Could not navigate to Agent Statement page - bank validation or form errors persisting');
+        }
+        console.log('[Automation] ✓ Recovery flow successful, now on Agent Statement page');
+        
       } else {
         // Wait for navigation after button click
         await new Promise(r => setTimeout(r, 3000));
+        
+        // Verify we actually navigated to Agent Statement page
+        const currentUrl = page.url();
+        const pageTitle = await page.title().catch(() => '');
+        console.log('[Automation] After Continue click - URL:', currentUrl, 'Title:', pageTitle);
+        
+        // Check if page actually changed or if there was an error
+        const stillOnSamePage = await page.evaluate(() => {
+          // Check if we're still seeing bank validation errors or "Continue to Agent Statement" button
+          const continueBtn = document.querySelector('input[value="Continue to Agent Statement"]');
+          const bankErrors = document.querySelectorAll('#BankDraftPanel span[style*="color: red"]');
+          const hasError = typeof HasError === 'function' ? HasError() : false;
+          return continueBtn !== null || bankErrors.length > 0 || hasError;
+        });
+        
+        if (stillOnSamePage) {
+          console.log('[Automation] ⚠ Still on same page after clicking Continue - initiating recovery...');
+          const recoverySuccess = await attemptRecoveryFlow(page, `${firstName} ${lastName}`);
+          
+          if (!recoverySuccess) {
+            console.log('[Automation] ✗ Recovery flow failed');
+            throw new Error('Form validation errors preventing navigation to Agent Statement');
+          }
+          console.log('[Automation] ✓ Recovery flow successful');
+        }
       }
     } catch (e) {
       console.log('[Automation] Error clicking Continue button:', e.message);
+      
+      // Try recovery as last resort
+      console.log('[Automation] Attempting recovery flow as last resort...');
+      try {
+        const recoverySuccess = await attemptRecoveryFlow(page, `${firstName} ${lastName}`);
+        if (!recoverySuccess) {
+          throw new Error('Recovery flow failed: ' + e.message);
+        }
+      } catch (recoveryError) {
+        console.log('[Automation] Recovery also failed:', recoveryError.message);
+        throw e; // Re-throw original error
+      }
     }
     
     // Wait for Agent Statement page to load
