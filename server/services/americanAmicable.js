@@ -117,7 +117,9 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     beneficiaryName = '',
     beneficiaryRelation = '',
     // ═══ Illinois Residents (only applicable if state is IL) ═══
-    ilDesigneeChoice = null // 'Will Designate' or 'Will Not Designate'
+    ilDesigneeChoice = null, // 'Will Designate' or 'Will Not Designate'
+    // ═══ Retry Mode Flag ═══
+    retryMode = false // If true, use recovery flow to re-enter pending application
   } = data;
   
   let browser = null;
@@ -621,6 +623,68 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       page.waitForNavigation({ waitUntil: 'networkidle0' })
     ]);
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // RETRY MODE: Skip new application and go directly to pending apps recovery
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (retryMode) {
+      console.log('[Automation] ▶▶▶ RETRY MODE ACTIVE ◀◀◀');
+      console.log('[Automation] Skipping new application - using recovery flow...');
+      updateStatus(4, 'Retry mode: Finding pending application...');
+      
+      // Look for pending applications link/button
+      const hasPendingApps = await page.evaluate(() => {
+        const links = document.querySelectorAll('a, input[type="button"]');
+        for (const el of links) {
+          const text = el.textContent || el.value || '';
+          if (text.toLowerCase().includes('pending') || text.toLowerCase().includes('application')) {
+            console.log('Found pending link:', text);
+          }
+        }
+        return true;
+      });
+      
+      // Navigate to pending applications
+      console.log('[Automation] Looking for pending applications...');
+      
+      // Try to find and click pending applications link
+      const pendingClicked = await page.evaluate(() => {
+        // Look for links with "Pending" or table rows
+        const links = document.querySelectorAll('a');
+        for (const link of links) {
+          if (link.textContent && link.textContent.toLowerCase().includes('pending')) {
+            link.click();
+            return true;
+          }
+        }
+        return false;
+      });
+      
+      if (pendingClicked) {
+        await new Promise(r => setTimeout(r, 3000));
+        console.log('[Automation] Clicked on pending applications');
+      }
+      
+      // Now use the recovery flow to find and edit the application
+      const recoverySuccess = await attemptRecoveryFlow(page, `${firstName} ${lastName}`);
+      
+      if (recoverySuccess) {
+        console.log('[Automation] ✓ Recovery flow successful - now on Agent Statement page');
+        updateStatus(10, 'Recovery successful - completing Agent Statement...');
+        // Skip to Agent Statement section (continues below in the normal flow)
+        // The page should now be on the Agent Statement page
+      } else {
+        console.log('[Automation] ✗ Recovery flow failed');
+        throw new Error('Recovery flow failed - could not find or re-enter pending application');
+      }
+      
+      // After recovery, continue to Agent Statement handling (skip to that section)
+      // Jump past the normal flow steps and go directly to Agent Statement page handling
+      
+    } else {
+      // ═══════════════════════════════════════════════════════════════════════
+      // NORMAL MODE: Start New Application
+      // ═══════════════════════════════════════════════════════════════════════
+      
     // STEP 4: Start New Application
     updateStatus(4, 'Starting new application...');
     console.log('[Automation] Starting New Application...');
@@ -2039,6 +2103,8 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     
     // Wait for Agent Statement page to load
     await new Promise(r => setTimeout(r, 3000));
+    
+    } // End of NORMAL MODE (else block) - retry mode joins here at Agent Statement
     
     // ═══════════════════════════════════════════════════════════════════════
     // AGENT STATEMENT PAGE

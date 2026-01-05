@@ -556,6 +556,29 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     }
   }, [confirmedCarrier, formData, triggerCarrierAutomation]);
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RETRY APPLICATION - Called when clicking Retry after an error
+  // Triggers the recovery flow on the backend
+  // ═══════════════════════════════════════════════════════════════════════════
+  const handleRetryApplication = useCallback(() => {
+    console.log('%c[AUTOMATION] RETRY TRIGGERED', 'background: #f90; color: #000; font-weight: bold;');
+    
+    // Reset error state
+    setAutomationError(null);
+    setAutomationSteps([]);
+    setAutomationLoading(true);
+    
+    // Re-trigger the automation with retry flag
+    // The backend recovery flow will handle saving, returning, and re-entering the app
+    const retryData = {
+      ...formData,
+      retryMode: true // This tells the backend to use the recovery flow
+    };
+    
+    console.log('[AUTOMATION] Retry with recovery flow - Form Data:', retryData);
+    triggerCarrierAutomation(retryData);
+  }, [formData, triggerCarrierAutomation]);
+
   // ─────────────────────────────────────────────────────────────────────────
   // SCRIPT TEXT REPLACEMENT
   // ─────────────────────────────────────────────────────────────────────────
@@ -1716,10 +1739,14 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
               </div>
             )}
             {automationError && (
-              <div className="flex items-center justify-between">
-                <span className="text-red-400 text-xs">{automationError}</span>
-                <button onClick={handleStartApplication} className="text-xs text-red-400 underline">
-                  Retry
+              <div className="flex items-center justify-between gap-2 p-2 bg-red-500/10 rounded-lg border border-red-500/30">
+                <span className="text-red-400 text-xs flex-1">{automationError}</span>
+                <button 
+                  onClick={handleRetryApplication} 
+                  className="px-3 py-1 text-xs font-bold text-white bg-red-500 hover:bg-red-400 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  <RotateCcw size={12} />
+                  RETRY
                 </button>
               </div>
             )}
