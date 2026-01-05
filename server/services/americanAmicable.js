@@ -1017,23 +1017,43 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     }
     
     // === HEIGHT & WEIGHT ===
+    console.log(`[Automation] Height data: ${heightFeet}' ${heightInches}" | Weight data: ${weight}`);
+    
     if (heightFeet && heightInches !== undefined) {
       const heightValue = `${heightFeet}'${heightInches}`;
       try {
         await page.select('#Height', heightValue);
         console.log(`[Automation] ✓ Height selected: ${heightValue}`);
       } catch (e) {
-        console.log('[Automation] Height selector not found');
+        console.log('[Automation] Height selector not found:', e.message);
       }
     }
     
     if (weight) {
+      console.log(`[Automation] Attempting to enter weight: ${weight}`);
       try {
+        // Clear any existing value first
+        await page.$eval('#Weight', el => el.value = '');
         await page.type('#Weight', String(weight));
-        console.log('[Automation] ✓ Weight entered');
+        console.log(`[Automation] ✓ Weight entered: ${weight}`);
       } catch (e) {
-        console.log('[Automation] Weight field not found');
+        console.log('[Automation] Weight field #Weight not found, trying alternatives...');
+        // Try alternative selectors
+        try {
+          const weightInput = await page.$('input[name*="Weight"], input[id*="weight" i], input[placeholder*="weight" i]');
+          if (weightInput) {
+            await weightInput.click({ clickCount: 3 }); // Select all
+            await weightInput.type(String(weight));
+            console.log(`[Automation] ✓ Weight entered via alt selector: ${weight}`);
+          } else {
+            console.log('[Automation] ✗ No weight field found with any selector');
+          }
+        } catch (e2) {
+          console.log('[Automation] Weight field error:', e2.message);
+        }
       }
+    } else {
+      console.log('[Automation] ⚠ No weight value provided in form data');
     }
     
     // === PHYSICIAN INFORMATION ===
@@ -1230,70 +1250,73 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     
     // ═══════════════════════════════════════════════════════════════════════
     // ILLINOIS RESIDENTS SECTION (Only for IL)
+    // Default to "Will Not Designate" unless explicitly set otherwise
     // ═══════════════════════════════════════════════════════════════════════
     if (state === 'Illinois' || state === 'IL') {
       console.log('[Automation] Illinois Residents section - handling designee choice...');
       try {
-        // Look for the Illinois Residents section
-        // The radio buttons are typically named with 'Designee' or 'ApplicantDesignee'
-        const designeeSection = await page.$('#ApplicantDesignee, [id*="Designee"], [name*="Designee"]');
-        if (designeeSection) {
-          if (ilDesigneeChoice === 'Will Designate') {
-            // Click 'Will Designate' radio - typically _1
-            const willDesignateRadio = await page.$('input[value*="Will Designate"], input[value="WillDesignate"], #ApplicantDesignee_1, [id*="Designee"][value*="Designate"]:not([value*="Not"])');
-            if (willDesignateRadio) {
-              await willDesignateRadio.click();
-              console.log('[Automation] ✓ Illinois Designee Choice: Will Designate');
-            }
-          } else {
-            // Click 'Will Not Designate' radio - typically _2
-            const willNotDesignateRadio = await page.$('input[value*="Will Not Designate"], input[value*="NotDesignate"], input[value="WillNotDesignate"], #ApplicantDesignee_2, [id*="Designee"][value*="Not"]');
-            if (willNotDesignateRadio) {
-              await willNotDesignateRadio.click();
-              console.log('[Automation] ✓ Illinois Designee Choice: Will Not Designate');
-            }
-          }
+        // Always select "Will Not Designate" unless explicitly told otherwise
+        // Radio _2 = "Will not designate"
+        const willNotDesignateRadio = await page.$('#ApplicantDesignee_2');
+        if (willNotDesignateRadio) {
+          await willNotDesignateRadio.click();
+          console.log('[Automation] ✓ Illinois Designee Choice: Will Not Designate');
         } else {
-          console.log('[Automation] Illinois Designee section not found on page, may not be visible');
+          // Fallback: try alternative selectors
+          const altRadio = await page.$('input[value*="Will not designate"], input[value*="NotDesignate"], input[value="WillNotDesignate"]');
+          if (altRadio) {
+            await altRadio.click();
+            console.log('[Automation] ✓ Illinois Designee Choice: Will Not Designate (alt selector)');
+          } else {
+            console.log('[Automation] ⚠ Illinois Designee radio button not found');
+          }
         }
       } catch (e) {
         console.log('[Automation] Illinois Designee section error:', e.message);
       }
     }
     
-    // ═══════════════════════════════════════════════════════════════════════
-    // CLICK VALIDATE BANK ACCOUNT BUTTON
-    // ═══════════════════════════════════════════════════════════════════════
-    // This MUST be clicked before Continue to Agent Statement, otherwise the 
-    // onclick handler blocks: onclick="if (HasError() || IsValidatedBankInfo()) return false;"
-    console.log('[Automation] Looking for Validate Bank Account button...');
-    try {
-      // Button HTML: <input type="button" id="btValidateBankInfo" value="Validate Bank Account" class="btn">
-      const validateBtn = await page.$('#btValidateBankInfo');
-      if (validateBtn) {
-        await validateBtn.click();
-        console.log('[Automation] ✓ Clicked Validate Bank Account button');
-        // Wait for validation to complete
-        await new Promise(r => setTimeout(r, 3000));
-      } else {
-        // Try by value
-        const validateBtnByValue = await page.$('input[value="Validate Bank Account"]');
-        if (validateBtnByValue) {
-          await validateBtnByValue.click();
-          console.log('[Automation] ✓ Clicked Validate Bank Account button (by value)');
-          await new Promise(r => setTimeout(r, 3000));
-        } else {
-          console.log('[Automation] ⚠ Validate Bank Account button not found');
-        }
-      }
-    } catch (e) {
-      console.log('[Automation] Error clicking Validate Bank Account:', e.message);
-    }
+    // NOTE: Validate Bank Account is already clicked earlier (after bank details are entered)
+    // DO NOT click it again here - it causes errors
     
     // ═══════════════════════════════════════════════════════════════════════
     // CLICK CONTINUE TO AGENT STATEMENT BUTTON
     // ═══════════════════════════════════════════════════════════════════════
     console.log('[Automation] Looking for Continue to Agent Statement button...');
+    
+    // DIAGNOSTIC: Check page state before clicking
+    try {
+      const pageState = await page.evaluate(() => {
+        const result = {
+          hasError: typeof HasError === 'function' ? HasError() : 'HasError not defined',
+          isBankValidated: typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : 'IsValidatedBankInfo not defined',
+          errorMessages: [],
+          currentUrl: window.location.href
+        };
+        
+        // Find any visible error messages
+        const errors = document.querySelectorAll('.error, .validation-error, [style*="color: red"], [class*="error"]');
+        errors.forEach(el => {
+          if (el.textContent && el.textContent.trim() && el.offsetParent !== null) {
+            result.errorMessages.push(el.textContent.trim().substring(0, 100));
+          }
+        });
+        
+        return result;
+      });
+      
+      console.log('[Automation] 📊 PAGE STATE BEFORE CONTINUE:');
+      console.log('[Automation]   - HasError():', pageState.hasError);
+      console.log('[Automation]   - IsValidatedBankInfo():', pageState.isBankValidated);
+      console.log('[Automation]   - Error messages found:', pageState.errorMessages.length);
+      if (pageState.errorMessages.length > 0) {
+        console.log('[Automation]   - Errors:', pageState.errorMessages.join(' | '));
+      }
+      console.log('[Automation]   - Current URL:', pageState.currentUrl);
+    } catch (e) {
+      console.log('[Automation] Could not check page state:', e.message);
+    }
+    
     try {
       // Scroll to bottom of page to ensure the button is visible
       await page.evaluate(() => {
@@ -1554,19 +1577,32 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     await new Promise(r => setTimeout(r, 2000));
     
     console.log('[Automation] ════════════════════════════════════════════════════════');
-    console.log('[Automation] ✓✓✓ AUTOMATION COMPLETE - READY FOR VOICE RECORDING ✓✓✓');
-    console.log('[Automation] ════════════════════════════════════════════════════════');
-    console.log('[Automation] Application Number:', applicationNumber);
     console.log('[Automation] Final URL:', page.url());
+    console.log('[Automation] Application Number:', applicationNumber || '(NOT CAPTURED)');
     
-    return { 
-      success: true, 
-      message: 'Application ready for voice recording',
-      applicationNumber: applicationNumber,
-      customer: `${firstName} ${lastName}`,
-      state: state,
-      coverage: selectedCoverage
-    };
+    // CRITICAL: Only return success if we actually have an application number
+    if (applicationNumber && applicationNumber.trim() !== '') {
+      console.log('[Automation] ✓✓✓ AUTOMATION COMPLETE - READY FOR VOICE RECORDING ✓✓✓');
+      console.log('[Automation] ════════════════════════════════════════════════════════');
+      return { 
+        success: true, 
+        message: 'Application ready for voice recording',
+        applicationNumber: applicationNumber,
+        customer: `${firstName} ${lastName}`,
+        state: state,
+        coverage: selectedCoverage
+      };
+    } else {
+      console.log('[Automation] ✗✗✗ AUTOMATION FAILED - NO APPLICATION NUMBER CAPTURED ✗✗✗');
+      console.log('[Automation] ════════════════════════════════════════════════════════');
+      return { 
+        success: false, 
+        error: 'Automation completed but no application number was captured. The form may not have been submitted correctly.',
+        customer: `${firstName} ${lastName}`,
+        state: state,
+        coverage: selectedCoverage
+      };
+    }
 
   } catch (error) {
     console.error('[Automation] Error:', error);
