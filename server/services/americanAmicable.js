@@ -1983,70 +1983,63 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       
       console.log('[Automation] Attempting to click Continue to Agent Statement button...');
       
-      // Method 1: Remove onclick handler and submit the form directly
-      const submitResult = await page.evaluate(() => {
+      // METHOD 1: Remove onclick handler, then use Puppeteer's click (not JS click)
+      console.log('[Automation] Method 1: Remove onclick + Puppeteer click...');
+      
+      // Step 1: Remove the blocking onclick handler
+      await page.evaluate(() => {
         const btn = document.getElementById('BtnContinue');
         if (btn) {
-          // Remove the blocking onclick handler
           btn.onclick = null;
           btn.removeAttribute('onclick');
-          
-          // Click the button
-          btn.click();
-          return { success: true, method: 'direct-click-no-onclick' };
         }
-        return { success: false };
+        // Also disable form validation
+        const form = document.getElementById('form1');
+        if (form) {
+          form.onsubmit = function() { return true; };
+        }
       });
+      console.log('[Automation] ✓ Removed onclick handler from BtnContinue');
       
-      if (submitResult.success) {
-        console.log('[Automation] ✓ Clicked Continue button (onclick handler removed)');
+      // Step 2: Use Puppeteer's click (this triggers real browser click)
+      try {
+        await Promise.all([
+          page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
+          page.click('#BtnContinue')
+        ]);
+        console.log('[Automation] ✓ BtnContinue clicked and navigation completed');
         buttonClicked = true;
-      }
-      
-      // Method 2: If button click didn't work, try form submit
-      if (!buttonClicked) {
-        console.log('[Automation] Trying form submit...');
-        const formSubmitResult = await page.evaluate(() => {
-          const form = document.getElementById('form1');
-          if (form) {
-            // Set the event target to simulate the button click
-            const eventTarget = document.getElementById('__EVENTTARGET');
-            const eventArg = document.getElementById('__EVENTARGUMENT');
-            if (eventTarget) eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
-            if (eventArg) eventArg.value = '';
-            form.submit();
-            return { success: true, method: 'form-submit' };
-          }
-          return { success: false };
-        });
+      } catch (clickError) {
+        console.log('[Automation] Method 1 failed:', clickError.message);
         
-        if (formSubmitResult.success) {
-          console.log('[Automation] ✓ Form submitted directly');
+        // METHOD 2: Click BtnSkip link directly using Puppeteer
+        console.log('[Automation] Method 2: Clicking BtnSkip link...');
+        try {
+          await Promise.all([
+            page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
+            page.click('#BtnSkip')
+          ]);
+          console.log('[Automation] ✓ BtnSkip clicked and navigation completed');
           buttonClicked = true;
-        }
-      }
-      
-      // Method 3: Use BtnSkip as a fallback - this bypasses validation
-      if (!buttonClicked) {
-        console.log('[Automation] Trying BtnSkip fallback...');
-        const skipResult = await page.evaluate(() => {
-          // The skip link uses __doPostBack
-          const skipLink = document.getElementById('BtnSkip');
-          if (skipLink) {
-            skipLink.click();
-            return { success: true, method: 'skip-link' };
+        } catch (skipError) {
+          console.log('[Automation] Method 2 failed:', skipError.message);
+          
+          // METHOD 3: __doPostBack directly and wait
+          console.log('[Automation] Method 3: Using __doPostBack...');
+          await page.evaluate(() => {
+            if (typeof __doPostBack === 'function') {
+              __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnSkip', '');
+            }
+          });
+          await new Promise(r => setTimeout(r, 5000));
+          
+          const currentUrl = page.url();
+          if (!currentUrl.includes('personalinfo')) {
+            console.log('[Automation] ✓ __doPostBack worked, new URL:', currentUrl);
+            buttonClicked = true;
+          } else {
+            console.log('[Automation] Method 3 failed, still on personalinfo');
           }
-          // Try calling __doPostBack directly
-          if (typeof __doPostBack === 'function') {
-            __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnSkip', '');
-            return { success: true, method: 'doPostBack' };
-          }
-          return { success: false };
-        });
-        
-        if (skipResult.success) {
-          console.log('[Automation] ✓ Used BtnSkip to continue');
-          buttonClicked = true;
         }
       }
       
