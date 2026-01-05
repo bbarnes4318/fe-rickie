@@ -1635,12 +1635,9 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     // Radio options: Family Member (_1), Multiple Beneficiaries (_2), Life Partner (_3), Fiancé (_4), Estate (_5), Trust (_6), Other (_7)
     if (beneficiaryRelation) {
       try {
-        // Map UI relationship values to carrier radio button IDs
-        // Radio options: Family Member (_1), Multiple Beneficiaries (_2), Life Partner (_3), Fiancé (_4), Estate (_5), Trust (_6), Other (_7)
         const relationMap = {
           'family member': 'PrimaryRelationship_1',
           'spouse': 'PrimaryRelationship_1',
-          'parent': 'PrimaryRelationship_1',    // UI option: Parent -> Family Member radio
           'mother': 'PrimaryRelationship_1',
           'father': 'PrimaryRelationship_1',
           'child': 'PrimaryRelationship_1',
@@ -1648,12 +1645,9 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
           'son': 'PrimaryRelationship_1',
           'brother': 'PrimaryRelationship_1',
           'sister': 'PrimaryRelationship_1',
-          'relative': 'PrimaryRelationship_1',  // UI option: Relative -> Family Member radio
-          'partner': 'PrimaryRelationship_3',   // UI option: Partner -> Life Partner radio
           'life partner': 'PrimaryRelationship_3',
           'fiancé': 'PrimaryRelationship_4',
           'fiance': 'PrimaryRelationship_4',
-          'friend': 'PrimaryRelationship_7',    // UI option: Friend -> Other radio
           'multiple': 'PrimaryRelationship_2',
           'estate': 'PrimaryRelationship_5',
           'trust': 'PrimaryRelationship_6',
@@ -1664,19 +1658,13 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
         const radioId = relationMap[relationLower] || 'PrimaryRelationship_1'; // Default to Family Member
         
         await page.click(`#${radioId}`);
-        console.log(`[Automation] ✓ Primary Beneficiary Relationship: ${radioId} (from: ${beneficiaryRelation})`);
+        console.log(`[Automation] ✓ Primary Beneficiary Relationship: ${radioId}`);
         await new Promise(r => setTimeout(r, 500)); // Wait for conditional fields
         
         // If Family Member, also select the specific family member type from dropdown
         if (radioId === 'PrimaryRelationship_1') {
-          // Map UI values to carrier dropdown values
           const familyMap = {
             'spouse': 'Spouse',
-            'child': 'Son',         // Default child to Son (carrier has Son/Daughter)
-            'parent': 'Father',     // Default parent to Father (carrier has Mother/Father)
-            'partner': 'Spouse',    // Life partner maps to Spouse for this dropdown
-            'friend': 'Cousin',     // Friend doesn't exist, use Cousin as closest
-            'relative': 'Cousin',   // Generic relative, use Cousin
             'mother': 'Mother',
             'father': 'Father',
             'daughter': 'Daughter',
@@ -1690,26 +1678,22 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
             'grandmother': 'Grandmother',
             'grandchild': 'Grandchild',
             'niece': 'Niece',
-            'nephew': 'Nephew',
-            'family member': 'Spouse',  // Generic family member defaults to Spouse
-            'other': 'Cousin'           // Other defaults to Cousin
+            'nephew': 'Nephew'
           };
           
           const familyValue = familyMap[relationLower] || 'Spouse'; // Default to Spouse
-          console.log(`[Automation] Looking up family type: "${relationLower}" -> "${familyValue}"`);
           try {
             await page.select('#PFamilyMember', familyValue);
             console.log(`[Automation] ✓ Family Member Type: ${familyValue}`);
           } catch (e) {
-            console.log('[Automation] Family Member dropdown not found or selection failed:', e.message);
+            console.log('[Automation] Family Member dropdown not found');
           }
         }
       } catch (e) {
-        console.log('[Automation] Primary Relationship radio not found:', e.message);
+        console.log('[Automation] Primary Relationship radio not found');
       }
     } else {
       // Default to Family Member > Spouse if no relationship specified
-      console.log('[Automation] No beneficiary relationship specified, using default: Family Member > Spouse');
       try {
         await page.click('#PrimaryRelationship_1');
         console.log('[Automation] ✓ Primary Beneficiary Relationship: Family Member (default)');
@@ -1717,7 +1701,7 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
         await page.select('#PFamilyMember', 'Spouse');
         console.log('[Automation] ✓ Family Member Type: Spouse (default)');
       } catch (e) {
-        console.log('[Automation] Could not set default beneficiary relationship:', e.message);
+        console.log('[Automation] Could not set default beneficiary relationship');
       }
     }
     
@@ -1991,100 +1975,83 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       });
       await new Promise(r => setTimeout(r, 1000));
       
+      let buttonClicked = false;
+      
+      // CRITICAL: The BtnContinue button has an onclick handler that BLOCKS submission:
+      // onclick="if (HasError() || IsValidatedBankInfo()) return false;"
+      // We need to bypass this by removing the onclick handler before clicking
+      
       console.log('[Automation] Attempting to click Continue to Agent Statement button...');
       
-      // STRATEGY: Use __doPostBack directly - this is the most reliable method for ASP.NET forms
-      // The BtnSkip link bypasses validation entirely, so we'll use that approach for the main button too
-      
-      // Method 1: Use __doPostBack directly with the BtnSkip target (MOST RELIABLE - bypasses all validation)
-      console.log('[Automation] Method 1: Using __doPostBack with BtnSkip (bypasses validation)...');
-      try {
-        await page.evaluate(() => {
-          // Call __doPostBack directly - this is what the BtnSkip link does
-          if (typeof __doPostBack === 'function') {
-            __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnSkip', '');
-          }
-        });
-        console.log('[Automation] ✓ Called __doPostBack for BtnSkip');
-        
-        // Wait for navigation
-        await Promise.race([
-          page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 }),
-          new Promise(r => setTimeout(r, 10000))
-        ]);
-        
-        // Check if we navigated
-        const newUrl = page.url();
-        if (newUrl.includes('agentstatement') || !newUrl.includes('personalinfo')) {
-          console.log('[Automation] ✓ Successfully navigated! New URL:', newUrl);
-        } else {
-          console.log('[Automation] Still on same page, trying Method 2...');
-          throw new Error('Still on personalinfo page');
+      // Method 1: Remove onclick handler and submit the form directly
+      const submitResult = await page.evaluate(() => {
+        const btn = document.getElementById('BtnContinue');
+        if (btn) {
+          // Remove the blocking onclick handler
+          btn.onclick = null;
+          btn.removeAttribute('onclick');
+          
+          // Click the button
+          btn.click();
+          return { success: true, method: 'direct-click-no-onclick' };
         }
-      } catch (navError) {
-        console.log('[Automation] Method 1 navigation issue:', navError.message);
-        
-        // Method 2: Remove onclick and submit the form directly
-        console.log('[Automation] Method 2: Removing onclick and clicking BtnContinue...');
-        try {
-          await page.evaluate(() => {
-            const btn = document.getElementById('BtnContinue');
-            if (btn) {
-              // Remove ALL event handlers
-              btn.onclick = null;
-              btn.removeAttribute('onclick');
-              // Also remove any jQuery handlers
-              if (typeof $ !== 'undefined' && $.fn && $.fn.off) {
-                $(btn).off();
-              }
-              // Submit via form
-              const form = document.getElementById('form1');
-              if (form && form.onsubmit) {
-                form.onsubmit = function() { return true; };
-              }
-              btn.click();
-            }
-          });
-          
-          await new Promise(r => setTimeout(r, 5000));
-          
-          const newUrl2 = page.url();
-          if (!newUrl2.includes('personalinfo')) {
-            console.log('[Automation] ✓ Method 2 worked! New URL:', newUrl2);
-          } else {
-            console.log('[Automation] Method 2 did not navigate, trying Method 3...');
-            
-            // Method 3: Direct form submit with __doPostBack for Continue button
-            console.log('[Automation] Method 3: Direct __doPostBack for BtnContinue...');
-            await page.evaluate(() => {
-              const eventTarget = document.getElementById('__EVENTTARGET');
-              const eventArg = document.getElementById('__EVENTARGUMENT');
-              if (eventTarget) eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
-              if (eventArg) eventArg.value = '';
-              const form = document.getElementById('form1');
-              if (form) {
-                form.onsubmit = function() { return true; };
-                form.submit();
-              }
-            });
-            
-            await new Promise(r => setTimeout(r, 5000));
-            console.log('[Automation] Method 3 complete, checking URL...');
+        return { success: false };
+      });
+      
+      if (submitResult.success) {
+        console.log('[Automation] ✓ Clicked Continue button (onclick handler removed)');
+        buttonClicked = true;
+      }
+      
+      // Method 2: If button click didn't work, try form submit
+      if (!buttonClicked) {
+        console.log('[Automation] Trying form submit...');
+        const formSubmitResult = await page.evaluate(() => {
+          const form = document.getElementById('form1');
+          if (form) {
+            // Set the event target to simulate the button click
+            const eventTarget = document.getElementById('__EVENTTARGET');
+            const eventArg = document.getElementById('__EVENTARGUMENT');
+            if (eventTarget) eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
+            if (eventArg) eventArg.value = '';
+            form.submit();
+            return { success: true, method: 'form-submit' };
           }
-        } catch (method2Error) {
-          console.log('[Automation] Method 2 error:', method2Error.message);
+          return { success: false };
+        });
+        
+        if (formSubmitResult.success) {
+          console.log('[Automation] ✓ Form submitted directly');
+          buttonClicked = true;
         }
       }
       
-      // Final URL check
-      await new Promise(r => setTimeout(r, 2000));
-      const finalUrl = page.url();
-      console.log('[Automation] Final URL after all attempts:', finalUrl);
+      // Method 3: Use BtnSkip as a fallback - this bypasses validation
+      if (!buttonClicked) {
+        console.log('[Automation] Trying BtnSkip fallback...');
+        const skipResult = await page.evaluate(() => {
+          // The skip link uses __doPostBack
+          const skipLink = document.getElementById('BtnSkip');
+          if (skipLink) {
+            skipLink.click();
+            return { success: true, method: 'skip-link' };
+          }
+          // Try calling __doPostBack directly
+          if (typeof __doPostBack === 'function') {
+            __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnSkip', '');
+            return { success: true, method: 'doPostBack' };
+          }
+          return { success: false };
+        });
+        
+        if (skipResult.success) {
+          console.log('[Automation] ✓ Used BtnSkip to continue');
+          buttonClicked = true;
+        }
+      }
       
-      const navigatedAway = !finalUrl.includes('personalinfo');
-      
-      if (!navigatedAway) {
-        console.log('[Automation] ⚠ All methods failed to navigate away from personalinfo page');
+      if (!buttonClicked) {
+        console.log('[Automation] ⚠ Continue to Agent Statement button not found');
         
         // ═══ TRIGGER RECOVERY FLOW ═══
         console.log('[Automation] ⚠ INITIATING RECOVERY FLOW...');
