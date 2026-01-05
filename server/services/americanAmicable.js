@@ -81,10 +81,10 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     accountType = 'Checking', // 'Checking' or 'Saving'
     // ═══ Email/Personal Info ═══
     wantsEmail = null, // true = Yes, false = No
-    // Height/Weight
-    heightFeet = '',
-    heightInches = '',
-    weight = '',
+    // Height/Weight - use defaults if not provided
+    heightFeet = 5,
+    heightInches = 6,
+    weight = 150,
     // Doctor info
     doctorName = '',
     doctorAddress = '',
@@ -132,11 +132,26 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
 
   console.log('═══════════════════════════════════════════════════════════════');
   console.log(`[PUPPETEER] ${logTs()} ▶▶▶ AUTOMATION FUNCTION CALLED ◀◀◀`);
+  console.log(`[PUPPETEER] ${logTs()} RAW DATA RECEIVED:`, JSON.stringify({ 
+    heightFeet: data.heightFeet, 
+    heightInches: data.heightInches, 
+    weight: data.weight 
+  }));
+  console.log(`[PUPPETEER] ${logTs()} AFTER DESTRUCTURING: heightFeet=${heightFeet}, heightInches=${heightInches}, weight=${weight}`);
+  
+  // FORCE DEFAULTS if values are empty strings (destructuring defaults don't catch empty strings)
+  const safeWeight = weight || 150;
+  const safeHeightFeet = heightFeet || 5;
+  const safeHeightInches = heightInches || 6;
+  
+  console.log(`[PUPPETEER] ${logTs()} USING SAFE VALUES: height=${safeHeightFeet}'${safeHeightInches}, weight=${safeWeight}`);
+
   console.log(`[PUPPETEER] ${logTs()} Customer: ${firstName} ${middleName} ${lastName}`);
   console.log(`[PUPPETEER] ${logTs()} State: ${state}, DOB: ${dob}, Age: ${age}, Gender: ${gender}`);
   console.log(`[PUPPETEER] ${logTs()} Coverage: ${selectedCoverage}, Plan: ${selectedPlanType}, Tobacco: ${tobacco}`);
   console.log(`[PUPPETEER] ${logTs()} Address: ${address}, ${zip}`);
   console.log(`[PUPPETEER] ${logTs()} Beneficiary: ${beneficiaryName} (${beneficiaryRelation || 'not specified'})`);
+  console.log('═══════════════════════════════════════════════════════════════');
   console.log('═══════════════════════════════════════════════════════════════');
 
   try {
@@ -922,11 +937,82 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       await page.waitForSelector('#btValidateBankInfo', { timeout: 5000 });
       await page.click('#btValidateBankInfo');
       console.log('[Automation] ✓ Validate Bank Info clicked');
-      // Wait for validation to complete
+      
+      // Wait longer for validation API to complete (5 seconds)
       await new Promise(r => setTimeout(r, 5000));
-      console.log('[Automation] ✓ Bank validation complete');
+      
+      // VERIFY VALIDATION SUCCESS - Check for isValid AND look for Req errors
+      const bankValidationResult = await page.evaluate(() => {
+        const isValid = typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
+        
+        // Find visible error messages specifically in bank section
+        const errors = [];
+        
+        // Check for errors in BankDraftPanel
+        const bankErrors = document.querySelectorAll('#BankDraftPanel .error, #BankDraftPanel [style*="color: red"], #BankDraftPanel span[id*="Req"]');
+        bankErrors.forEach(el => {
+          if (el.textContent && el.textContent.trim() && el.offsetParent !== null) {
+            errors.push(el.textContent.trim());
+          }
+        });
+        
+        // Also check for any visible "Req" spans (required field errors) across the page
+        const reqSpans = document.querySelectorAll('span[id$="_Req"], span[id*="Req"]');
+        reqSpans.forEach(el => {
+          if (el.textContent && el.textContent.trim() && el.offsetParent !== null) {
+            errors.push(`REQ: ${el.id} - ${el.textContent.trim()}`);
+          }
+        });
+        
+        // Check for validation message popup
+        const validationMsg = document.querySelector('#lblBankValidation, #bankValidationMessage');
+        const validationText = validationMsg ? validationMsg.textContent.trim() : '';
+        
+        return { isValid, errors, validationText };
+      });
+      
+      console.log('[Automation] Bank validation result:', JSON.stringify(bankValidationResult));
+      
+      if (bankValidationResult.isValid) {
+        console.log('[Automation] ✓ Bank validation verified SUCCESS');
+      } else {
+        console.log('[Automation] ⚠ Bank validation FAILED - isValid: false');
+        if (bankValidationResult.validationText) {
+          console.log('[Automation] ⚠ Validation Message:', bankValidationResult.validationText);
+        }
+        if (bankValidationResult.errors.length > 0) {
+          console.log('[Automation] ⚠ Errors Found:', bankValidationResult.errors.join(' | '));
+        }
+        
+        // RETRY: Click validate again and wait longer
+        console.log('[Automation] Retrying Validate Bank Info click...');
+        await page.click('#btValidateBankInfo');
+        await new Promise(r => setTimeout(r, 5000));
+        
+        // Check result after retry
+        const retryResult = await page.evaluate(() => {
+          return typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
+        });
+        console.log('[Automation] Bank validation after retry:', retryResult ? 'SUCCESS' : 'STILL FAILED');
+        
+        // If still failing, try to identify what's missing
+        if (!retryResult) {
+          const missingFields = await page.evaluate(() => {
+            const fields = [];
+            const inputs = document.querySelectorAll('#BankDraftPanel input, #BankDraftPanel select');
+            inputs.forEach(inp => {
+              if (!inp.value || inp.value.trim() === '') {
+                fields.push(inp.id || inp.name || 'unknown');
+              }
+            });
+            return fields;
+          });
+          console.log('[Automation] ⚠ Empty bank fields:', missingFields.join(', '));
+        }
+      }
+      
     } catch (e) {
-      console.log('[Automation] Validate Bank Info button not found or failed');
+      console.log('[Automation] Validate Bank Info button not found or failed:', e.message);
     }
     
     // Checking/Savings
@@ -1017,43 +1103,53 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     }
     
     // === HEIGHT & WEIGHT ===
-    console.log(`[Automation] Height data: ${heightFeet}' ${heightInches}" | Weight data: ${weight}`);
+    // Use safeWeight, safeHeightFeet, safeHeightInches to handle empty strings from frontend
+    console.log(`[Automation] Height data (raw): ${heightFeet}' ${heightInches}" | Weight data (raw): ${weight}`);
+    console.log(`[Automation] Height data (safe): ${safeHeightFeet}' ${safeHeightInches}" | Weight data (safe): ${safeWeight}`);
     
-    if (heightFeet && heightInches !== undefined) {
-      const heightValue = `${heightFeet}'${heightInches}`;
+    // Always enter height using safe values (defaults: 5'6")
+    const heightValue = `${safeHeightFeet}'${safeHeightInches}`;
+    try {
+      await page.select('#Height', heightValue);
+      console.log(`[Automation] ✓ Height selected: ${heightValue}`);
+    } catch (e) {
+      console.log('[Automation] Height selector not found:', e.message);
+      // Try alternative: type into height fields if they exist separately
       try {
-        await page.select('#Height', heightValue);
-        console.log(`[Automation] ✓ Height selected: ${heightValue}`);
-      } catch (e) {
-        console.log('[Automation] Height selector not found:', e.message);
+        const feetInput = await page.$('#HeightFeet, input[name*="HeightFeet"]');
+        const inchesInput = await page.$('#HeightInches, input[name*="HeightInches"]');
+        if (feetInput && inchesInput) {
+          await feetInput.type(String(safeHeightFeet));
+          await inchesInput.type(String(safeHeightInches));
+          console.log(`[Automation] ✓ Height entered via separate fields: ${safeHeightFeet}' ${safeHeightInches}"`);
+        }
+      } catch (e2) {
+        console.log('[Automation] Alternative height fields not found');
       }
     }
     
-    if (weight) {
-      console.log(`[Automation] Attempting to enter weight: ${weight}`);
+    // Always enter weight using safe value (default: 150)
+    console.log(`[Automation] Entering weight: ${safeWeight}`);
+    try {
+      // Clear any existing value first
+      await page.$eval('#Weight', el => el.value = '');
+      await page.type('#Weight', String(safeWeight));
+      console.log(`[Automation] ✓ Weight entered: ${safeWeight}`);
+    } catch (e) {
+      console.log('[Automation] Weight field #Weight not found, trying alternatives...');
+      // Try alternative selectors
       try {
-        // Clear any existing value first
-        await page.$eval('#Weight', el => el.value = '');
-        await page.type('#Weight', String(weight));
-        console.log(`[Automation] ✓ Weight entered: ${weight}`);
-      } catch (e) {
-        console.log('[Automation] Weight field #Weight not found, trying alternatives...');
-        // Try alternative selectors
-        try {
-          const weightInput = await page.$('input[name*="Weight"], input[id*="weight" i], input[placeholder*="weight" i]');
-          if (weightInput) {
-            await weightInput.click({ clickCount: 3 }); // Select all
-            await weightInput.type(String(weight));
-            console.log(`[Automation] ✓ Weight entered via alt selector: ${weight}`);
-          } else {
-            console.log('[Automation] ✗ No weight field found with any selector');
-          }
-        } catch (e2) {
-          console.log('[Automation] Weight field error:', e2.message);
+        const weightInput = await page.$('input[name*="Weight"], input[id*="weight" i], input[placeholder*="weight" i]');
+        if (weightInput) {
+          await weightInput.click({ clickCount: 3 }); // Select all
+          await weightInput.type(String(safeWeight));
+          console.log(`[Automation] ✓ Weight entered via alt selector: ${safeWeight}`);
+        } else {
+          console.log('[Automation] ✗ No weight field found with any selector');
         }
+      } catch (e2) {
+        console.log('[Automation] Weight field error:', e2.message);
       }
-    } else {
-      console.log('[Automation] ⚠ No weight value provided in form data');
     }
     
     // === PHYSICIAN INFORMATION ===
@@ -1249,32 +1345,160 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     console.log('[Automation] ✓ Contact information completed');
     
     // ═══════════════════════════════════════════════════════════════════════
-    // ILLINOIS RESIDENTS SECTION (Only for IL)
-    // Default to "Will Not Designate" unless explicitly set otherwise
+    // ILLINOIS RESIDENTS SECTION - APPLICANT DESIGNEE CHOICE
+    // ALWAYS select "Will Not Designate" - this appears at the bottom before Continue button
     // ═══════════════════════════════════════════════════════════════════════
-    if (state === 'Illinois' || state === 'IL') {
-      console.log('[Automation] Illinois Residents section - handling designee choice...');
-      try {
-        // Always select "Will Not Designate" unless explicitly told otherwise
-        // Radio _2 = "Will not designate"
-        const willNotDesignateRadio = await page.$('#ApplicantDesignee_2');
-        if (willNotDesignateRadio) {
-          await willNotDesignateRadio.click();
-          console.log('[Automation] ✓ Illinois Designee Choice: Will Not Designate');
-        } else {
-          // Fallback: try alternative selectors
-          const altRadio = await page.$('input[value*="Will not designate"], input[value*="NotDesignate"], input[value="WillNotDesignate"]');
-          if (altRadio) {
-            await altRadio.click();
-            console.log('[Automation] ✓ Illinois Designee Choice: Will Not Designate (alt selector)');
-          } else {
-            console.log('[Automation] ⚠ Illinois Designee radio button not found');
+    console.log('[Automation] Looking for Illinois Residents / Applicant Designee Choice section...');
+    
+    try {
+      // First, log what's on the page to help debug
+      const designeeInfo = await page.evaluate(() => {
+        const results = {
+          foundSection: false,
+          radioButtons: [],
+          labels: []
+        };
+        
+        // Look for any element containing "Will Not Designate" or "Designee"
+        const allLabels = document.querySelectorAll('label, span, td');
+        for (const el of allLabels) {
+          if (el.textContent && el.textContent.includes('Designate')) {
+            results.labels.push({
+              tag: el.tagName,
+              text: el.textContent.trim().substring(0, 50),
+              htmlFor: el.htmlFor || null
+            });
+            results.foundSection = true;
           }
         }
-      } catch (e) {
-        console.log('[Automation] Illinois Designee section error:', e.message);
+        
+        // Find all radio buttons that might be the designee choice
+        const radios = document.querySelectorAll('input[type="radio"]');
+        for (const radio of radios) {
+          const id = radio.id || '';
+          const name = radio.name || '';
+          const value = radio.value || '';
+          // Look for designee-related radios
+          if (id.toLowerCase().includes('designee') || 
+              name.toLowerCase().includes('designee') ||
+              id.toLowerCase().includes('applicant')) {
+            results.radioButtons.push({ id, name, value, checked: radio.checked });
+          }
+        }
+        
+        return results;
+      });
+      
+      console.log('[Automation] Designee section search results:', JSON.stringify(designeeInfo));
+      
+      // Now try multiple approaches to click "Will Not Designate"
+      let clicked = false;
+      
+      // Approach 1: Try the expected ID patterns
+      const selectorPatterns = [
+        '#ApplicantDesignee_2',           // Standard pattern for radio #2 (Will Not Designate)
+        '#ApplicantDesignee2',            // Alternative without underscore
+        'input[id*="Designee"][id*="2"]', // Any input with Designee and 2 in ID
+        'input[name*="Designee"][value*="Not"]', // By name containing Designee, value containing Not
+        'input[name*="Designee"][value*="2"]',   // By name, value = 2
+        'input[name*="Designee"]:nth-of-type(2)' // Second radio in Designee group
+      ];
+      
+      for (const selector of selectorPatterns) {
+        if (clicked) break;
+        try {
+          const element = await page.$(selector);
+          if (element) {
+            await element.click();
+            console.log(`[Automation] ✓ Illinois Designee: Will Not Designate (selector: ${selector})`);
+            clicked = true;
+          }
+        } catch (e) {
+          // Continue to next selector
+        }
       }
+      
+      // Approach 2: If still not clicked, find by label text "Will Not Designate"
+      if (!clicked) {
+        console.log('[Automation] Trying to find by label text...');
+        clicked = await page.evaluate(() => {
+          // Find all labels or elements with "Will Not Designate" text
+          const allElements = document.querySelectorAll('label, span, td, div');
+          for (const el of allElements) {
+            if (el.textContent && el.textContent.trim() === 'Will Not Designate') {
+              // Found the label, now find the associated radio
+              const forId = el.htmlFor || el.getAttribute('for');
+              if (forId) {
+                const radio = document.getElementById(forId);
+                if (radio) {
+                  radio.click();
+                  return true;
+                }
+              }
+              // Maybe the radio is inside or a sibling
+              const radio = el.querySelector('input[type="radio"]') || 
+                           el.previousElementSibling?.querySelector('input[type="radio"]') ||
+                           el.parentElement?.querySelector('input[type="radio"]');
+              if (radio) {
+                radio.click();
+                return true;
+              }
+              // Try clicking the parent/container which might trigger the radio
+              const parent = el.closest('label');
+              if (parent) {
+                parent.click();
+                return true;
+              }
+            }
+          }
+          
+          // Last resort: find all radios with Designee in name and click the second one
+          const designeeRadios = document.querySelectorAll('input[type="radio"][name*="Designee"]');
+          if (designeeRadios.length >= 2) {
+            designeeRadios[1].click(); // Second radio = Will Not Designate
+            return true;
+          }
+          
+          return false;
+        });
+        
+        if (clicked) {
+          console.log('[Automation] ✓ Illinois Designee: Will Not Designate (via label text/fallback)');
+        }
+      }
+      
+      // Approach 3: If STILL not clicked, use XPath to find by text
+      if (!clicked) {
+        console.log('[Automation] Trying XPath approach...');
+        try {
+          const [labelElement] = await page.$x("//label[contains(text(), 'Will Not Designate')] | //td[contains(text(), 'Will Not Designate')]");
+          if (labelElement) {
+            await labelElement.click();
+            console.log('[Automation] ✓ Illinois Designee: Will Not Designate (via XPath)');
+            clicked = true;
+          }
+        } catch (e) {
+          console.log('[Automation] XPath approach failed:', e.message);
+        }
+      }
+      
+      if (!clicked) {
+        console.log('[Automation] ⚠ Could not find/click Illinois Designee "Will Not Designate" option');
+        // Log all radio buttons on page for debugging
+        const allRadios = await page.evaluate(() => {
+          return Array.from(document.querySelectorAll('input[type="radio"]'))
+            .map(r => ({ id: r.id, name: r.name, value: r.value }))
+            .filter(r => r.id || r.name);
+        });
+        console.log('[Automation] All radio buttons on page:', JSON.stringify(allRadios.slice(0, 20)));
+      }
+      
+    } catch (e) {
+      console.log('[Automation] Illinois Designee section error:', e.message);
     }
+    
+    // Small wait after selecting designee option
+    await new Promise(r => setTimeout(r, 500));
     
     // NOTE: Validate Bank Account is already clicked earlier (after bank details are entered)
     // DO NOT click it again here - it causes errors
@@ -1291,6 +1515,8 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
           hasError: typeof HasError === 'function' ? HasError() : 'HasError not defined',
           isBankValidated: typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : 'IsValidatedBankInfo not defined',
           errorMessages: [],
+          reqErrors: [],  // Specifically track "Req" required field errors
+          emptyRequiredFields: [],
           currentUrl: window.location.href
         };
         
@@ -1299,6 +1525,22 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
         errors.forEach(el => {
           if (el.textContent && el.textContent.trim() && el.offsetParent !== null) {
             result.errorMessages.push(el.textContent.trim().substring(0, 100));
+          }
+        });
+        
+        // CRITICAL: Look for "Req" required field indicator spans
+        const reqSpans = document.querySelectorAll('span[id$="_Req"], span[id*="Req"], .reqIndicator, [class*="required"]');
+        reqSpans.forEach(el => {
+          if (el.offsetParent !== null && el.textContent) {
+            result.reqErrors.push(`${el.id || 'unknown'}: "${el.textContent.trim()}"`);
+          }
+        });
+        
+        // Check for empty required input fields
+        const requiredInputs = document.querySelectorAll('input[required], input.required, select[required], select.required');
+        requiredInputs.forEach(inp => {
+          if (!inp.value || inp.value.trim() === '') {
+            result.emptyRequiredFields.push(inp.id || inp.name || 'unknown');
           }
         });
         
@@ -1312,7 +1554,32 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       if (pageState.errorMessages.length > 0) {
         console.log('[Automation]   - Errors:', pageState.errorMessages.join(' | '));
       }
+      console.log('[Automation]   - "Req" errors found:', pageState.reqErrors.length);
+      if (pageState.reqErrors.length > 0) {
+        console.log('[Automation]   ⚠ REQ ERRORS:', pageState.reqErrors.join(' | '));
+      }
+      console.log('[Automation]   - Empty required fields:', pageState.emptyRequiredFields.length);
+      if (pageState.emptyRequiredFields.length > 0) {
+        console.log('[Automation]   ⚠ EMPTY REQUIRED:', pageState.emptyRequiredFields.join(', '));
+      }
       console.log('[Automation]   - Current URL:', pageState.currentUrl);
+      
+      // If bank validation is failing, try clicking validate one more time before continue
+      if (!pageState.isBankValidated) {
+        console.log('[Automation] ⚠ Bank validation still failing, attempting final validation...');
+        try {
+          await page.click('#btValidateBankInfo');
+          await new Promise(r => setTimeout(r, 5000));
+          
+          // Check one more time
+          const finalCheck = await page.evaluate(() => {
+            return typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
+          });
+          console.log('[Automation] Final bank validation check:', finalCheck ? 'SUCCESS' : 'STILL FAILED');
+        } catch (e) {
+          console.log('[Automation] Final validation attempt failed:', e.message);
+        }
+      }
     } catch (e) {
       console.log('[Automation] Could not check page state:', e.message);
     }
