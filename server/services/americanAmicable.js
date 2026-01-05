@@ -1199,8 +1199,16 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     
     // === PAYMENT METHOD (Bank Draft) ===
     try {
-      await page.click('#Method_1'); // Bank Draft
-      console.log('[Automation] ✓ Payment method set to Bank Draft');
+      await page.evaluate(() => {
+        const radio = document.getElementById('Method_1');
+        if (radio) {
+          radio.checked = true;
+          radio.click();
+          radio.dispatchEvent(new Event('change', { bubbles: true }));
+          radio.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      console.log('[Automation] ✓ Payment method set to Bank Draft (with events)');
       await new Promise(r => setTimeout(r, 2000)); // Wait for Bank Draft section to appear
     } catch (e) {
       console.log('[Automation] ⚠ Payment method selector not found:', e.message);
@@ -1258,9 +1266,18 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     try {
       if (effectiveSSPaymentSchedule === true) {
         // User wants draft to coincide with Social Security payment
-        await page.click('#SSP_1'); // Yes
-        console.log('[Automation] ✓ SS Payment Schedule: Yes');
-        await new Promise(r => setTimeout(r, 1500)); // Wait for dropdown options to change
+        // Must use evaluate to trigger proper events
+        await page.evaluate(() => {
+          const radio = document.getElementById('SSP_1');
+          if (radio) {
+            radio.checked = true;
+            radio.click();
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
+            radio.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        });
+        console.log('[Automation] ✓ SS Payment Schedule: Yes (with events)');
+        await new Promise(r => setTimeout(r, 2000)); // Wait for dropdown options to change
         
         // Now select the SS week option (1S, 3S, 2W, 3W, 4W)
         try {
@@ -1283,9 +1300,18 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
         
       } else {
         // User does NOT want draft to coincide with SS - use specific day of month
-        await page.click('#SSP_2'); // No
-        console.log('[Automation] ✓ SS Payment Schedule: No');
-        await new Promise(r => setTimeout(r, 1500)); // Wait for dropdown options to change
+        // Must use evaluate to trigger proper events
+        await page.evaluate(() => {
+          const radio = document.getElementById('SSP_2');
+          if (radio) {
+            radio.checked = true;
+            radio.click();
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
+            radio.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        });
+        console.log('[Automation] ✓ SS Payment Schedule: No (with events)');
+        await new Promise(r => setTimeout(r, 2000)); // Wait for dropdown options to change
         
         // Now select the day number (1-28)
         try {
@@ -1342,14 +1368,21 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     // ═══ CHECKING/SAVINGS - REQUIRED FIELD (CheckPlanReq) ═══
     console.log(`[Automation] Using effectiveAccountType: ${effectiveAccountType}`);
     try {
-      if (effectiveAccountType === 'Saving' || effectiveAccountType === 'Savings') {
-        await page.click('#CheckPlan_2'); // Saving
-        console.log('[Automation] ✓ Account Type: Saving');
-      } else {
-        // Default to Checking
-        await page.click('#CheckPlan_1'); // Checking
-        console.log('[Automation] ✓ Account Type: Checking');
-      }
+      const checkPlanId = (effectiveAccountType === 'Saving' || effectiveAccountType === 'Savings') 
+        ? 'CheckPlan_2' 
+        : 'CheckPlan_1';
+      const checkPlanLabel = checkPlanId === 'CheckPlan_2' ? 'Saving' : 'Checking';
+      
+      await page.evaluate((id) => {
+        const radio = document.getElementById(id);
+        if (radio) {
+          radio.checked = true;
+          radio.click();
+          radio.dispatchEvent(new Event('change', { bubbles: true }));
+          radio.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }, checkPlanId);
+      console.log(`[Automation] ✓ Account Type: ${checkPlanLabel} (with events)`);
     } catch (e) {
       console.log('[Automation] Checking/Savings radio not found:', e.message);
     }
