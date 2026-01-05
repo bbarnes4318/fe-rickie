@@ -230,7 +230,15 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   const [automationError, setAutomationError] = useState(null); // Error message if automation fails
   const [automationSteps, setAutomationSteps] = useState([]); // Live SSE status updates
   const [applicationNumber, setApplicationNumber] = useState(null); // Application number after success
+  const [confirmedCarrier, setConfirmedCarrier] = useState(null); // Carrier officially confirmed for submission
+  const [showCarrierConfirmation, setShowCarrierConfirmation] = useState(false); // Show confirmation panel
   const scrollRef = useRef(null);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CARRIER CONFIRMATION LOGIC
+  // The Submit button is ONLY enabled when a carrier has been explicitly confirmed
+  // ═══════════════════════════════════════════════════════════════════════════
+  const isSubmitEnabled = confirmedCarrier && !automationStarted && formData.state;
 
   // ─────────────────────────────────────────────────────────────────────────
   // GOOGLE SHEETS RATE LOADING
@@ -405,31 +413,7 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     }
   }, []);
 
-  // Manual Start Application button handler - validates required data before submitting
-  const handleStartApplication = useCallback(() => {
-    // Validate required fields for American Amicable application
-    const missingFields = [];
-    
-    if (!formData.state) missingFields.push('State');
-    if (!formData.firstName) missingFields.push('First Name');
-    if (!formData.lastName) missingFields.push('Last Name');
-    if (!formData.dob) missingFields.push('Date of Birth');
-    if (!formData.gender) missingFields.push('Gender');
-    if (!formData.selectedCoverage) missingFields.push('Coverage Amount');
-    
-    if (missingFields.length > 0) {
-      alert(`Please complete the following before submitting:\n\n• ${missingFields.join('\n• ')}`);
-      return;
-    }
-    
-    console.log('%c[AUTOMATION] MANUAL TRIGGER - Submit App button clicked', 'background: #ff0; color: #000; font-weight: bold;');
-    console.log('[AUTOMATION] Sending formData:', formData);
-    setAutomationStarted(true);
-    triggerCarrierAutomation(formData);
-  }, [formData, triggerCarrierAutomation]);
-
-  // NOTE: Auto-trigger DISABLED - automation only happens when agent clicks "Submit App" button
-  // This ensures all customer data is collected before submitting to American Amicable
+  // NOTE: handleConfirmCarrier and handleStartApplication are defined below after activeQuote
 
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -492,6 +476,85 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
       p3k: calculateMonthlyPremium(activeQuote.carrier, formData.age, formData.gender, formData.tobacco, 3000, activeQuote.planType)
     };
   }, [activeQuote?.carrier, activeQuote?.planType, formData.age, formData.gender, formData.tobacco, ratesVersion]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONFIRM CARRIER SELECTION - Called when user clicks "Confirm" in the confirmation panel
+  // ═══════════════════════════════════════════════════════════════════════════
+  const handleConfirmCarrier = useCallback(() => {
+    if (!activeQuote?.carrier) {
+      alert('Please select a carrier before confirming.');
+      return;
+    }
+    console.log('%c[CARRIER] CONFIRMED:', 'background: #0f0; color: #000; font-weight: bold;', activeQuote.carrier);
+    setConfirmedCarrier(activeQuote.carrier);
+    setShowCarrierConfirmation(false);
+    
+    // Update formData with confirmed carrier info
+    updateMultiple({
+      selectedCarrier: activeQuote.carrier,
+      selectedPlanType: activeQuote.planType,
+      selectedPremium: activeQuote.premium
+    });
+  }, [activeQuote, updateMultiple]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SUBMIT APPLICATION - Routes to appropriate backend based on confirmed carrier
+  // ═══════════════════════════════════════════════════════════════════════════
+  const handleStartApplication = useCallback(() => {
+    // GUARD: Must have confirmed carrier
+    if (!confirmedCarrier) {
+      alert('Please confirm your carrier selection before submitting.');
+      setShowCarrierConfirmation(true);
+      return;
+    }
+
+    // Validate required fields
+    const missingFields = [];
+    if (!formData.state) missingFields.push('State');
+    if (!formData.firstName) missingFields.push('First Name');
+    if (!formData.lastName) missingFields.push('Last Name');
+    if (!formData.dob) missingFields.push('Date of Birth');
+    if (!formData.gender) missingFields.push('Gender');
+    if (!formData.selectedCoverage) missingFields.push('Coverage Amount');
+    
+    if (missingFields.length > 0) {
+      alert(`Please complete the following before submitting:\n\n• ${missingFields.join('\n• ')}`);
+      return;
+    }
+
+    console.log('%c[AUTOMATION] SUBMIT TRIGGERED', 'background: #ff0; color: #000; font-weight: bold;');
+    console.log('[AUTOMATION] Confirmed Carrier:', confirmedCarrier);
+    console.log('[AUTOMATION] Form Data:', formData);
+
+    // ═══ CONDITIONAL BACKEND ROUTING ═══
+    switch (confirmedCarrier) {
+      case 'American Amicable':
+        console.log('%c[AUTOMATION] Routing to American Amicable backend...', 'background: #00f; color: #fff;');
+        setAutomationStarted(true);
+        triggerCarrierAutomation(formData);
+        break;
+
+      case 'Mutual of Omaha':
+      case 'Corebridge':
+      case 'TransAmerica':
+      case 'GTL':
+      case 'CICA':
+      case 'SBLI':
+      case 'Aflac':
+      case 'AHL':
+      case 'Royal Neighbors':
+      case 'Gerber':
+        // Placeholder for other carriers - backend not yet implemented
+        console.log(`%c[AUTOMATION] Submission for ${confirmedCarrier} - Backend not yet implemented`, 'background: #f90; color: #000; font-weight: bold;');
+        alert(`Automated submission for ${confirmedCarrier} is not yet available.\n\nPlease complete this application manually.`);
+        break;
+
+      default:
+        console.error('[AUTOMATION] ERROR: Unknown carrier:', confirmedCarrier);
+        alert('Error: Unknown carrier selected. Please try again.');
+        break;
+    }
+  }, [confirmedCarrier, formData, triggerCarrierAutomation]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // SCRIPT TEXT REPLACEMENT
@@ -955,6 +1018,122 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   };
 
   // ─────────────────────────────────────────────────────────────────────────
+  // RENDER CARRIER CONFIRMATION PANEL
+  // This is the "gatekeeper" that must be confirmed before submission
+  // ─────────────────────────────────────────────────────────────────────────
+  const renderCarrierConfirmation = () => {
+    if (!showCarrierConfirmation) return null;
+    
+    return (
+      <div className="absolute inset-0 z-60 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="w-full max-w-md mx-4 rounded-2xl overflow-hidden" style={{
+          background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+          border: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-white/10 bg-gradient-to-r from-purple-500/20 to-pink-500/20">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white">Confirm Carrier Selection</h3>
+              <button
+                onClick={() => setShowCarrierConfirmation(false)}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X size={20} className="text-gray-400" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="p-6 space-y-4">
+            {activeQuote ? (
+              <>
+                {/* Carrier Display */}
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-4">
+                    {CARRIER_LOGOS[activeQuote.carrier] && (
+                      <img 
+                        src={CARRIER_LOGOS[activeQuote.carrier]} 
+                        alt={activeQuote.carrier}
+                        className="w-16 h-12 object-contain bg-white/10 rounded-lg p-2"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <p className="text-white font-bold text-lg">{activeQuote.carrier}</p>
+                      <p className="text-gray-400 text-sm">{activeQuote.planType} Plan</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Quote Details */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                    <p className="text-emerald-400 text-xs font-medium mb-1">Monthly Premium</p>
+                    <p className="text-white text-2xl font-bold">${activeQuote.premium?.toFixed(2)}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                    <p className="text-blue-400 text-xs font-medium mb-1">Coverage Amount</p>
+                    <p className="text-white text-2xl font-bold">${formData.selectedCoverage?.toLocaleString()}</p>
+                  </div>
+                </div>
+                
+                {/* Customer Summary */}
+                <div className="p-3 rounded-lg bg-white/5 text-sm">
+                  <p className="text-gray-400">Customer: <span className="text-white">{formData.firstName} {formData.lastName}</span></p>
+                  <p className="text-gray-400">Age: <span className="text-white">{formData.age}</span> | Gender: <span className="text-white">{formData.gender}</span></p>
+                  <p className="text-gray-400">State: <span className="text-white">{formData.state}</span></p>
+                </div>
+                
+                {/* Warning for non-American Amicable */}
+                {activeQuote.carrier !== 'American Amicable' && (
+                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+                    <AlertCircle size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-amber-200 text-sm">
+                      Automated submission is only available for American Amicable. 
+                      You will need to complete the {activeQuote.carrier} application manually.
+                    </p>
+                  </div>
+                )}
+                
+                {/* Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setShowCarrierConfirmation(false)}
+                    className="flex-1 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-medium transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmCarrier}
+                    className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-bold transition-all shadow-lg shadow-purple-500/30"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <CheckCircle2 size={18} />
+                      Confirm Selection
+                    </span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-400">No carrier selected. Please select a quote first.</p>
+                <button
+                  onClick={() => {
+                    setShowCarrierConfirmation(false);
+                    setShowQuotePanel(true);
+                  }}
+                  className="mt-4 px-6 py-2 rounded-lg bg-emerald-500 text-white font-medium"
+                >
+                  View Quotes
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
   // MAIN RENDER
   // ─────────────────────────────────────────────────────────────────────────
   if (!node) {
@@ -1025,31 +1204,50 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
             )}
           </button>
           
-          {/* START APPLICATION BUTTON */}
-          <button
-            onClick={handleStartApplication}
-            disabled={!formData.state || automationStarted}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              automationStarted 
-                ? 'bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 cursor-default' 
-                : formData.state
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg shadow-orange-500/20'
+          {/* CONFIRM CARRIER BUTTON - Shows when carrier not yet confirmed */}
+          {!confirmedCarrier && (
+            <button
+              onClick={() => setShowCarrierConfirmation(true)}
+              disabled={!activeQuote}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                activeQuote
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white shadow-lg shadow-purple-500/20'
                   : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-            }`}
-            title={automationStarted ? 'Application started' : 'Start carrier application in background'}
-          >
-            {automationStarted ? (
-              <>
-                <Check size={14} />
-                <span>App Started</span>
-              </>
-            ) : (
-              <>
-                <ArrowRight size={14} />
-                <span>Start App</span>
-              </>
-            )}
-          </button>
+              }`}
+              title="Confirm carrier selection before submitting"
+            >
+              <CheckCircle2 size={14} />
+              <span>Confirm Carrier</span>
+            </button>
+          )}
+          
+          {/* SUBMIT APPLICATION BUTTON - Only enabled after carrier confirmed */}
+          {confirmedCarrier && (
+            <button
+              onClick={handleStartApplication}
+              disabled={!isSubmitEnabled}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                automationStarted 
+                  ? 'bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 cursor-default' 
+                  : isSubmitEnabled
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg shadow-orange-500/20'
+                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+              }`}
+              title={automationStarted ? 'Application started' : `Submit to ${confirmedCarrier}`}
+            >
+              {automationStarted ? (
+                <>
+                  <Check size={14} />
+                  <span>App Started</span>
+                </>
+              ) : (
+                <>
+                  <Send size={14} />
+                  <span>Submit to {confirmedCarrier.split(' ')[0]}</span>
+                </>
+              )}
+            </button>
+          )}
           
           <button onClick={resetScript} className="p-1.5 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors" title="Reset">
             <RotateCcw size={16} />
@@ -1531,6 +1729,9 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
 
       {/* QUOTE PANEL OVERLAY */}
       {renderQuotePanel()}
+      
+      {/* CARRIER CONFIRMATION MODAL */}
+      {renderCarrierConfirmation()}
       
       {/* SETTINGS PANEL MODAL */}
       <SettingsPanel 
