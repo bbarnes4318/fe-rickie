@@ -286,7 +286,7 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
   // AUTOMATION TRIGGER - BACKGROUND CARRIER APP WITH SSE STATUS
   // ─────────────────────────────────────────────────────────────────────────
   
-  // Manual trigger function - API waits for completion, SSE provides live updates
+  // Manual trigger function - now uses SSE for live status updates
   const triggerCarrierAutomation = useCallback(async (customerData) => {
     const API_BASE = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
     const ts = new Date().toISOString();
@@ -322,17 +322,73 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
       const data = await response.json();
       console.log('%c[AUTOMATION] Response:', 'color: #0f0', data);
       
-      // Backend now waits for completion and returns result directly
-      if (data.success) {
-        console.log('%c[AUTOMATION] ✅ SUCCESS', 'background: #0f0; color: #000; font-weight: bold;', data);
-        if (data.applicationNumber) {
-          setApplicationNumber(data.applicationNumber);
-        }
-        setAutomationLoading(false);
+      // Subscribe to SSE for live status updates
+      if (data.jobId) {
+        console.log('%c[AUTOMATION] Subscribing to SSE for job:', 'color: #0ff', data.jobId);
+        
+        const sseUrl = `${API_BASE}/automation/status/${data.jobId}`;
+        const eventSource = new EventSource(sseUrl);
+        
+        eventSource.onmessage = async (event) => {
+          try {
+            const statusUpdate = JSON.parse(event.data);
+            console.log('%c[SSE] Status Update:', 'color: #0ff', statusUpdate);
+            
+            // Add status update to steps array
+            if (statusUpdate.step !== undefined && statusUpdate.message) {
+              setAutomationSteps((prev) => {
+                const exists = prev.some(s => s.message === statusUpdate.message);
+                if (exists) return prev;
+                return [...prev, statusUpdate];
+              });
+            }
+            
+            // Handle completion
+            if (statusUpdate.status === 'completed') {
+              console.log('%c[AUTOMATION] ✅ COMPLETED', 'background: #0f0; color: #000; font-weight: bold;');
+              
+              // Fetch final result to get application number
+              try {
+                const resultRes = await fetch(`${API_BASE}/automation/result/${data.jobId}`);
+                const result = await resultRes.json();
+                if (result.applicationNumber) {
+                  setApplicationNumber(result.applicationNumber);
+                }
+              } catch (e) {
+                console.error('Error fetching result:', e);
+              }
+              
+              setAutomationLoading(false);
+              eventSource.close();
+            }
+            
+            // Handle failure
+            if (statusUpdate.status === 'failed') {
+              console.log('%c[AUTOMATION] ❌ FAILED:', 'background: #f00; color: #fff; font-weight: bold;', statusUpdate.message);
+              setAutomationError(statusUpdate.message || 'Automation failed');
+              setAutomationLoading(false);
+              eventSource.close();
+            }
+          } catch (e) {
+            console.error('Error parsing SSE message:', e);
+          }
+        };
+        
+        eventSource.onerror = (error) => {
+          console.error('%c[SSE] Connection error:', 'color: #f00', error);
+          setAutomationError('Lost connection to automation service');
+          setAutomationLoading(false);
+          eventSource.close();
+        };
       } else {
-        console.log('%c[AUTOMATION] ❌ FAILED', 'background: #f00; color: #fff; font-weight: bold;', data);
-        setAutomationError(data.error || 'Automation failed');
-        setAutomationLoading(false);
+        // No jobId - old API behavior or error
+        if (data.success) {
+          setApplicationNumber(data.applicationNumber);
+          setAutomationLoading(false);
+        } else {
+          setAutomationError(data.error || 'Automation failed');
+          setAutomationLoading(false);
+        }
       }
       
       return data;
