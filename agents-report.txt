@@ -1,0 +1,748 @@
+<html><span id="iproyal@@extension@@state" data-webrtc-protection="true" data-proxy-connected="false"></span><head><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>
+	WebApp
+</title>
+    <script src="../js/jquery.js"></script>
+    <script src="../js/formattingFields.js"></script>
+    <script src="../js/trigger.js?v=1.1"></script>
+    <script src="../js/intro.min.js"></script>
+    <link href="../css/introjs.min.css" rel="stylesheet"><link href="../css/appStyle.css?v=1.1" rel="stylesheet"><link href="../css/w3.css?v=1.1" rel="stylesheet"><link href="../css/fontawesome/css/font-awesome.min.css" rel="stylesheet">
+    <script src="../js/es6-promise.auto.min.js"></script>
+    <script src="../js/es6-promise.min.js"></script>
+    <script src="../js/html2canvas.min.js"></script>
+
+    <style>
+        form {
+            font-family: Arial, Roboto, 'Times New Roman';
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: flex-start;
+            margin: 10px auto;
+            flex-wrap: wrap;
+            align-items:flex-start;
+        }
+
+            .flex-container > div {
+                padding: 8px;
+            }
+
+            input[type=checkbox], input[type=radio]{
+                margin-right:3px;
+            }
+            .radioHorizontal label{
+                margin-right:10px;
+            }
+            .radioVertical li{
+                margin-bottom:8px;
+            }
+    </style>
+    <script> 
+        function reportBug() {
+            var captureElement = document.querySelector("#form1");
+
+            html2canvas(
+                captureElement, {
+                    scrollY: 0, x: 0, y: 0
+                }
+            ).then(function (canvas) {
+                var bugContent = document.getElementById("divReportBugContent");
+
+                var dataURL = canvas.toDataURL();
+                document.getElementById("hiddenScreenshot").value = dataURL;
+                document.getElementById("divReportBugModal").style.display = 'block';
+            });
+        }
+        function runDemo() {
+            introJs().setOption('showStepNumbers', 'false');
+            introJs().start();
+        }
+    </script>
+
+    
+<style>
+				@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+			</style></head>
+<body><div id="creditCardHintTop" style="width: 100%; color: red; font-weight: bold; text-align: center; padding: 10px; margin-bottom: 10px; display: none;">*Credit Card information will be entered on the following screen*</div>
+    <form method="post" action="./agentstatement.aspx?a=Nq9IGosQ2jg%3d" onsubmit="javascript:return WebForm_OnSubmit();" id="form1">
+<div class="aspNetHidden">
+<input type="hidden" name="agtNumber1" id="agtNumber1" value="0001163940">
+<input type="hidden" name="agtName1" id="agtName1" value="AMERICAN BENEFICIARY">
+<input type="hidden" name="agtPercent1" id="agtPercent1" value="100">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="xsq4LFmczLbA5cBOmL6og4m6PYifdsvVNKKsLkb30ECAyR7cVQrFsVmFKZ1g+3Ee1ch4f4w+fQ4mdC46CRvJQoOmeoZxCsDTPltMh8TRKQvYng/rY6rzR5en8IXYd/wakfK4GW9RpiRkB4jc/8k8tSn8A/q2h9Zoaq6TPAr/Nh2bET4HViMeHyEOE3Pnop+W1MFR0XcW4t6/f6uP1Z+OZbmvw1mY4J6gPmN8b/gsj8KzefhJzFjzhWaF1bby70rrfxsLVI03D4GDmcZIOqM++nL0HEXvid4kMYJn7xQup40zHmV3BPICe5YTqiMhxHGLOmDUJPZPfnqk5sPOydvRUPWXixpCPSnrfqZ9s6c/o4hluFZ5sCMX32YoFnNzZKJF5YSSCputLZOuc9wOoooI6osgQUbkYswFJ8MPyOaDpqNLLua66BLFcR/bQO/LqN8lRCpk+ygg1F+JcCCQqpcybWn2GOqUFGzLzzz/huHPSev8fTqSuvD00bXWP7Th3cJfckVeyaWuz1i1WP1Hzb8ovV0OBfBaCDTZWdwxyyEFhnuDjnxktZY0ZvnvdoRRjyNrxnUhmZfS7DmnXFpx8rWpp8+clLFIbSjlA/vEG7+IJJtpckBsQ4RRQFc7jAHco1qjhD3mf5rd75Tuao9+LeWaRAX6g9M1HrCNn1E/OGq4TFKVvYiX0KqzCm/0xGuIWX0XTz4xtF/viMUtmq09p0hE9g==">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/cgi/webappmobile/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZCWdgcUTcWPMa27w6vyhYnUdr4Kk0qkQ-gGyvuBUeonc_hBmHyjOCl085zQdrDvx6w2&amp;t=638901361900000000" type="text/javascript"></script>
+
+
+<script src="/cgi/webappmobile/ScriptResource.axd?d=nv7asgRUU0tRmHNR2D6t1IXm4zJRetl9hDEQi5VwHPqTe2uI8zPJu34LIXR2jnwU7Ii-NuT7uRlBTI9rfDJsh0WgU9junXJjxAgy-hiK_JE1xTvThQqBrQ_d3hk-bMrNcAe5NOayI-s1Iy4RxatYdA2&amp;t=7f7f23e2" type="text/javascript"></script>
+<script src="/cgi/webappmobile/ScriptResource.axd?d=NJmAwtEo3Ipnlaxl6CMhvvahZ_sJp1Z7YLDEV-v-ztZo2dgPYY43jTFc0yNn903XxKVYBH3-t7nb9TPrM8yMQQQuNZvYq7UXDIHoFkLpsFVtz4_QULf7fo10DRzFjScnt5FPOJj2GUDPIn8_NDPklnclSQRbNwONfgNpRvP3CDU1&amp;t=5c0e0825" type="text/javascript"></script>
+<script src="/cgi/webappmobile/ScriptResource.axd?d=dwY9oWetJoJoVpgL6Zq8OCbylTOF4BXRxChvvEqqkzQn9CZpxCehQdGEmOaBXAqRTl-9SgYwzdFbOIU0MNJoAAsWP_QPIU4EZy_l-urwOJRdJO-3SRxVM0pGSXT0Sn8W5XcAnHavVD5iimcBtufWfPZWF_y90saUPDnuCKvZcQE1&amp;t=5c0e0825" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+function WebForm_OnSubmit() {
+if (typeof(ValidatorOnSubmit) == "function" && ValidatorOnSubmit() == false) return false;
+return true;
+}
+//]]>
+</script>
+
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="3C505A5F">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="i+2lzxwND3/Yp43l/lt2gqAyYsrH5w83d2HnM10enXxeEfWCjUCTRQI1m2jpUtStpjDZJ8eaFuiKA+g+4zBs4KbA7Ir29KFniPF0oFzl/JsLjVHvuFFGOD3x/tWPnvddJVT2Isa+Yp5sd31geYs+k1F5O1Py+a9aGEAJbcjJOx4ZgHUaMUhnpOSKOMHeWNBE1hr7o/PcKhTgvvsmDESFlbk6N8HWfwk2bn7YMo/u73KDSdasbiRIpfdTwPDnDi8KGdqPjogV7ej4+0QCfA/NCQknrld0/ppRDJ1diLJPfgDzKiMn35J71tOnMEXlR9lgTM7+671sm2sa3/MKCZFqWN80TgFuzNyUUS7LCPLFujfdln9c0qyBf/foIhXQ1/Ln7Vo5ysRH8emyJAw4jzkXLFiW/wVkWQeQ2CKgq+sP9VufAMhs2aOHcmQSXDtS+8koUIA8u101io2I/Ot8yXde4puNuAajXIo08zvwgzFn01UHzFrNp0OeY/t+htccoSN8RF1gDKl0yR/EtDrxSBUD9TFvborAjK2Au+IzZ/q5BMlDrAlZhX0UtvIJJgrP0lHfjHsCRCVPAznLH7hkkguTt+X52urKu/mC75G4HS734sd67OLJeeSEvwBPTUhnOD2zY7oBzGvlJlOrfqOqlNrxPasMIhuJ9H1WRhBYYPm+ll1fyIUKY/+gh+7ILqzmd6vFXT3Frfg0TAmjE5hsIC2/WpWBpNZxSk+CIkTsRJL4HsKC8+SGeBWn0Hx+n4X5NXOy8KjAcl2zqjQ9Evh5adJaBXsWGmeI7zdq3wCSkD6eAM3HIfpGdodxtHCuJyG2nzKKdZb5q19ufMYVUMiW4X0l2AN+i8pHxw4VVENtwne5C2bBFk7Pt0rcRnsdTYrdgvzJizwR3l6sf3+IHqlER7qKg/IiVU1kVWufglXqUDVQD5DrwV6tNsmTgzpwWq8k75wcSBJvobpf/WawnarUQ5o+o+LBeTpukI0kF/Lvs5oBeOdzltP2gh8i5iXDRY+dVxkafz7cFk+pXM7hf8EZ25sn+qyW+TuN2lWDCD8lKBsZY7pTQMcICEC5mVpPhzvVVjOYEqDPGZl8ahQ3bZLxIlIutY3XBqFgjcJgKcl4OCnCxnv31fIKWacmNAflGe/yk5qVJZk+s+TavpAsPs2R6oLtytc11GmS5ES2TNvs4cFSbjn2hQP0995E0NhoHhdUWvOJlVqKD+7Sfdh5hq8nybB+3WKp1eFASa4ELXPGnvcer7ICXdOgXzd3c8iMr4hBD5lQz5yMFKknYhegH6vYHd5l8ymfdEy+mKVHR3pCSoWcbLpmnSOBPgf7KqBuBZPnEmJiIQ6bPyF+ipssO+WOQJ8UqjjXsJP4+sG4YzlkEJ4uTN4vjNXASwIZgrULmA4Uq/uoOKrmKeAbY+KFlR+TjgfyoV+Tcj2bR4g/2JRU3CfyP5NL0NRBeemOgxb1gHFUjfHHwS/IJ31lbOS6QcvyViMCBQwZPnyvF/fln8YlW37bvefaAzO1sTeTd3Dcis+YTZYJQPotWHrOJmUi3nxhC31kLA==">
+</div>
+        <input type="hidden" id="product" value="SC">
+        <input type="submit" name="ctl00$BtnSaveReturn" value="Save and Return to Applications Pending" id="BtnSaveReturn" class="btn" data-step="1" data-intro="Click here to save and return to the applications pending queue anytime." style="display: block; margin: 10px auto; max-width: 800px; text-align: center; align-content: center;">
+
+
+        <table class="Navigation w3-hide-small">
+            <tbody><tr>
+                <td>
+                    <b>Quote</b><br>
+                    <span id="QuoteLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Underwriting</b>
+                    <br>
+                    <span id="UnderwritingLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Personal Info</b><br>
+                    <span id="PersonalInfoLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Agent Statement</b><br>
+                    <span id="AgentStatementLabel" style="color:Red;">Incomplete</span>
+                </td>
+            </tr>
+        </tbody></table>
+
+        <div style="margin-bottom: 2px; text-align: left; width: 100%; display: block; margin-top: 8px; border-collapse: collapse;">
+
+            
+            <b>
+                <span id="ScreenAgentName">AMERICAN BENEFICIARY</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="CompanyHeader">American-Amicable</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="ProductHeader">Senior Choice (FE 50-85)</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="StateHeader">IL</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="CreatedDateHeader"><u>Created:</u> 1/5/2026 12:19:55 PM</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="AppNumberLabel" data-step="2" data-intro="The app number to be referenced in case of any issues is located here"><u>AppNumber:</u><span style="font-size:x-large"> M003114977</span></span></b>
+            <b>
+                <span id="lblInsuredInfo">Insured:MIKE DAVIS</span></b>&nbsp;&nbsp;
+            <div style="background-color: white; width: 150px; padding: 5px; border: 1px solid black; border-radius: 10px; text-align: center; float: right;">
+                <span style="text-decoration: underline; cursor: pointer; color: blue;" onclick="runDemo()">Click Here for help</span> or <a href="../api/DocHandler.ashx?file=Generic-Mobile Application-FINAL.pdf" id="ClickHereLink" style="text-decoration: underline;" target="_blank">view our pdf documentation</a>
+            </div>
+
+        </div>
+
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', 'form1', [], [], [], 90, 'ctl00');
+//]]>
+</script>
+
+
+        
+
+        <div id="dataContent" style="border: 2px solid black; float: none; width: 100%; background: linear-gradient(to right, #718EA4 1%, white 15%, white 84%);">
+            <div style="max-width:1200px;margin:0 auto;">
+                
+<div><div class="tableContent"><div style="font-weight:bold;">Agent's Report</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><span style="font-weight:normal;">I certify that I have personally asked each question on this application to the proposed insured(s), I have truly and completely recorded on the application the information supplied by him/her, and I witnessed their signature. I certify that the Terminal Illness Accelerated Benefit Rider and Confined Care Accelerated Benefit Rider Disclosure Forms have been presented to the applicant, if applicable.</span></div></div><div class="tableContent"><div style="font-weight:bold;">Agent's Electronic Signature</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Please Type Your Name Here<span id="AgentSignature1Req" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><input name="ctl00$ContentPlaceHolderMain$AgentSignature1" type="text" id="AgentSignature1" class=" capitalizeField w3-input w3-border"></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>City where Proposed Insured signed<span id="CitySignedReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><input name="ctl00$ContentPlaceHolderMain$CitySigned" type="text" id="CitySigned" class=" capitalizeField w3-input w3-border"></div><div>State where Proposed Insured signed<span id="StateSignedReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">Req</span><select name="ctl00$ContentPlaceHolderMain$StateSigned" id="StateSigned" class="w3-select w3-border" style="margin:0px 8px;">
+	<option value="" style="selected:;disabled:;hidden:;"></option>
+	<option value="AK">Alaska</option>
+	<option value="AL">Alabama</option>
+	<option value="AR">Arkansas</option>
+	<option value="AZ">Arizona</option>
+	<option value="CA">California</option>
+	<option value="CO">Colorado</option>
+	<option value="CT">Connecticut</option>
+	<option value="DC">District of Columbia</option>
+	<option value="DE">Delaware</option>
+	<option value="FL">Florida</option>
+	<option value="GA">Georgia</option>
+	<option value="GU">Guam</option>
+	<option value="HI">Hawaii</option>
+	<option value="IA">Iowa</option>
+	<option value="ID">Idaho</option>
+	<option value="IL">Illinois</option>
+	<option value="IN">Indiana</option>
+	<option value="KS">Kansas</option>
+	<option value="KY">Kentucky</option>
+	<option value="LA">Louisiana</option>
+	<option value="MA">Massachusetts</option>
+	<option value="MD">Maryland</option>
+	<option value="ME">Maine</option>
+	<option value="MI">Michigan</option>
+	<option value="MN">Minnesota</option>
+	<option value="MO">Missouri</option>
+	<option value="MS">Mississippi</option>
+	<option value="MT">Montana</option>
+	<option value="NC">North Carolina</option>
+	<option value="ND">North Dakota</option>
+	<option value="NE">Nebraska</option>
+	<option value="NH">New Hampshire</option>
+	<option value="NJ">New Jersey</option>
+	<option value="NM">New Mexico</option>
+	<option value="NV">Nevada</option>
+	<option value="NY">New York</option>
+	<option value="OH">Ohio</option>
+	<option value="OK">Oklahoma</option>
+	<option value="OR">Oregon</option>
+	<option value="PA">Pennsylvania</option>
+	<option value="PR">Puerto Rico</option>
+	<option value="RI">Rhode Island</option>
+	<option value="SC">South Carolina</option>
+	<option value="SD">South Dakota</option>
+	<option value="TN">Tennessee</option>
+	<option value="TX">Texas</option>
+	<option value="UT">Utah</option>
+	<option value="VA">Virginia</option>
+	<option value="VT">Vermont</option>
+	<option value="WA">Washington</option>
+	<option value="WI">Wisconsin</option>
+	<option value="WV">West Virginia</option>
+	<option value="WY">Wyoming</option>
+
+</select></div></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><span style="font-weight:normal;color:Red;">***Do not include Underwriting information in this section***</span></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;">Agent Remarks<textarea name="ctl00$ContentPlaceHolderMain$AgentRemarks" id="AgentRemarks" rows="6" cols="100" style="margin:0px 8px 0px 8px;box-sizing:border-box;"></textarea></div></div><div class="tableContent"><div style="font-weight:bold;">Replacement Questions</div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Does the proposed insured have any existing life insurance or annuity contract?</div><span id="AgentExistingInsuranceReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">*</span><span id="AgentExistingInsurance" class="radioHorizontal" style="width:100%;text-align:right;"><span style="display:none;"><input id="AgentExistingInsurance_0" type="radio" name="ctl00$ContentPlaceHolderMain$AgentExistingInsurance" value=""></span><input id="AgentExistingInsurance_1" type="radio" name="ctl00$ContentPlaceHolderMain$AgentExistingInsurance" value="Yes"><label for="AgentExistingInsurance_1">Yes</label><input id="AgentExistingInsurance_2" type="radio" name="ctl00$ContentPlaceHolderMain$AgentExistingInsurance" value="No"><label for="AgentExistingInsurance_2">No</label></span>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var paymentOptions = document.getElementsByName('ctl00$ContentPlaceHolderMain$Method');
+        
+           if (!document.getElementById('creditCardHintTop')) {
+        var creditCardHintTop = document.createElement('div');
+        creditCardHintTop.id = 'creditCardHintTop';
+        creditCardHintTop.style.width = '100%';
+        creditCardHintTop.style.color = 'red';
+        creditCardHintTop.style.fontWeight = 'bold';
+        creditCardHintTop.style.textAlign = 'center';
+        creditCardHintTop.style.padding = '10px';
+        creditCardHintTop.style.marginBottom = '10px';
+        creditCardHintTop.style.display = 'none'; 
+        creditCardHintTop.innerText = '*Credit Card information will be entered on the following screen*';
+
+        
+        var creditCardHintBottom = creditCardHintTop.cloneNode(true);
+        creditCardHintBottom.id = 'creditCardHintBottom';
+        
+        
+        document.body.insertBefore(creditCardHintTop, document.body.firstChild);
+        document.body.appendChild(creditCardHintBottom);
+        }
+
+        
+        var hintTopElement = document.getElementById('creditCardHintTop');
+        var hintBottomElement = document.getElementById('creditCardHintBottom');
+        
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('change', function () {
+                var displayStyle = (this.value === 'CreditCard') ? 'block' : 'none';
+                hintTopElement.style.display = displayStyle;
+                hintBottomElement.style.display = displayStyle;
+            });
+        });
+
+        
+        var selectedOption = document.querySelector("input[name='ctl00$ContentPlaceHolderMain$Method']:checked");
+        if (selectedOption && selectedOption.value === 'CreditCard') {
+            hintTopElement.style.display = 'block';
+            hintBottomElement.style.display = 'block';
+        }
+    });
+</script></div><div class="flex-container" style="width:100%;margin-top:4px;margin-bottom:18px;clear:both;"><div>Is the proposed insurance intended to replace or change any existing life insurance or annuity?</div><span id="AgentRepInsReq" class="requiredField" style="font-size:XX-Large;font-weight:bold;color:red;display:none;">*</span><span id="AgentRepIns" class="radioHorizontal" style="width:100%;text-align:right;"><span style="display:none;"><input id="AgentRepIns_0" type="radio" name="ctl00$ContentPlaceHolderMain$AgentRepIns" value=""></span><input id="AgentRepIns_1" type="radio" name="ctl00$ContentPlaceHolderMain$AgentRepIns" value="Yes"><label for="AgentRepIns_1">Yes</label><input id="AgentRepIns_2" type="radio" name="ctl00$ContentPlaceHolderMain$AgentRepIns" value="No"><label for="AgentRepIns_2">No</label></span>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var paymentOptions = document.getElementsByName('ctl00$ContentPlaceHolderMain$Method');
+        
+           if (!document.getElementById('creditCardHintTop')) {
+        var creditCardHintTop = document.createElement('div');
+        creditCardHintTop.id = 'creditCardHintTop';
+        creditCardHintTop.style.width = '100%';
+        creditCardHintTop.style.color = 'red';
+        creditCardHintTop.style.fontWeight = 'bold';
+        creditCardHintTop.style.textAlign = 'center';
+        creditCardHintTop.style.padding = '10px';
+        creditCardHintTop.style.marginBottom = '10px';
+        creditCardHintTop.style.display = 'none'; 
+        creditCardHintTop.innerText = '*Credit Card information will be entered on the following screen*';
+
+        
+        var creditCardHintBottom = creditCardHintTop.cloneNode(true);
+        creditCardHintBottom.id = 'creditCardHintBottom';
+        
+        
+        document.body.insertBefore(creditCardHintTop, document.body.firstChild);
+        document.body.appendChild(creditCardHintBottom);
+        }
+
+        
+        var hintTopElement = document.getElementById('creditCardHintTop');
+        var hintBottomElement = document.getElementById('creditCardHintBottom');
+        
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('change', function () {
+                var displayStyle = (this.value === 'CreditCard') ? 'block' : 'none';
+                hintTopElement.style.display = displayStyle;
+                hintBottomElement.style.display = displayStyle;
+            });
+        });
+
+        
+        var selectedOption = document.querySelector("input[name='ctl00$ContentPlaceHolderMain$Method']:checked");
+        if (selectedOption && selectedOption.value === 'CreditCard') {
+            hintTopElement.style.display = 'block';
+            hintBottomElement.style.display = 'block';
+        }
+    });
+</script></div></div></div>
+            </div>
+            
+
+            
+ 
+<script>
+    var mark = false;
+    var AgentCount = 1;
+
+    $(document).ready(function () {
+
+        setTimeout(function () {
+
+            function updateAgent1Percent() {
+                var hasOtherAgents = false;
+
+                for (let i = 2; i <= 4; i++) {
+                    var num = document.getElementById("Dynamic_agtNumber" + i);
+                    var name = document.getElementById("Dynamic_agtName" + i);
+                    var percent = document.getElementById("Dynamic_agtPercent" + i);
+
+                    if ((num && num.value.trim()) || (name && name.value.trim()) || (percent && percent.value.trim())) {
+                        hasOtherAgents = true;
+                        break;
+                    }
+                }
+
+                var dynamicPercent1 = document.getElementById("Dynamic_agtPercent1");
+                if (!dynamicPercent1) return;
+
+                if (!hasOtherAgents && !dynamicPercent1.value.trim()) {
+                    dynamicPercent1.value = "100";
+                }
+            }
+
+            var agent1 = document.getElementById("agtNumber1");
+            if (agent1) {
+                document.getElementById("Dynamic_agtNumber1").value = agent1.value;
+                document.getElementById("Dynamic_agtName1").value = document.getElementById("agtName1").value;
+
+                var agtPercent1 = document.getElementById("agtPercent1");
+                var dynamicPercent1 = document.getElementById("Dynamic_agtPercent1");
+                if (agtPercent1 && agtPercent1.value && agtPercent1.value !== "100") {
+                    dynamicPercent1.value = agtPercent1.value;
+                }
+            }
+
+            for (let i = 2; i <= 4; i++) {
+                var agtNum = document.getElementById("agtNumber" + i);
+                var agtName = document.getElementById("agtName" + i);
+                var agtPercent = document.getElementById("agtPercent" + i);
+
+                if ((agtNum && agtNum.value.trim()) || (agtName && agtName.value.trim()) || (agtPercent && agtPercent.value.trim())) {
+                    addAgent();
+                    if (agtNum) document.getElementById("Dynamic_agtNumber" + i).value = agtNum.value;
+                    if (agtName) document.getElementById("Dynamic_agtName" + i).value = agtName.value;
+                    if (agtPercent) document.getElementById("Dynamic_agtPercent" + i).value = agtPercent.value;
+                }
+            }
+
+            updateAgent1Percent();
+
+            $(document).on("input", "input[id^='Dynamic_agtNumber']", function () {
+                validateUniqueAgentNumbers();
+            });
+
+            $("#AgentStatementButtonView, #btnContinue").click(function (e) {
+
+                if (!validateUniqueAgentNumbers()) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                var totalPercent = 0;
+                var errorInfo = false;
+
+                for (let i = 1; i <= 4; i++) {
+                    var percentElement = document.getElementById("Dynamic_agtPercent" + i);
+                    if (!percentElement) continue;
+
+                    var agtNumElement = document.getElementById("Dynamic_agtNumber" + i);
+                    var agtNameElement = document.getElementById("Dynamic_agtName" + i);
+
+                    if ((agtNumElement.value === "" || agtNameElement.value === "") && percentElement.value.trim() !== "") {
+                        errorInfo = true;
+                    }
+
+                    var val = parseInt(percentElement.value);
+                    if (!isNaN(val)) totalPercent += val;
+                }
+
+                if (totalPercent !== 100) {
+                    alert('Error! Total Agent Percentages must be equal to 100%. Please make sure sum of all agent percentages is exactly 100%.');
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (errorInfo) {
+                    alert('Please enter all agent names and numbers');
+                    e.preventDefault();
+                    return false;
+                }
+
+                return true;
+            });
+
+            $("#markCheckbox").click(function () {
+                document.getElementById("requireMark").style.display = this.checked ? "none" : "inline";
+            });
+            mark = "True" === "False";
+            if (mark) document.getElementById("dvMark").style.display = "inline";
+
+        }, 300);
+
+    });
+
+    function addAgent() {
+        if (AgentCount >= 4) return false;
+
+        AgentCount += 1;
+        var tbl = document.getElementById("splitAgentTable");
+        var trNew = document.createElement("tr");
+
+        var td1 = document.createElement("td");
+        td1.innerText = "Agent Number";
+        trNew.appendChild(td1);
+
+        var td2 = document.createElement("td");
+        var input1 = document.createElement("input");
+        input1.type = "text";
+        input1.id = "Dynamic_agtNumber" + AgentCount;
+        input1.name = "Dynamic_agtNumber" + AgentCount;
+        td2.appendChild(input1);
+        trNew.appendChild(td2);
+
+        var td3 = document.createElement("td");
+        td3.innerText = "Agent Name";
+        trNew.appendChild(td3);
+
+        var td4 = document.createElement("td");
+        var input2 = document.createElement("input");
+        input2.type = "text";
+        input2.id = "Dynamic_agtName" + AgentCount;
+        input2.name = "Dynamic_agtName" + AgentCount;
+        input2.className = "capitalizeField";
+        td4.appendChild(input2);
+        trNew.appendChild(td4);
+
+        var td5 = document.createElement("td");
+        td5.innerText = "Percentage";
+        trNew.appendChild(td5);
+
+        var td6 = document.createElement("td");
+        var input3 = document.createElement("input");
+        input3.type = "text";
+        input3.id = "Dynamic_agtPercent" + AgentCount;
+        input3.name = "Dynamic_agtPercent" + AgentCount;
+        td6.appendChild(input3);
+        trNew.appendChild(td6);
+
+        tbl.appendChild(trNew);
+        return true;
+    }
+
+    function validateUniqueAgentNumbers() {
+        var numbers = {};
+        var duplicateFound = false;
+
+        for (let i = 1; i <= 4; i++) {
+            var numEl = document.getElementById("Dynamic_agtNumber" + i);
+            if (!numEl || !numEl.value.trim()) continue;
+
+            var num = numEl.value.trim();
+            if (numbers[num]) {
+                duplicateFound = true;
+                alert("Error, Do not add same Agent ID on multiple rows. Agent ID must be unique for percentages. Agent Number " + num + " has been entered more than once.");
+                numEl.value = "";
+                if (numEl.id === "Dynamic_agtNumber1") {
+                    document.getElementById("Dynamic_agtPercent1").value = "";
+                }
+                break;
+            }
+            numbers[num] = true;
+        }
+
+        return !duplicateFound;
+    }
+
+    function NotMark() {
+        let isMarked = document.getElementById("markCheckbox").checked;
+        if (isMarked) return true;
+        alert("Please mark the checkbox to move on to signature screen.");
+        document.getElementById("requireMark").style.display = "inline";
+        return false;
+    }
+</script>
+  
+    <div id="AgentStatementSection"></div>
+    <table style="margin: 0 auto; text-align: center;">
+	<tbody><tr>
+		<td align="center"><span id="ErrorMessageLabel" class="errorMessage" style="color:Red;font-size:X-Large;"></span></td>
+	</tr>
+</tbody></table>
+
+    
+    
+
+    <div id="splitCommissions" style="text-align: center; margin: auto;">
+        
+        <table id="splitAgentTable" style="margin: auto">
+	<tbody><tr>
+		<td>Agent Number</td><td>
+                            <input required="required" type="text" id="Dynamic_agtNumber1" name="Dynamic_agtNumber1"></td><td>Agent Name</td><td>
+                            <input required="required" type="text" id="Dynamic_agtName1" name="Dynamic_agtName1" class="capitalizeField"></td><td>Percentage of Case</td><td>
+                            <input required="required" type="text" id="Dynamic_agtPercent1" name="Dynamic_agtPercent1"></td><td>
+                            <input type="button" value="Split" onclick="addAgent()"></td>
+	</tr>
+</tbody></table>
+    </div>
+
+
+    <div id="AgentStatementContinue">
+        <table style="margin: 0 auto; text-align: center;">
+	<tbody><tr>
+		<td style="background-color:#718EA4;border-width:1px;border-style:Solid;padding: 20px; border-radius: 25px;"><input type="submit" name="ctl00$ContentPlaceHolderBottomButton$btnContinue" value="Continue to Signatures" onclick="if (HasError()) return false; if(mark &amp;&amp; !NotMark()) return false;" id="btnContinue" class="btn"><span id="quoteReturn"></span></td><td style="font-size:X-Large;padding-left: 15px;">If application does not proceed to next step, <br>check screen for "<span style="padding:1px;background-color:white; color:red;font-weight:bold;">Req</span>" on any field</td>
+	</tr>
+</tbody></table>
+    </div>
+
+
+
+            <br>
+            <br>
+            <br>
+        </div>
+
+        <div class="modal" id="divReportBugModal">
+            <div class="modal-content">
+                <button type="button" class="close" onclick="document.getElementById('divReportBugModal').style.display = 'none';">×</button>
+                <div id="divReportBugContent">
+                    <h3>Reporting an Issue</h3>
+                    <i>A screenshot has been captured of this page.</i>
+                    <p>Please provide a description of the issue to go along with the screenshot:</p>
+                    <textarea name="ctl00$txtIssueReport" rows="10" cols="50" id="txtIssueReport" style="width: 100%;"></textarea>
+                    <input type="hidden" name="ctl00$hiddenScreenshot" id="hiddenScreenshot">
+                    <br>
+                    <br>
+                    <input type="submit" name="ctl00$BtnSubmitIssue" value="Submit Issue" id="BtnSubmitIssue" class="btn">
+                </div>
+            </div>
+        </div>
+    
+<script type="text/javascript">
+//<![CDATA[
+var Page_Validators =  new Array(document.getElementById("AgentSignature1Req"), document.getElementById("CitySignedReq"), document.getElementById("StateSignedReq"), document.getElementById("AgentExistingInsuranceReq"), document.getElementById("AgentRepInsReq"));
+//]]>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+var AgentSignature1Req = document.all ? document.all["AgentSignature1Req"] : document.getElementById("AgentSignature1Req");
+AgentSignature1Req.controltovalidate = "AgentSignature1";
+AgentSignature1Req.errormessage = "Req";
+AgentSignature1Req.display = "Dynamic";
+AgentSignature1Req.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+AgentSignature1Req.initialvalue = "";
+var CitySignedReq = document.all ? document.all["CitySignedReq"] : document.getElementById("CitySignedReq");
+CitySignedReq.controltovalidate = "CitySigned";
+CitySignedReq.errormessage = "Req";
+CitySignedReq.display = "Dynamic";
+CitySignedReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+CitySignedReq.initialvalue = "";
+var StateSignedReq = document.all ? document.all["StateSignedReq"] : document.getElementById("StateSignedReq");
+StateSignedReq.controltovalidate = "StateSigned";
+StateSignedReq.errormessage = "Req";
+StateSignedReq.display = "Dynamic";
+StateSignedReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+StateSignedReq.initialvalue = "";
+var AgentExistingInsuranceReq = document.all ? document.all["AgentExistingInsuranceReq"] : document.getElementById("AgentExistingInsuranceReq");
+AgentExistingInsuranceReq.controltovalidate = "AgentExistingInsurance";
+AgentExistingInsuranceReq.errormessage = "*";
+AgentExistingInsuranceReq.display = "Dynamic";
+AgentExistingInsuranceReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+AgentExistingInsuranceReq.initialvalue = "";
+var AgentRepInsReq = document.all ? document.all["AgentRepInsReq"] : document.getElementById("AgentRepInsReq");
+AgentRepInsReq.controltovalidate = "AgentRepIns";
+AgentRepInsReq.errormessage = "*";
+AgentRepInsReq.display = "Dynamic";
+AgentRepInsReq.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+AgentRepInsReq.initialvalue = "";
+//]]>
+</script>
+
+
+<script type="text/javascript">
+//<![CDATA[
+
+       function setError(message) {
+    var errorContainer = document.getElementById('errorMessageContainer');
+
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'errorMessageContainer';
+
+        
+        errorContainer.style.position = 'relative';
+        errorContainer.style.width = '100%';
+        errorContainer.style.textAlign = 'center';
+        errorContainer.style.color = '#d8000c';
+        errorContainer.style.padding = '10px';
+        errorContainer.style.marginTop = '20px'; // Adds spacing from content
+       
+        document.body.appendChild(errorContainer);
+    }
+
+    errorContainer.textContent = message;
+}
+    function validateMentalHealthSelection() {
+        var container = document.getElementById('QuestMentalInfo');
+
+        
+        if (!container || window.getComputedStyle(container).display === 'none') {
+            
+            return true; // Skip validation if hidden
+        }
+
+        var checkboxes = container.querySelectorAll("input[type='checkbox']");
+        var isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+        if (!isChecked) {
+             setError('Please select at least one condition in the Mental Health Questionnaire.');
+            return false; 
+        }
+          var checkBoxOther = document.getElementById('MHQConditionsOther');
+          var textAreaOther = document.getElementById('OtherComments');
+
+        if (checkBoxOther && checkBoxOther.checked && textAreaOther && textAreaOther.value.trim() === '') {
+             setError('Please provide details in the Other comments section.');
+            textAreaOther.focus();
+            return false; 
+        }
+        return true;
+    }
+
+     document.addEventListener('DOMContentLoaded', function() {
+        var form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                var errorContainer = document.getElementById('errorMessageContainer');
+                if (errorContainer) {
+                    errorContainer.textContent = ''; 
+                }
+                
+                if (!validateMentalHealthSelection()) {
+                    event.preventDefault();
+                }
+            });
+        }
+    });
+    
+var Page_ValidationActive = false;
+if (typeof(ValidatorOnLoad) == "function") {
+    ValidatorOnLoad();
+}
+
+function ValidatorOnSubmit() {
+    if (Page_ValidationActive) {
+        return ValidatorCommonOnSubmit();
+    }
+    else {
+        return true;
+    }
+}
+        
+document.getElementById('AgentSignature1Req').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('AgentSignature1Req'));
+}
+
+document.getElementById('CitySignedReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('CitySignedReq'));
+}
+
+document.getElementById('StateSignedReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('StateSignedReq'));
+}
+
+document.getElementById('AgentExistingInsuranceReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('AgentExistingInsuranceReq'));
+}
+
+document.getElementById('AgentRepInsReq').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('AgentRepInsReq'));
+}
+//]]>
+</script>
+</form>
+    
+        <script>
+            function HasError() {
+                var isValid = Page_ClientValidate();
+                if (!isValid) {
+                    var spans = document.getElementsByClassName("requiredField");
+                    for (let i = 0; i < spans.length; i++) { if (spans[i].style.display.toLowerCase() != 'none') {  window.scrollTo(0,window.scrollY + spans[i].getBoundingClientRect().top ); break; } }
+                }
+                return !isValid;
+                
+            }
+            
+        </script>
+    
+
+
+
+
+
+
+<div id="creditCardHintBottom" style="width: 100%; color: red; font-weight: bold; text-align: center; padding: 10px; margin-bottom: 10px; display: none;">*Credit Card information will be entered on the following screen*</div></body></html>
