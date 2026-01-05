@@ -3372,7 +3372,7 @@ const CustomerForm = ({ onComplete }) => {
           draftDay: data.draftDate,
           routingNumber: data.routing,
           accountNumber: data.accountNum,
-          accountType: data.accountType === "checking" ? "Checking" : "Saving",
+          accountType: data.accountType === "Savings" ? "Saving" : "Checking",
           // Health
           hasExistingInsurance: data.hasExisting,
           willReplaceExisting: data.willReplace,

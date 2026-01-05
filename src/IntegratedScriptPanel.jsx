@@ -160,14 +160,15 @@ const IntegratedScriptPanel = ({ prospectData = {}, onDataUpdate }) => {
     email: prospectData?.email || '',
     phone: phoneNumber,
     // ═══ BANK DRAFT INFORMATION ═══
-    accountHolder: '',  // Account holder name
-    bankName: '',       // Bank name
-    bankCityState: '',  // Bank City/State
-    ssPaymentSchedule: null, // "Would you like draft to coincide with SS payment?" (true/false)
-    draftDay: '',       // Draft day (1S, 3S, 2W, 3W, 4W for SS; 1-28 for non-SS)
-    routingNumber: '',  // Transit/ABA routing number
-    accountNumber: '',  // Bank account number
-    accountType: 'Checking', // Checking or Saving
+    // Initialize from prospectData if available (synced from other forms/data sources)
+    accountHolder: prospectData?.accountHolder || prospectData?.accountName || '',
+    bankName: prospectData?.bankName || '',
+    bankCityState: prospectData?.bankCityState || prospectData?.bankAddress || '',
+    ssPaymentSchedule: prospectData?.ssPaymentSchedule ?? (prospectData?.draftSchedule === 'ss_payment' ? true : null),
+    draftDay: prospectData?.draftDay || prospectData?.draftDate || '',
+    routingNumber: prospectData?.routingNumber || prospectData?.routing || '',
+    accountNumber: prospectData?.accountNumber || prospectData?.accountNum || '',
+    accountType: prospectData?.accountType || 'Checking',
     // ═══ EMAIL & PERSONAL INFO ═══
     wantsEmail: null,   // Would you like to provide email? (true/false)
     // ═══ PHYSICIAN INFORMATION ═══
