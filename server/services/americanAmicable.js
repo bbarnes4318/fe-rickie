@@ -886,51 +886,93 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     }
     
     // Social Security Payment Schedule (Yes/No) - REQUIRED FIELD (SSPReq)
-    // Must always select an option - default to "No" if not specified
+    // When Yes: Draft Day options are SS payment weeks (1S, 3S, 2W, 3W, 4W)
+    // When No: Draft Day options are day numbers (1-28)
     console.log(`[Automation] SS Payment Schedule value from form: ${ssPaymentSchedule}`);
+    console.log(`[Automation] Draft Day value from form: ${draftDay}`);
+    
     try {
       if (ssPaymentSchedule === true) {
-        await page.click('#SSP_1'); // Yes - coincide with SS
+        // User wants draft to coincide with Social Security payment
+        await page.click('#SSP_1'); // Yes
         console.log('[Automation] ✓ SS Payment Schedule: Yes');
+        await new Promise(r => setTimeout(r, 1000)); // Wait for dropdown options to change
+        
+        // Now select the SS week option (1S, 3S, 2W, 3W, 4W)
+        if (draftDay) {
+          try {
+            await page.select('#RequestedDraftDay', draftDay);
+            console.log(`[Automation] ✓ SS Draft Week selected: ${draftDay}`);
+          } catch (e) {
+            console.log(`[Automation] Could not select SS week "${draftDay}", trying first option...`);
+            // Fallback: select first available SS option
+            const firstSS = await page.evaluate(() => {
+              const select = document.getElementById('RequestedDraftDay');
+              if (select && select.options.length > 1) {
+                select.selectedIndex = 1;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                return select.options[1].value;
+              }
+              return null;
+            });
+            if (firstSS) console.log(`[Automation] ✓ Default SS Week selected: ${firstSS}`);
+          }
+        } else {
+          // No draftDay specified, select first SS option
+          const firstSS = await page.evaluate(() => {
+            const select = document.getElementById('RequestedDraftDay');
+            if (select && select.options.length > 1) {
+              select.selectedIndex = 1;
+              select.dispatchEvent(new Event('change', { bubbles: true }));
+              return select.options[1].value;
+            }
+            return null;
+          });
+          if (firstSS) console.log(`[Automation] ✓ Default SS Week selected: ${firstSS}`);
+        }
+        
       } else {
-        // Default to No if not specified or explicitly false
+        // User does NOT want draft to coincide with SS - use specific day of month
         await page.click('#SSP_2'); // No
         console.log('[Automation] ✓ SS Payment Schedule: No');
-      }
-      await new Promise(r => setTimeout(r, 500)); // Wait for draft day options to update
-    } catch (e) {
-      console.log('[Automation] SS Payment Schedule radio not found:', e.message);
-    }
-    
-    // Draft Day (depends on SS Payment Schedule answer)
-    // If SS=Yes: options are 1S, 3S, 2W, 3W, 4W
-    // If SS=No: options are 1-28
-    if (draftDay) {
-      try {
-        await page.select('#RequestedDraftDay', draftDay);
-        console.log(`[Automation] ✓ Requested Draft Day: ${draftDay}`);
-      } catch (e) {
-        console.log('[Automation] Draft Day selector not found');
-      }
-    } else {
-      // Default to first available option if not specified
-      console.log('[Automation] No draft day specified, attempting to select first option...');
-      try {
-        const firstOption = await page.evaluate(() => {
-          const select = document.getElementById('RequestedDraftDay');
-          if (select && select.options.length > 1) {
-            select.selectedIndex = 1; // Skip the empty first option
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-            return select.options[1].value;
+        await new Promise(r => setTimeout(r, 1000)); // Wait for dropdown options to change
+        
+        // Now select the day number (1-28)
+        if (draftDay) {
+          try {
+            // draftDay should be a number like "1", "15", "28", etc.
+            await page.select('#RequestedDraftDay', String(draftDay));
+            console.log(`[Automation] ✓ Draft Day of Month selected: ${draftDay}`);
+          } catch (e) {
+            console.log(`[Automation] Could not select day "${draftDay}", trying first option...`);
+            // Fallback: select first available day option
+            const firstDay = await page.evaluate(() => {
+              const select = document.getElementById('RequestedDraftDay');
+              if (select && select.options.length > 1) {
+                select.selectedIndex = 1;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                return select.options[1].value;
+              }
+              return null;
+            });
+            if (firstDay) console.log(`[Automation] ✓ Default Day selected: ${firstDay}`);
           }
-          return null;
-        });
-        if (firstOption) {
-          console.log(`[Automation] ✓ Default Draft Day selected: ${firstOption}`);
+        } else {
+          // No draftDay specified, select first day option (typically "1")
+          const firstDay = await page.evaluate(() => {
+            const select = document.getElementById('RequestedDraftDay');
+            if (select && select.options.length > 1) {
+              select.selectedIndex = 1;
+              select.dispatchEvent(new Event('change', { bubbles: true }));
+              return select.options[1].value;
+            }
+            return null;
+          });
+          if (firstDay) console.log(`[Automation] ✓ Default Day selected: ${firstDay}`);
         }
-      } catch (e) {
-        console.log('[Automation] Could not select default draft day');
       }
+    } catch (e) {
+      console.log('[Automation] SS Payment Schedule section error:', e.message);
     }
     
     // Routing Number (Transit/ABA)
