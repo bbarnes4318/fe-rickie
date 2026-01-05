@@ -407,3 +407,382 @@ Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', 'form1', [],
 
 
 </body></html>
+
+
+
+
+
+
+
+
+<html><span id="iproyal@@extension@@state" data-webrtc-protection="true" data-proxy-connected="false"></span><head><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>
+	WebApp
+</title>
+    <script src="../js/jquery.js"></script>
+    <script src="../js/formattingFields.js"></script>
+    <script src="../js/trigger.js?v=1.1"></script>
+    <script src="../js/intro.min.js"></script>
+    <link href="../css/introjs.min.css" rel="stylesheet"><link href="../css/appStyle.css?v=1.1" rel="stylesheet"><link href="../css/w3.css?v=1.1" rel="stylesheet"><link href="../css/fontawesome/css/font-awesome.min.css" rel="stylesheet">
+    <script src="../js/es6-promise.auto.min.js"></script>
+    <script src="../js/es6-promise.min.js"></script>
+    <script src="../js/html2canvas.min.js"></script>
+
+    <style>
+        form {
+            font-family: Arial, Roboto, 'Times New Roman';
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: flex-start;
+            margin: 10px auto;
+            flex-wrap: wrap;
+            align-items:flex-start;
+        }
+
+            .flex-container > div {
+                padding: 8px;
+            }
+
+            input[type=checkbox], input[type=radio]{
+                margin-right:3px;
+            }
+            .radioHorizontal label{
+                margin-right:10px;
+            }
+            .radioVertical li{
+                margin-bottom:8px;
+            }
+    </style>
+    <script> 
+        function reportBug() {
+            var captureElement = document.querySelector("#form1");
+
+            html2canvas(
+                captureElement, {
+                    scrollY: 0, x: 0, y: 0
+                }
+            ).then(function (canvas) {
+                var bugContent = document.getElementById("divReportBugContent");
+
+                var dataURL = canvas.toDataURL();
+                document.getElementById("hiddenScreenshot").value = dataURL;
+                document.getElementById("divReportBugModal").style.display = 'block';
+            });
+        }
+        function runDemo() {
+            introJs().setOption('showStepNumbers', 'false');
+            introJs().start();
+        }
+    </script>
+
+    
+    <style>
+        #spanAppNumber {
+            font-weight: bold;
+        }
+    </style>
+<style>
+				@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+			</style></head>
+<body>
+    <form method="post" action="./voicesigaatx.aspx?a=Nq9IGosQ2jg%3d" id="form1">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="NsdoQSjnasT7WIWHgpoN3dfLsZggo984wkCf/gUVxHp7xh/DzYe/gOE47/PrcfMs9N0sa+/3UvykdhiI4mUCGDSQ/RH4InOtGczG4t0AA0xUw0q4Y9aZcm8Nidc2XUToggv+kQywuqoi5NWAj84CP5ODiBkUx3nNmvUU+E7g5f/7ey0J/2PVklL8Qs8+q4488dny9NDVm8roi3GPZFMBCplO6Ub6thjtg+VEfKv/Kl6pJE7HuvlXt6lKNU5aJfj+l1Fseiw7BzknThCTeYAgyIPV0Phqap+4bhYoxwvgV1Aiq2DSkvkTFNg9+z6DIau+8HqOn+DesXo2gz+CGMRnypZ0QVtu8pCyELfuLI5EPZPUou+yH/VQOixG9XiJHRZbZ3GXjV7rhJ8VZG6lTf0mHpNe7G3/e56Eg7jIjJ4IE/3KAwn3BaaMFWfYEEPszDalyhwAA2qKifK8C5P2PWQaLM+MYt6O0IGhBsGub6T/Be65xNSQpDL7GlFq5U7heN9A72S1P1cjbRarqhQL2+qfeOly7l7KAOxi2iKKpE6YTwnX+S0fgrW4QdVFZFssVkLEf3PfCF+zY20/KaUR5ecUpWCfv5/oONqKkZVMtCi1O1A1PaRUol9LGSXq/MX3i6LQ+CWb6AMwHBeabkcC3R2XL9sjIwVCG6IMLQqpqUmGZQhAHuKkGUAr945VtWZdlsned8os9iW6n23SLpUZsTLWnz3Q16uU9Gix4ADlkWmqGCagsuhTx8ewbUHIHp4jPsWKPAlObcNah1zN1/uMS/jq+GLXDbGK5U1G69ltERn2lEk5gs24aHiiFlxK73jt12CFmmiWAktMePciwGrY5unVIy2suqfBdCFTdusPu/eAoMx6LarPyTesrNdK5Dzr8gDbJK13y5kNBL9gwn8y1z3i5rKOx4lD7/IUWnqVwScZLMO9+E/1/x8HdtgGZTjEPNGiqS2ds6vR84rGRsyCrhoYEYDDbl5Qi/rhEBEBvoOyadzkWA5YOkPmf5Jlk385KMsnDutcbfZe137t8k2fdxPYMtCcXGcB5ZaybJ1HELPgzJsNCjF9m3M+RP3ImhRdT8Q97UNDoBtBaNxZ9jy/2FKb/g==">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/cgi/webappmobile/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZCWdgcUTcWPMa27w6vyhYnUdr4Kk0qkQ-gGyvuBUeonc_hBmHyjOCl085zQdrDvx6w2&amp;t=638901361900000000" type="text/javascript"></script>
+
+
+<script src="/cgi/webappmobile/ScriptResource.axd?d=NJmAwtEo3Ipnlaxl6CMhvvahZ_sJp1Z7YLDEV-v-ztZo2dgPYY43jTFc0yNn903XxKVYBH3-t7nb9TPrM8yMQQQuNZvYq7UXDIHoFkLpsFVtz4_QULf7fo10DRzFjScnt5FPOJj2GUDPIn8_NDPklnclSQRbNwONfgNpRvP3CDU1&amp;t=5c0e0825" type="text/javascript"></script>
+<script src="/cgi/webappmobile/ScriptResource.axd?d=dwY9oWetJoJoVpgL6Zq8OCbylTOF4BXRxChvvEqqkzQn9CZpxCehQdGEmOaBXAqRTl-9SgYwzdFbOIU0MNJoAAsWP_QPIU4EZy_l-urwOJRdJO-3SRxVM0pGSXT0Sn8W5XcAnHavVD5iimcBtufWfPZWF_y90saUPDnuCKvZcQE1&amp;t=5c0e0825" type="text/javascript"></script>
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="84950D6D">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="7S0sVp4KBoXms1o4pN921lBkH7kEtX6dUvn6tub2fRLldlceJMq+H5jGZ16axJ1F5Nz6SjfSusPbMFHkC7HSQHCzpxXgms+PfnzkK1h2nKwkLXvYTvFm0qguDm2EyM7CU8zo5deyRtR9f9XGFfJjc6RZCtAuyDsH73SKdM8rgxbVzH+IR2rPV5aGsaGYFwq5BTxXUWZ8LMGBCpgPOeU1PyX7+RvfKSksWUEXQxnxh3Y=">
+</div>
+        <input type="hidden" id="product" value="SC">
+        <input type="submit" name="ctl00$BtnSaveReturn" value="Save and Return to Applications Pending" id="BtnSaveReturn" class="btn" data-step="1" data-intro="Click here to save and return to the applications pending queue anytime." style="display: block; margin: 10px auto; max-width: 800px; text-align: center; align-content: center;">
+
+
+        <table class="Navigation w3-hide-small">
+            <tbody><tr>
+                <td>
+                    <b>Quote</b><br>
+                    <span id="QuoteLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Underwriting</b>
+                    <br>
+                    <span id="UnderwritingLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Personal Info</b><br>
+                    <span id="PersonalInfoLabel" style="color:Green;">Complete</span>
+                </td>
+                <td>
+                    <b>Agent Statement</b><br>
+                    <span id="AgentStatementLabel" style="color:Green;">Complete</span>
+                </td>
+            </tr>
+        </tbody></table>
+
+        <div style="margin-bottom: 2px; text-align: left; width: 100%; display: block; margin-top: 8px; border-collapse: collapse;">
+
+            
+            <b>
+                <span id="ScreenAgentName">AMERICAN BENEFICIARY</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="CompanyHeader">American-Amicable</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="ProductHeader">Senior Choice (FE 50-85)</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="StateHeader">IL</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="CreatedDateHeader"><u>Created:</u> 1/5/2026 12:26:28 PM</span></b>&nbsp;&nbsp;
+                <b>
+                    <span id="AppNumberLabel" data-step="2" data-intro="The app number to be referenced in case of any issues is located here"><u>AppNumber:</u><span style="font-size:x-large"> M003114977</span></span></b>
+            <b>
+                <span id="lblInsuredInfo">Insured:MIKE DAVIS</span></b>&nbsp;&nbsp;
+            <div style="background-color: white; width: 150px; padding: 5px; border: 1px solid black; border-radius: 10px; text-align: center; float: right;">
+                <span style="text-decoration: underline; cursor: pointer; color: blue;" onclick="runDemo()">Click Here for help</span> or <a href="../api/DocHandler.ashx?file=Generic-Mobile Application-FINAL.pdf" id="ClickHereLink" style="text-decoration: underline;" target="_blank">view our pdf documentation</a>
+            </div>
+
+        </div>
+
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', 'form1', [], [], [], 90, 'ctl00');
+//]]>
+</script>
+
+
+        
+
+        <div id="dataContent" style="border: 2px solid black; float: none; width: 100%; background: linear-gradient(to right, #718EA4 1%, white 15%, white 84%);">
+            <div style="max-width:1200px;margin:0 auto;">
+                
+
+    <h2>IMPORTANT: BEGIN THE VOICE SIGNATURE RECORDING PROCESS:</h2>
+    <ul>
+        <li>Obtain the appropriate voice signature script by clicking the button to the right.  <a href="../api/dochandler.ashx?file=SC_AA_Voice_Script.pdf" id="aVoiceScriptLink" class="w3-gray w3-margin w3-border w3-button" target="_blank">Click Here for Voice Signature Script (PDF)</a></li>
+        <li>With the applicant on the line, initiate a 3-way conference call with the American Amicable Group recording service by calling <b>800-927-1604</b> or <b>254-224-0345</b>.  (If all lines a busy, please wait a few moments and try again.)</li>
+        <li>When prompted, enter the Application Number (<span id="spanAppNumber">3114977</span>) to be followed by the “#” key. The Application Number must match exactly.</li>
+        <li>Follow the remaining prompts until you hear “This call is now being recorded”, you can then proceed with the recording. Read the items from the script and allow the individual to respond.</li>
+        <li>Press the “#” key to terminate the recording once you have gone through the entire script.  This will disconnect you from the recording service.</li>
+        <li>Upon completion of the recording, select the “Click to verify recording has been received” button below.  This will confirm the recording has been delivered to the Home Office. (This process will take a few moments to complete.)   Once verified the message “Voice recording has been received” will display.</li>
+        <li>You can now finalize the application by clicking the “Proceed with Application Transmission” button.</li>
+        <li>REMINDER: The application cannot be transmitted to the Home Office unless the recording has been completed &amp; received.</li>
+    </ul>
+      <div style="border: 0.1em outset; margin: 6px; padding: 4px; background-color: #efefff" ;="">
+    <h4>Additional Voice Signature Script Instructions</h4><a class="w3-gray w3-margin w3-border w3-button" target="_blank" href="../api/dochandler.ashx?file=SC_AA_Voice_Script_Spanish.pdf">SC_AA_Voice_Script_Spanish.pdf</a><br>
+    </div>
+    <input type="hidden" name="appNum" id="appNum" value="3114977">
+    <input type="hidden" name="ctl00$ContentPlaceHolderMain$hdnAgentID" id="hdnAgentID" value="0001163940">
+    <input type="submit" name="ctl00$ContentPlaceHolderMain$BtnSubmitApp" value="" id="BtnSubmitApp" style="display:none;">
+    <input type="file" id="voiceFileUpload" clientidmode="Static" accept=".wav,.mp3" class="w3-input w3-border w3-margin">
+        <div id="uploadStatus"></div>
+
+    <div class="w3-card-4 w3-padding" style="max-width: 600px; margin: 40px auto; text-align: center;" id="responseBox">
+        <button type="button" class="btn" onclick="cycleOn=true;checkForRecording();checkAudioDurationFromAPI();">Click to verify recording has been received</button>
+        
+    </div>
+
+    <script>
+        var cycleOn = false;
+        var maxtries = 50;
+        var currentTry = 0;
+        function checkForRecording() {
+            currentTry++;
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    // Typical action to be performed when the document is ready:
+                    console.log(xhttp.responseText);
+                    if (xhttp.responseText == "received") {
+                       // document.getElementById("responseBox").innerHTML = "<h4><i class='fa fa-check w3-text-green'></i>&nbsp;Voice recording has been received</h4><button type='button' class='btn w3-margin' onclick=\"document.getElementById('BtnSubmitApp').click();\">Proceed with Application Transmission</button><br><br>";
+                        document.getElementById("responseBox").innerHTML = "<h4><i class='fa fa-check w3-text-green'></i>&nbsp;Voice recording has been received</h4><a class='btn w3-margin' href='../queue.aspx?a=Nq9IGosQ2jg%3d'>Proceed with Application Transmission</a><br><br>";
+                    } else {
+                        if (cycleOn) {
+                            document.getElementById("responseBox").innerHTML = "<h4><i class='fa fa-spinner fa-pulse'></i>&nbsp;This area will update when the recording is complete.<br>(this may take up to 2 minutes...)<br><br>";
+                            if (currentTry >= maxtries) {
+//04/25/2023 - ProgReq #8971 - change verbiage and add stopsign.png to markup
+                                document.getElementById("responseBox").innerHTML = "<img src='../images/StopSign.png' style='width: 146px; height: 146px; border: 0;'/><h4>The Voice Signature Recording was not found.</h4>This is usually caused by entering the wrong App# into the phone system.<br />Please email the Help Desk at helpdesk@aatx.com with the following information.<br /><div style='text-align: left; margin: 6px;'>Agent Name:</div><div style='text-align: left; margin: 6px;'>Agent #:</div><div style='text-align: left; margin: 6px;'>Insured Name:</div><div style='text-align: left; margin: 6px;'>Phone #(used to make the call):</div><div style='text-align: left; margin: 6px;'>Time of recording:</div><div style='text-align: left; margin: 6px;'>App#:</div>";
+                            } else {
+                                setTimeout(checkForRecording, 4000);
+                            }
+                        }
+                    }
+
+                }
+            };
+            xhttp.open("GET", "../api/vsigcheck.ashx?a=Nq9IGosQ2jg%3d&t=" + new Date().getTime(), true);
+            xhttp.send();
+        }
+        setTimeout(checkForRecording, 200);
+
+        //ProgReq#8551  Voice Signature - Charmi Sanghavi 11/18/2025
+        function checkAudioDurationFromAPI() {
+            var AppNum = document.getElementById('appNum').value;
+            var agentID = document.getElementById('hdnAgentID').value;
+
+            var apiUrl = "https://web2.aatx.com/api/aatxapi/api/AudioFileSpecs/" + AppNum + "/" + agentID;
+
+           var xhttp = new XMLHttpRequest();
+           xhttp.onreadystatechange = function () {
+               if (this.readyState === 4) {
+                   if (this.status === 200) {
+                       try {
+                           var response = JSON.parse(this.responseText);
+
+                           var duration = response.duration_in_seconds || 0;
+                           if (duration < 180) {
+                               alert(
+                                   "Please verify that you have uploaded a voice signature that is read from the script provided.\n\n" +
+                                   "Uploading an incorrect voice signature could cause delays in processing the application.\n\n" +
+                                   "Recording is less than 3 minutes.\n Duration: " + duration.toFixed(1) + " seconds."
+                               );
+                           } 
+                       } catch (err) {
+                           alert("Error reading API response.");
+                       }
+                   } else {
+                       alert("Request failed. Status: " + this.status);
+                   }
+               }
+           };
+
+           xhttp.open("GET", apiUrl, true);
+           xhttp.send();
+       }
+    </script>
+
+            </div>
+            
+
+            
+
+            <br>
+            <br>
+            <br>
+        </div>
+
+        <div class="modal" id="divReportBugModal">
+            <div class="modal-content">
+                <button type="button" class="close" onclick="document.getElementById('divReportBugModal').style.display = 'none';">×</button>
+                <div id="divReportBugContent">
+                    <h3>Reporting an Issue</h3>
+                    <i>A screenshot has been captured of this page.</i>
+                    <p>Please provide a description of the issue to go along with the screenshot:</p>
+                    <textarea name="ctl00$txtIssueReport" rows="10" cols="50" id="txtIssueReport" style="width: 100%;"></textarea>
+                    <input type="hidden" name="ctl00$hiddenScreenshot" id="hiddenScreenshot">
+                    <br>
+                    <br>
+                    <input type="submit" name="ctl00$BtnSubmitIssue" value="Submit Issue" id="BtnSubmitIssue" class="btn">
+                </div>
+            </div>
+        </div>
+    
+
+<script type="text/javascript">
+//<![CDATA[
+
+       function setError(message) {
+    var errorContainer = document.getElementById('errorMessageContainer');
+
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'errorMessageContainer';
+
+        
+        errorContainer.style.position = 'relative';
+        errorContainer.style.width = '100%';
+        errorContainer.style.textAlign = 'center';
+        errorContainer.style.color = '#d8000c';
+        errorContainer.style.padding = '10px';
+        errorContainer.style.marginTop = '20px'; // Adds spacing from content
+       
+        document.body.appendChild(errorContainer);
+    }
+
+    errorContainer.textContent = message;
+}
+    function validateMentalHealthSelection() {
+        var container = document.getElementById('QuestMentalInfo');
+
+        
+        if (!container || window.getComputedStyle(container).display === 'none') {
+            
+            return true; // Skip validation if hidden
+        }
+
+        var checkboxes = container.querySelectorAll("input[type='checkbox']");
+        var isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+        if (!isChecked) {
+             setError('Please select at least one condition in the Mental Health Questionnaire.');
+            return false; 
+        }
+          var checkBoxOther = document.getElementById('MHQConditionsOther');
+          var textAreaOther = document.getElementById('OtherComments');
+
+        if (checkBoxOther && checkBoxOther.checked && textAreaOther && textAreaOther.value.trim() === '') {
+             setError('Please provide details in the Other comments section.');
+            textAreaOther.focus();
+            return false; 
+        }
+        return true;
+    }
+
+     document.addEventListener('DOMContentLoaded', function() {
+        var form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                var errorContainer = document.getElementById('errorMessageContainer');
+                if (errorContainer) {
+                    errorContainer.textContent = ''; 
+                }
+                
+                if (!validateMentalHealthSelection()) {
+                    event.preventDefault();
+                }
+            });
+        }
+    });
+    //]]>
+</script>
+</form>
+    
+
+
+
+
+
+
+
+</body></html>
