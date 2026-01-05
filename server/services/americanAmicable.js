@@ -885,29 +885,51 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       }
     }
     
-    // Social Security Payment Schedule (Yes/No)
-    if (ssPaymentSchedule !== null) {
-      try {
-        if (ssPaymentSchedule === true) {
-          await page.click('#SSP_1'); // Yes - coincide with SS
-          console.log('[Automation] ✓ SS Payment Schedule: Yes');
-        } else {
-          await page.click('#SSP_2'); // No
-          console.log('[Automation] ✓ SS Payment Schedule: No');
-        }
-        await new Promise(r => setTimeout(r, 500)); // Wait for draft day options to update
-      } catch (e) {
-        console.log('[Automation] SS Payment Schedule radio not found');
+    // Social Security Payment Schedule (Yes/No) - REQUIRED FIELD (SSPReq)
+    // Must always select an option - default to "No" if not specified
+    console.log(`[Automation] SS Payment Schedule value from form: ${ssPaymentSchedule}`);
+    try {
+      if (ssPaymentSchedule === true) {
+        await page.click('#SSP_1'); // Yes - coincide with SS
+        console.log('[Automation] ✓ SS Payment Schedule: Yes');
+      } else {
+        // Default to No if not specified or explicitly false
+        await page.click('#SSP_2'); // No
+        console.log('[Automation] ✓ SS Payment Schedule: No');
       }
+      await new Promise(r => setTimeout(r, 500)); // Wait for draft day options to update
+    } catch (e) {
+      console.log('[Automation] SS Payment Schedule radio not found:', e.message);
     }
     
     // Draft Day (depends on SS Payment Schedule answer)
+    // If SS=Yes: options are 1S, 3S, 2W, 3W, 4W
+    // If SS=No: options are 1-28
     if (draftDay) {
       try {
         await page.select('#RequestedDraftDay', draftDay);
         console.log(`[Automation] ✓ Requested Draft Day: ${draftDay}`);
       } catch (e) {
         console.log('[Automation] Draft Day selector not found');
+      }
+    } else {
+      // Default to first available option if not specified
+      console.log('[Automation] No draft day specified, attempting to select first option...');
+      try {
+        const firstOption = await page.evaluate(() => {
+          const select = document.getElementById('RequestedDraftDay');
+          if (select && select.options.length > 1) {
+            select.selectedIndex = 1; // Skip the empty first option
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            return select.options[1].value;
+          }
+          return null;
+        });
+        if (firstOption) {
+          console.log(`[Automation] ✓ Default Draft Day selected: ${firstOption}`);
+        }
+      } catch (e) {
+        console.log('[Automation] Could not select default draft day');
       }
     }
     
@@ -931,7 +953,27 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       }
     }
     
+    // ═══ CHECKING/SAVINGS - MUST BE BEFORE VALIDATION (CheckPlanReq) ═══
+    // This is a required field that must be selected before bank validation
+    console.log(`[Automation] Account Type from form: ${accountType}`);
+    try {
+      if (accountType === 'Saving' || accountType === 'Savings') {
+        await page.click('#CheckPlan_2'); // Saving
+        console.log('[Automation] ✓ Account Type: Saving');
+      } else {
+        // Default to Checking
+        await page.click('#CheckPlan_1'); // Checking
+        console.log('[Automation] ✓ Account Type: Checking');
+      }
+    } catch (e) {
+      console.log('[Automation] Checking/Savings radio not found:', e.message);
+    }
+    
+    // Small wait after all fields are filled
+    await new Promise(r => setTimeout(r, 500));
+    
     // ████ VALIDATE BANK INFO - CRITICAL STEP ████
+    // All bank fields must be filled BEFORE clicking this button
     console.log('[Automation] Clicking Validate Bank Info button...');
     try {
       await page.waitForSelector('#btValidateBankInfo', { timeout: 5000 });
@@ -1013,19 +1055,6 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       
     } catch (e) {
       console.log('[Automation] Validate Bank Info button not found or failed:', e.message);
-    }
-    
-    // Checking/Savings
-    try {
-      if (accountType === 'Checking') {
-        await page.click('#CheckPlan_1'); // Checking
-        console.log('[Automation] ✓ Account Type: Checking');
-      } else {
-        await page.click('#CheckPlan_2'); // Saving
-        console.log('[Automation] ✓ Account Type: Saving');
-      }
-    } catch (e) {
-      console.log('[Automation] Checking/Savings radio not found');
     }
     
     // === PERSONAL INFORMATION - CRITICAL FIELDS ===
