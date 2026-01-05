@@ -1391,8 +1391,8 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     await new Promise(r => setTimeout(r, 1000));
     console.log('[Automation] ✓ All bank fields populated');
     
-    // ████ VALIDATE BANK INFO - CRITICAL STEP ████
-    // All bank fields must be filled BEFORE clicking this button
+    // ████ VALIDATE BANK INFO - TRY ONCE, CONTINUE REGARDLESS ████
+    // The form allows continuing even if validation fails
     console.log('[Automation] Clicking Validate Bank Info button...');
     try {
       await page.waitForSelector('#btValidateBankInfo', { timeout: 5000 });
@@ -1400,24 +1400,16 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       console.log('[Automation] ✓ Validate Bank Info clicked');
       
       // Wait for validation API to complete
-      await new Promise(r => setTimeout(r, 5000));
+      await new Promise(r => setTimeout(r, 3000));
       
-      // Check validation result
-      const bankValidationResult = await page.evaluate(() => {
-        const isValid = typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
-        return { isValid };
+      // Log the result but don't block
+      const isValid = await page.evaluate(() => {
+        return typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
       });
-      
-      console.log('[Automation] Bank validation result:', bankValidationResult.isValid ? 'SUCCESS' : 'FAILED');
-      
-      if (!bankValidationResult.isValid) {
-        console.log('[Automation] ⚠ Bank validation failed, retrying...');
-        await page.click('#btValidateBankInfo');
-        await new Promise(r => setTimeout(r, 5000));
-      }
+      console.log('[Automation] Bank validation result:', isValid ? 'SUCCESS' : 'FAILED (continuing anyway)');
       
     } catch (e) {
-      console.log('[Automation] ⚠ Validate Bank Info button issue:', e.message);
+      console.log('[Automation] ⚠ Validate Bank Info button issue:', e.message, '- continuing anyway');
     }
     
     // === PERSONAL INFORMATION - CRITICAL FIELDS ===
@@ -1956,21 +1948,9 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       }
       console.log('[Automation]   - Current URL:', pageState.currentUrl);
       
-      // If bank validation is failing, try clicking validate one more time before continue
+      // Just log the state - don't try to re-validate since form allows continuing anyway
       if (!pageState.isBankValidated) {
-        console.log('[Automation] ⚠ Bank validation still failing, attempting final validation...');
-        try {
-          await page.click('#btValidateBankInfo');
-          await new Promise(r => setTimeout(r, 5000));
-          
-          // Check one more time
-          const finalCheck = await page.evaluate(() => {
-            return typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
-          });
-          console.log('[Automation] Final bank validation check:', finalCheck ? 'SUCCESS' : 'STILL FAILED');
-        } catch (e) {
-          console.log('[Automation] Final validation attempt failed:', e.message);
-        }
+        console.log('[Automation] ℹ Bank validation not passed, but form allows continuing - proceeding...');
       }
     } catch (e) {
       console.log('[Automation] Could not check page state:', e.message);
