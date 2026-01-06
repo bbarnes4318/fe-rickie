@@ -418,7 +418,7 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     browser = await puppeteer.launch({
       headless: "new",
       executablePath: executablePath,
-      protocolTimeout: 180000, // 3 minutes to prevent protocol timeouts on slow operations
+      protocolTimeout: 300000, // 5 minutes to prevent protocol timeouts on slow operations
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -2019,72 +2019,69 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       });
       console.log('[Automation] ✓ Disabled all validation (onclick, ASP.NET validators, form onsubmit)');
       
-      // Step 2: Click the button using Puppeteer
+      // Step 2: Submit the form using JavaScript (avoid Puppeteer click which hangs)
+      console.log('[Automation] Submitting form via JavaScript...');
+      
       try {
-        // Scroll to button
+        // Use evaluate to submit form directly - this avoids Puppeteer click timing out
         await page.evaluate(() => {
+          // Click the button programmatically
           const btn = document.getElementById('BtnContinue');
-          if (btn) btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+          if (btn) {
+            btn.click();
+          }
         });
-        await new Promise(r => setTimeout(r, 500));
+        console.log('[Automation] ✓ Button clicked via JavaScript');
         
-        // Click and wait for navigation
-        console.log('[Automation] Clicking BtnContinue...');
+        // Wait for page to navigate (don't use waitForNavigation which can hang)
+        await new Promise(r => setTimeout(r, 5000));
         
-        await Promise.all([
-          page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {
-            console.log('[Automation] Navigation promise timeout');
-          }),
-          page.click('#BtnContinue')
-        ]);
+        let urlAfter = page.url();
+        console.log('[Automation] URL after JS click:', urlAfter);
         
-        await new Promise(r => setTimeout(r, 2000));
-        
-        const urlAfterClick = page.url();
-        console.log('[Automation] URL after click:', urlAfterClick);
-        
-        if (!urlAfterClick.includes('personalinfo')) {
+        if (!urlAfter.includes('personalinfo')) {
           console.log('[Automation] ✓ Navigation successful!');
           buttonClicked = true;
         } else {
-          // Still on same page - try submitting with __doPostBack
-          console.log('[Automation] Still on personalinfo, trying __doPostBack for BtnContinue...');
+          // Try __doPostBack directly
+          console.log('[Automation] Still on personalinfo, trying __doPostBack...');
           
-          await page.evaluate(() => {
-            if (typeof __doPostBack === 'function') {
-              __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnContinue', '');
-            }
-          });
-          
-          await new Promise(r => setTimeout(r, 5000));
-          
-          const urlAfterPostback = page.url();
-          console.log('[Automation] URL after __doPostBack:', urlAfterPostback);
-          
-          if (!urlAfterPostback.includes('personalinfo')) {
-            console.log('[Automation] ✓ __doPostBack worked!');
-            buttonClicked = true;
-          }
-        }
-        
-      } catch (clickError) {
-        console.log('[Automation] Click error:', clickError.message);
-        
-        // Fallback: direct form submit
-        try {
-          console.log('[Automation] Fallback: direct __doPostBack...');
           await page.evaluate(() => {
             __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnContinue', '');
           });
+          console.log('[Automation] ✓ Called __doPostBack');
+          
+          // Wait for navigation
           await new Promise(r => setTimeout(r, 5000));
           
-          if (!page.url().includes('personalinfo')) {
+          urlAfter = page.url();
+          console.log('[Automation] URL after __doPostBack:', urlAfter);
+          
+          if (!urlAfter.includes('personalinfo')) {
+            console.log('[Automation] ✓ __doPostBack worked!');
             buttonClicked = true;
-            console.log('[Automation] ✓ Fallback worked!');
+          } else {
+            // Last resort: direct form submit
+            console.log('[Automation] Trying direct form.submit()...');
+            await page.evaluate(() => {
+              const eventTarget = document.getElementById('__EVENTTARGET');
+              if (eventTarget) eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
+              const form = document.getElementById('form1');
+              if (form) form.submit();
+            });
+            
+            await new Promise(r => setTimeout(r, 5000));
+            urlAfter = page.url();
+            console.log('[Automation] URL after form.submit:', urlAfter);
+            
+            if (!urlAfter.includes('personalinfo')) {
+              console.log('[Automation] ✓ form.submit worked!');
+              buttonClicked = true;
+            }
           }
-        } catch (e) {
-          console.log('[Automation] Fallback failed:', e.message);
         }
+      } catch (submitError) {
+        console.log('[Automation] Submit error:', submitError.message);
       }
       
       if (!buttonClicked) {
