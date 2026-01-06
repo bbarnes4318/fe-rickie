@@ -1957,14 +1957,22 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
         // Check the result message
         const validationResult = await page.evaluate(() => {
           const msgDiv = document.getElementById('msg');
-          const isValid = typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
+          // NOTE: IsValidatedBankInfo() returns FALSE when bank IS validated (counterintuitive!)
+          // This is because the button onclick uses: if (HasError() || IsValidatedBankInfo()) return false
+          // So FALSE = allow button, TRUE = block button
+          const funcResult = typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : null;
           return {
-            isValid,
-            message: msgDiv ? msgDiv.textContent : 'no message'
+            funcResult,
+            // Bank is validated when function returns FALSE or message contains "Successful"
+            isValidated: funcResult === false || (msgDiv && msgDiv.textContent && msgDiv.textContent.includes('Successful')),
+            message: msgDiv ? msgDiv.textContent.trim() : 'no message'
           };
         });
-        console.log('[Automation] Bank validation result:', validationResult.isValid ? 'SUCCESS' : 'FAILED');
+        // Log correctly - check the message for "Successful"
+        const bankPassed = validationResult.message.includes('Successful');
+        console.log('[Automation] Bank validation:', bankPassed ? '✓ SUCCESS' : '⚠ FAILED');
         console.log('[Automation] Validation message:', validationResult.message);
+        console.log('[Automation] IsValidatedBankInfo() returned:', validationResult.funcResult, '(FALSE = validated, TRUE = not validated)');
       } else {
         console.log('[Automation] ⚠ Validate Bank Info button not found in DOM');
       }
@@ -1988,32 +1996,44 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
           hasError: typeof HasError === 'function' ? HasError() : 'HasError not defined',
           isBankValidated: typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : 'IsValidatedBankInfo not defined',
           errorMessages: [],
-          reqErrors: [],  // Specifically track "Req" required field errors
+          allReqSpans: [],  // Find ALL visible Req indicators
           emptyRequiredFields: [],
           currentUrl: window.location.href
         };
         
-        // Find any visible error messages
-        const errors = document.querySelectorAll('.error, .validation-error, [style*="color: red"], [class*="error"]');
+        // Find any visible error messages (red text)
+        const errors = document.querySelectorAll('.error, .validation-error, [style*="color: red"], [style*="color:red"]');
         errors.forEach(el => {
           if (el.textContent && el.textContent.trim() && el.offsetParent !== null) {
-            result.errorMessages.push(el.textContent.trim().substring(0, 100));
+            result.errorMessages.push({
+              id: el.id || 'no-id',
+              tag: el.tagName,
+              text: el.textContent.trim().substring(0, 100)
+            });
           }
         });
         
-        // CRITICAL: Look for "Req" required field indicator spans
-        const reqSpans = document.querySelectorAll('span[id$="_Req"], span[id*="Req"], .reqIndicator, [class*="required"]');
-        reqSpans.forEach(el => {
-          if (el.offsetParent !== null && el.textContent) {
-            result.reqErrors.push(`${el.id || 'unknown'}: "${el.textContent.trim()}"`);
-          }
-        });
-        
-        // Check for empty required input fields
-        const requiredInputs = document.querySelectorAll('input[required], input.required, select[required], select.required');
-        requiredInputs.forEach(inp => {
-          if (!inp.value || inp.value.trim() === '') {
-            result.emptyRequiredFields.push(inp.id || inp.name || 'unknown');
+        // CRITICAL: Find ALL visible elements that contain "Req" text
+        const allSpans = document.querySelectorAll('span');
+        allSpans.forEach(el => {
+          const text = el.textContent ? el.textContent.trim() : '';
+          if (text.toLowerCase().includes('req') && el.offsetParent !== null) {
+            // Find the parent element to understand context
+            let parentInfo = 'no parent';
+            let parent = el.parentElement;
+            for (let i = 0; i < 3 && parent; i++) {
+              if (parent.id || parent.textContent) {
+                parentInfo = parent.id || parent.textContent.substring(0, 50);
+                break;
+              }
+              parent = parent.parentElement;
+            }
+            result.allReqSpans.push({
+              id: el.id || 'no-id',
+              text: text,
+              parent: parentInfo,
+              style: el.getAttribute('style') || 'no-style'
+            });
           }
         });
         
@@ -2022,25 +2042,27 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       
       console.log('[Automation] 📊 PAGE STATE BEFORE CONTINUE:');
       console.log('[Automation]   - HasError():', pageState.hasError);
-      console.log('[Automation]   - IsValidatedBankInfo():', pageState.isBankValidated);
-      console.log('[Automation]   - Error messages found:', pageState.errorMessages.length);
+      // NOTE: IsValidatedBankInfo() returns FALSE when bank IS validated (allows button to proceed)
+      // This is counterintuitive but that's how the page works
+      const bankStatusMsg = pageState.isBankValidated === false ? 
+        'FALSE (bank validated, button can proceed)' : 
+        (pageState.isBankValidated === true ? 'TRUE (bank NOT validated, blocks button)' : pageState.isBankValidated);
+      console.log('[Automation]   - IsValidatedBankInfo():', bankStatusMsg);
+      console.log('[Automation]   - Red error elements found:', pageState.errorMessages.length);
       if (pageState.errorMessages.length > 0) {
-        console.log('[Automation]   - Errors:', pageState.errorMessages.join(' | '));
+        pageState.errorMessages.forEach((err, i) => {
+          console.log(`[Automation]     ${i+1}. [${err.tag}#${err.id}]: "${err.text}"`);
+        });
       }
-      console.log('[Automation]   - "Req" errors found:', pageState.reqErrors.length);
-      if (pageState.reqErrors.length > 0) {
-        console.log('[Automation]   ⚠ REQ ERRORS:', pageState.reqErrors.join(' | '));
-      }
-      console.log('[Automation]   - Empty required fields:', pageState.emptyRequiredFields.length);
-      if (pageState.emptyRequiredFields.length > 0) {
-        console.log('[Automation]   ⚠ EMPTY REQUIRED:', pageState.emptyRequiredFields.join(', '));
+      console.log('[Automation]   - Visible "Req" spans found:', pageState.allReqSpans.length);
+      if (pageState.allReqSpans.length > 0) {
+        console.log('[Automation]   ⚠ REQUIRED FIELD INDICATORS:');
+        pageState.allReqSpans.forEach((span, i) => {
+          console.log(`[Automation]     ${i+1}. ID: ${span.id}, Text: "${span.text}", Parent: ${span.parent}`);
+        });
       }
       console.log('[Automation]   - Current URL:', pageState.currentUrl);
       
-      // Just log the state - don't try to re-validate since form allows continuing anyway
-      if (!pageState.isBankValidated) {
-        console.log('[Automation] ℹ Bank validation not passed, but form allows continuing - proceeding...');
-      }
     } catch (e) {
       console.log('[Automation] Could not check page state:', e.message);
     }
