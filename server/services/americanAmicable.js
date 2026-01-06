@@ -322,7 +322,7 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       }
       
       await new Promise(r => setTimeout(r, 3000));
-      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
       
       // STEP 6: Scroll and click Continue button
       console.log('[Recovery] Step 6: Scrolling and clicking Continue button...');
@@ -341,7 +341,7 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       }
       
       await new Promise(r => setTimeout(r, 3000));
-      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
       
       // STEP 7: Click Continue to Agent Statement button
       console.log('[Recovery] Step 7: Clicking Continue to Agent Statement button...');
@@ -370,7 +370,7 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       }
       
       await new Promise(r => setTimeout(r, 3000));
-      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
       
       console.log('[Recovery] ✓✓✓ RECOVERY FLOW COMPLETE ✓✓✓');
       console.log('[Recovery] Now on:', page.url());
@@ -418,6 +418,7 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     browser = await puppeteer.launch({
       headless: "new",
       executablePath: executablePath,
+      protocolTimeout: 180000, // 3 minutes to prevent protocol timeouts on slow operations
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -1979,67 +1980,107 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       
       // CRITICAL: The BtnContinue button has an onclick handler that BLOCKS submission:
       // onclick="if (HasError() || IsValidatedBankInfo()) return false;"
+      // NOTE: This returns FALSE when bank IS validated (weird logic), meaning button works when NOT validated
       // We need to bypass this by removing the onclick handler before clicking
       
       console.log('[Automation] Attempting to click Continue to Agent Statement button...');
       
-      // METHOD 1: Remove onclick handler, then use Puppeteer's click (not JS click)
-      console.log('[Automation] Method 1: Remove onclick + Puppeteer click...');
+      // Get current URL to detect navigation
+      const urlBeforeClick = page.url();
+      console.log('[Automation] Current URL before click:', urlBeforeClick);
       
-      // Step 1: Remove the blocking onclick handler
+      // Step 1: COMPLETELY remove ALL event handlers and force the form to submit
       await page.evaluate(() => {
         const btn = document.getElementById('BtnContinue');
         if (btn) {
+          // Remove onclick attribute
           btn.onclick = null;
           btn.removeAttribute('onclick');
+          
+          // Clone and replace to remove ALL event listeners
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
         }
-        // Also disable form validation
+        
+        // Disable form validation completely
         const form = document.getElementById('form1');
         if (form) {
           form.onsubmit = function() { return true; };
-        }
-      });
-      console.log('[Automation] ✓ Removed onclick handler from BtnContinue');
-      
-      // Step 2: Use Puppeteer's click (this triggers real browser click)
-      try {
-        await Promise.all([
-          page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
-          page.click('#BtnContinue')
-        ]);
-        console.log('[Automation] ✓ BtnContinue clicked and navigation completed');
-        buttonClicked = true;
-      } catch (clickError) {
-        console.log('[Automation] Method 1 failed:', clickError.message);
-        
-        // METHOD 2: Click BtnSkip link directly using Puppeteer
-        console.log('[Automation] Method 2: Clicking BtnSkip link...');
-        try {
-          await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
-            page.click('#BtnSkip')
-          ]);
-          console.log('[Automation] ✓ BtnSkip clicked and navigation completed');
-          buttonClicked = true;
-        } catch (skipError) {
-          console.log('[Automation] Method 2 failed:', skipError.message);
-          
-          // METHOD 3: __doPostBack directly and wait
-          console.log('[Automation] Method 3: Using __doPostBack...');
-          await page.evaluate(() => {
-            if (typeof __doPostBack === 'function') {
-              __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnSkip', '');
-            }
-          });
-          await new Promise(r => setTimeout(r, 5000));
-          
-          const currentUrl = page.url();
-          if (!currentUrl.includes('personalinfo')) {
-            console.log('[Automation] ✓ __doPostBack worked, new URL:', currentUrl);
-            buttonClicked = true;
-          } else {
-            console.log('[Automation] Method 3 failed, still on personalinfo');
+          // Remove any submit handlers
+          const newForm = form.cloneNode(false);
+          while (form.firstChild) {
+            newForm.appendChild(form.firstChild);
           }
+        }
+        
+        // Override the blocking functions to always return false (allow submission)
+        window.HasError = function() { return false; };
+        window.IsValidatedBankInfo = function() { return false; };
+      });
+      console.log('[Automation] ✓ Cleared all onclick handlers and validation functions');
+      
+      // Step 2: Use form submission via __doPostBack - this is the most reliable way
+      console.log('[Automation] Using __doPostBack for form submission...');
+      
+      try {
+        // Trigger the postback directly - this bypasses ALL validation
+        await page.evaluate(() => {
+          if (typeof __doPostBack === 'function') {
+            __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnContinue', '');
+          } else {
+            // Fallback: submit form directly
+            const form = document.getElementById('form1');
+            const eventTarget = document.getElementById('__EVENTTARGET');
+            if (eventTarget) {
+              eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
+            }
+            if (form) form.submit();
+          }
+        });
+        
+        // Wait for navigation with a reasonable timeout, use domcontentloaded instead of networkidle0
+        console.log('[Automation] Waiting for navigation...');
+        await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {
+          console.log('[Automation] Navigation timeout, checking if URL changed anyway...');
+        });
+        
+        // Give the page a moment to settle
+        await new Promise(r => setTimeout(r, 2000));
+        
+        const urlAfterClick = page.url();
+        console.log('[Automation] URL after submission:', urlAfterClick);
+        
+        if (urlAfterClick !== urlBeforeClick && !urlAfterClick.includes('personalinfo')) {
+          console.log('[Automation] ✓ Navigation successful!');
+          buttonClicked = true;
+        } else {
+          console.log('[Automation] Still on same page, trying direct click...');
+          
+          // Fallback: Try direct puppeteer click
+          await page.click('#BtnContinue').catch(() => {});
+          await new Promise(r => setTimeout(r, 3000));
+          
+          const urlAfterDirectClick = page.url();
+          if (urlAfterDirectClick !== urlBeforeClick) {
+            console.log('[Automation] ✓ Direct click worked!');
+            buttonClicked = true;
+          }
+        }
+        
+      } catch (submitError) {
+        console.log('[Automation] Form submission error:', submitError.message);
+        
+        // Last resort: try clicking the button anyway
+        try {
+          await page.click('#BtnContinue');
+          await new Promise(r => setTimeout(r, 5000));
+          const finalUrl = page.url();
+          if (finalUrl !== urlBeforeClick) {
+            buttonClicked = true;
+            console.log('[Automation] ✓ Last resort click worked');
+          }
+        } catch (e) {
+          console.log('[Automation] Last resort click failed:', e.message);
         }
       }
       
