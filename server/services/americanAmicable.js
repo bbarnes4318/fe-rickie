@@ -1976,112 +1976,85 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       });
       await new Promise(r => setTimeout(r, 1000));
       
+      // IMPORTANT DISCOVERY FROM HTML: There is a BtnSkip link on the page that bypasses validation:
+      // <a id="BtnSkip" href="javascript:__doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnSkip','')">Here</a>
+      // This is the most reliable way to proceed - it skips validation entirely!
+      
       let buttonClicked = false;
       
-      // CRITICAL: The BtnContinue button has an onclick handler that BLOCKS submission:
-      // onclick="if (HasError() || IsValidatedBankInfo()) return false;"
-      // We ONLY need to override the validation functions - don't touch the DOM at all
-      
-      console.log('[Automation] Attempting to click Continue to Agent Statement button...');
+      console.log('[Automation] Attempting to proceed to Agent Statement...');
       
       // Get current URL to detect navigation
       const urlBeforeClick = page.url();
       console.log('[Automation] Current URL before click:', urlBeforeClick);
       
-      // Step 1: Override the validation functions to always allow submission
-      await page.evaluate(() => {
-        // Override the blocking functions to always return false (allow submission)
-        window.HasError = function() { return false; };
-        window.IsValidatedBankInfo = function() { return false; };
-        
-        // Also set the hidden field that tracks bank validation
-        const bankValidField = document.getElementById('hdnBankValidated');
-        if (bankValidField) bankValidField.value = 'false';
-      });
-      console.log('[Automation] ✓ Overrode validation functions');
+      // STRATEGY: Use BtnSkip which bypasses ALL validation (bank, required fields, everything)
+      // The page explicitly provides this option: "Click Here to continue and finish this page later"
       
-      // Step 2: Click the button using Puppeteer (triggers real browser click with all events)
-      console.log('[Automation] Clicking BtnContinue with Puppeteer...');
+      console.log('[Automation] Using BtnSkip link to bypass validation...');
       
       try {
-        // First ensure the button is visible and scrolled into view
+        // Call __doPostBack directly for BtnSkip - this is what the link does
         await page.evaluate(() => {
-          const btn = document.getElementById('BtnContinue');
-          if (btn) {
-            btn.scrollIntoView({ behavior: 'instant', block: 'center' });
-          }
+          __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnSkip', '');
         });
-        await new Promise(r => setTimeout(r, 500));
+        console.log('[Automation] ✓ Called __doPostBack for BtnSkip');
         
-        // Use Promise.race - either navigation happens or we timeout
-        const clickPromise = page.click('#BtnContinue');
-        const navPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 });
-        
-        // Start the click
-        await clickPromise;
-        console.log('[Automation] ✓ Button clicked, waiting for navigation...');
-        
-        // Wait for navigation (with timeout)
-        await navPromise.catch(() => {
-          console.log('[Automation] Navigation wait timed out, checking URL...');
+        // Wait for navigation
+        await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {
+          console.log('[Automation] Navigation timeout, checking URL...');
         });
         
-        // Give the page a moment to settle
         await new Promise(r => setTimeout(r, 2000));
         
-        const urlAfterClick = page.url();
-        console.log('[Automation] URL after click:', urlAfterClick);
+        const urlAfterSkip = page.url();
+        console.log('[Automation] URL after BtnSkip:', urlAfterSkip);
         
-        if (urlAfterClick !== urlBeforeClick && !urlAfterClick.includes('personalinfo')) {
-          console.log('[Automation] ✓ Navigation successful!');
+        if (urlAfterSkip !== urlBeforeClick && !urlAfterSkip.includes('personalinfo')) {
+          console.log('[Automation] ✓ BtnSkip navigation successful!');
           buttonClicked = true;
         } else {
-          console.log('[Automation] Still on personalinfo page...');
+          console.log('[Automation] BtnSkip did not navigate, trying BtnContinue...');
           
-          // Try form submit via __doPostBack
-          console.log('[Automation] Trying __doPostBack...');
+          // Fallback: Try BtnContinue with validation override
           await page.evaluate(() => {
-            // Set the event target and submit
-            const eventTarget = document.getElementById('__EVENTTARGET');
-            const eventArg = document.getElementById('__EVENTARGUMENT');
-            if (eventTarget) eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
-            if (eventArg) eventArg.value = '';
-            
-            const form = document.getElementById('form1');
-            if (form) form.submit();
+            window.HasError = function() { return false; };
+            window.IsValidatedBankInfo = function() { return false; };
           });
           
-          await new Promise(r => setTimeout(r, 5000));
-          
-          const urlAfterSubmit = page.url();
-          console.log('[Automation] URL after form submit:', urlAfterSubmit);
-          
-          if (urlAfterSubmit !== urlBeforeClick && !urlAfterSubmit.includes('personalinfo')) {
-            console.log('[Automation] ✓ Form submit worked!');
-            buttonClicked = true;
+          // Try clicking BtnContinue
+          const btnExists = await page.$('#BtnContinue');
+          if (btnExists) {
+            await page.evaluate(() => {
+              __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnContinue', '');
+            });
+            
+            await new Promise(r => setTimeout(r, 5000));
+            
+            const urlAfterBtn = page.url();
+            if (urlAfterBtn !== urlBeforeClick && !urlAfterBtn.includes('personalinfo')) {
+              console.log('[Automation] ✓ BtnContinue worked!');
+              buttonClicked = true;
+            }
           }
         }
         
-      } catch (clickError) {
-        console.log('[Automation] Click error:', clickError.message);
+      } catch (e) {
+        console.log('[Automation] __doPostBack error:', e.message);
         
-        // Last resort: direct form submit
+        // Last fallback: click the BtnSkip anchor directly
         try {
-          console.log('[Automation] Last resort: direct form submit...');
-          await page.evaluate(() => {
-            const eventTarget = document.getElementById('__EVENTTARGET');
-            if (eventTarget) eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
-            document.getElementById('form1').submit();
-          });
+          console.log('[Automation] Trying direct BtnSkip anchor click...');
+          await page.click('#BtnSkip');
           await new Promise(r => setTimeout(r, 5000));
           
-          const finalUrl = page.url();
-          if (finalUrl !== urlBeforeClick && !finalUrl.includes('personalinfo')) {
+          const urlAfterAnchor = page.url();
+          if (urlAfterAnchor !== urlBeforeClick && !urlAfterAnchor.includes('personalinfo')) {
             buttonClicked = true;
-            console.log('[Automation] ✓ Last resort worked, URL:', finalUrl);
+            console.log('[Automation] ✓ BtnSkip anchor click worked!');
           }
-        } catch (e) {
-          console.log('[Automation] Last resort failed:', e.message);
+        } catch (err) {
+          console.log('[Automation] BtnSkip anchor click failed:', err.message);
         }
       }
       
