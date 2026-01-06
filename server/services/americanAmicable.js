@@ -1980,8 +1980,7 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       
       // CRITICAL: The BtnContinue button has an onclick handler that BLOCKS submission:
       // onclick="if (HasError() || IsValidatedBankInfo()) return false;"
-      // NOTE: This returns FALSE when bank IS validated (weird logic), meaning button works when NOT validated
-      // We need to bypass this by removing the onclick handler before clicking
+      // We ONLY need to override the validation functions - don't touch the DOM at all
       
       console.log('[Automation] Attempting to click Continue to Agent Statement button...');
       
@@ -1989,98 +1988,100 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       const urlBeforeClick = page.url();
       console.log('[Automation] Current URL before click:', urlBeforeClick);
       
-      // Step 1: COMPLETELY remove ALL event handlers and force the form to submit
+      // Step 1: Override the validation functions to always allow submission
       await page.evaluate(() => {
-        const btn = document.getElementById('BtnContinue');
-        if (btn) {
-          // Remove onclick attribute
-          btn.onclick = null;
-          btn.removeAttribute('onclick');
-          
-          // Clone and replace to remove ALL event listeners
-          const newBtn = btn.cloneNode(true);
-          btn.parentNode.replaceChild(newBtn, btn);
-        }
-        
-        // Disable form validation completely
-        const form = document.getElementById('form1');
-        if (form) {
-          form.onsubmit = function() { return true; };
-          // Remove any submit handlers
-          const newForm = form.cloneNode(false);
-          while (form.firstChild) {
-            newForm.appendChild(form.firstChild);
-          }
-        }
-        
         // Override the blocking functions to always return false (allow submission)
         window.HasError = function() { return false; };
         window.IsValidatedBankInfo = function() { return false; };
+        
+        // Also set the hidden field that tracks bank validation
+        const bankValidField = document.getElementById('hdnBankValidated');
+        if (bankValidField) bankValidField.value = 'false';
       });
-      console.log('[Automation] ✓ Cleared all onclick handlers and validation functions');
+      console.log('[Automation] ✓ Overrode validation functions');
       
-      // Step 2: Use form submission via __doPostBack - this is the most reliable way
-      console.log('[Automation] Using __doPostBack for form submission...');
+      // Step 2: Click the button using Puppeteer (triggers real browser click with all events)
+      console.log('[Automation] Clicking BtnContinue with Puppeteer...');
       
       try {
-        // Trigger the postback directly - this bypasses ALL validation
+        // First ensure the button is visible and scrolled into view
         await page.evaluate(() => {
-          if (typeof __doPostBack === 'function') {
-            __doPostBack('ctl00$ContentPlaceHolderBottomButton$BtnContinue', '');
-          } else {
-            // Fallback: submit form directly
-            const form = document.getElementById('form1');
-            const eventTarget = document.getElementById('__EVENTTARGET');
-            if (eventTarget) {
-              eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
-            }
-            if (form) form.submit();
+          const btn = document.getElementById('BtnContinue');
+          if (btn) {
+            btn.scrollIntoView({ behavior: 'instant', block: 'center' });
           }
         });
+        await new Promise(r => setTimeout(r, 500));
         
-        // Wait for navigation with a reasonable timeout, use domcontentloaded instead of networkidle0
-        console.log('[Automation] Waiting for navigation...');
-        await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {
-          console.log('[Automation] Navigation timeout, checking if URL changed anyway...');
+        // Use Promise.race - either navigation happens or we timeout
+        const clickPromise = page.click('#BtnContinue');
+        const navPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 });
+        
+        // Start the click
+        await clickPromise;
+        console.log('[Automation] ✓ Button clicked, waiting for navigation...');
+        
+        // Wait for navigation (with timeout)
+        await navPromise.catch(() => {
+          console.log('[Automation] Navigation wait timed out, checking URL...');
         });
         
         // Give the page a moment to settle
         await new Promise(r => setTimeout(r, 2000));
         
         const urlAfterClick = page.url();
-        console.log('[Automation] URL after submission:', urlAfterClick);
+        console.log('[Automation] URL after click:', urlAfterClick);
         
         if (urlAfterClick !== urlBeforeClick && !urlAfterClick.includes('personalinfo')) {
           console.log('[Automation] ✓ Navigation successful!');
           buttonClicked = true;
         } else {
-          console.log('[Automation] Still on same page, trying direct click...');
+          console.log('[Automation] Still on personalinfo page...');
           
-          // Fallback: Try direct puppeteer click
-          await page.click('#BtnContinue').catch(() => {});
-          await new Promise(r => setTimeout(r, 3000));
+          // Try form submit via __doPostBack
+          console.log('[Automation] Trying __doPostBack...');
+          await page.evaluate(() => {
+            // Set the event target and submit
+            const eventTarget = document.getElementById('__EVENTTARGET');
+            const eventArg = document.getElementById('__EVENTARGUMENT');
+            if (eventTarget) eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
+            if (eventArg) eventArg.value = '';
+            
+            const form = document.getElementById('form1');
+            if (form) form.submit();
+          });
           
-          const urlAfterDirectClick = page.url();
-          if (urlAfterDirectClick !== urlBeforeClick) {
-            console.log('[Automation] ✓ Direct click worked!');
+          await new Promise(r => setTimeout(r, 5000));
+          
+          const urlAfterSubmit = page.url();
+          console.log('[Automation] URL after form submit:', urlAfterSubmit);
+          
+          if (urlAfterSubmit !== urlBeforeClick && !urlAfterSubmit.includes('personalinfo')) {
+            console.log('[Automation] ✓ Form submit worked!');
             buttonClicked = true;
           }
         }
         
-      } catch (submitError) {
-        console.log('[Automation] Form submission error:', submitError.message);
+      } catch (clickError) {
+        console.log('[Automation] Click error:', clickError.message);
         
-        // Last resort: try clicking the button anyway
+        // Last resort: direct form submit
         try {
-          await page.click('#BtnContinue');
+          console.log('[Automation] Last resort: direct form submit...');
+          await page.evaluate(() => {
+            const eventTarget = document.getElementById('__EVENTTARGET');
+            if (eventTarget) eventTarget.value = 'ctl00$ContentPlaceHolderBottomButton$BtnContinue';
+            document.getElementById('form1').submit();
+          });
           await new Promise(r => setTimeout(r, 5000));
+          
           const finalUrl = page.url();
-          if (finalUrl !== urlBeforeClick) {
+          if (finalUrl !== urlBeforeClick && !finalUrl.includes('personalinfo')) {
             buttonClicked = true;
-            console.log('[Automation] ✓ Last resort click worked');
+            console.log('[Automation] ✓ Last resort worked, URL:', finalUrl);
           }
         } catch (e) {
-          console.log('[Automation] Last resort click failed:', e.message);
+          console.log('[Automation] Last resort failed:', e.message);
         }
       }
       
