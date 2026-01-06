@@ -51,6 +51,57 @@ const STATE_MAPPING = {
 const TOTAL_STEPS = 12;
 
 export const runAmericanAmicableAutomation = async (data, jobId = null) => {
+  // ╔═══════════════════════════════════════════════════════════════════════════╗
+  // ║ TEMPORARY TEST VALUES - REMOVE AFTER TESTING                              ║
+  // ╚═══════════════════════════════════════════════════════════════════════════╝
+  const TEST_MODE = true; // Set to false to use real data
+  if (TEST_MODE) {
+    console.log('[TEST MODE] ⚠ Using hardcoded test values!');
+    data = {
+      ...data,
+      firstName: 'Sarah',
+      middleName: 'Robert',
+      lastName: 'Williams',
+      state: 'Illinois',
+      dob: '05/15/1970',
+      age: 55,
+      gender: 'Male',
+      tobacco: false,
+      selectedCarrier: 'American Amicable',
+      selectedCoverage: 10000,
+      selectedPremium: 41.24,
+      selectedPlanType: 'Level',
+      address: '123 Main Street',
+      zip: '60601',
+      ssn: '412741242',
+      phone: '(555) 123-4567',
+      email: 'sarah.williams@example.com',
+      birthState: 'IL',
+      heightFeet: 5,
+      heightInches: 6,
+      weight: 180,
+      beneficiaryName: 'Jane Williams',
+      beneficiaryRelation: 'Spouse',
+      accountHolder: 'Sarah Williams',
+      bankName: 'Suntrust',
+      bankCityState: 'Chicago/IL',
+      ssPaymentSchedule: true,
+      draftDay: '1S',
+      routingNumber: '061000104',
+      accountNumber: '048491940',
+      accountType: 'Checking',
+      wantsEmail: true,
+      doctorName: 'Dan Johns',
+      doctorAddress: '123 Dan Dr Chicago, IL 60606',
+      doctorPhone: '3145671212',
+      ownerIsInsured: true,
+      payorIsInsured: true,
+      hasExistingInsurance: false,
+      willReplaceExisting: false
+    };
+  }
+  // ╚═══════════════════════════════════════════════════════════════════════════╝
+  
   // Extract all customer data from formData
   const {
     state,
@@ -1871,30 +1922,55 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
     // ████████████████████████████████████████████████████████████████████████
     console.log('[Automation] ═══ NOW VALIDATING BANK INFO (after page complete) ═══');
     try {
-      // Scroll back up to the bank section to click validate
+      // First, make sure the validate button div is visible (it's hidden by default)
       await page.evaluate(() => {
-        const bankBtn = document.getElementById('btValidateBankInfo');
-        if (bankBtn) {
-          bankBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const validateDiv = document.getElementById('dvValidateBankInfo');
+        if (validateDiv) {
+          validateDiv.style.display = 'block';
         }
       });
       await new Promise(r => setTimeout(r, 500));
       
-      await page.waitForSelector('#btValidateBankInfo', { timeout: 5000 });
-      await page.click('#btValidateBankInfo');
-      console.log('[Automation] ✓ Validate Bank Info clicked');
-      
-      // Wait for validation API to complete
-      await new Promise(r => setTimeout(r, 5000));
-      
-      // Log the result
-      const isValid = await page.evaluate(() => {
-        return typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
+      // Scroll to the button
+      await page.evaluate(() => {
+        const bankBtn = document.getElementById('btValidateBankInfo');
+        if (bankBtn) {
+          bankBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
+        }
       });
-      console.log('[Automation] Bank validation result:', isValid ? 'SUCCESS' : 'FAILED (will continue anyway)');
+      await new Promise(r => setTimeout(r, 500));
+      
+      // Check if button exists
+      const btnExists = await page.$('#btValidateBankInfo');
+      if (btnExists) {
+        // Use JavaScript click (more reliable than Puppeteer click)
+        await page.evaluate(() => {
+          const btn = document.getElementById('btValidateBankInfo');
+          if (btn) btn.click();
+        });
+        console.log('[Automation] ✓ Validate Bank Info clicked');
+        
+        // Wait for validation API to complete - bank validation takes time
+        console.log('[Automation] Waiting for bank validation API...');
+        await new Promise(r => setTimeout(r, 6000));
+        
+        // Check the result message
+        const validationResult = await page.evaluate(() => {
+          const msgDiv = document.getElementById('msg');
+          const isValid = typeof IsValidatedBankInfo === 'function' ? IsValidatedBankInfo() : false;
+          return {
+            isValid,
+            message: msgDiv ? msgDiv.textContent : 'no message'
+          };
+        });
+        console.log('[Automation] Bank validation result:', validationResult.isValid ? 'SUCCESS' : 'FAILED');
+        console.log('[Automation] Validation message:', validationResult.message);
+      } else {
+        console.log('[Automation] ⚠ Validate Bank Info button not found in DOM');
+      }
       
     } catch (e) {
-      console.log('[Automation] ⚠ Validate Bank Info button issue:', e.message, '- continuing anyway');
+      console.log('[Automation] ⚠ Validate Bank Info error:', e.message, '- continuing anyway');
     }
     
     // Small wait after bank validation
