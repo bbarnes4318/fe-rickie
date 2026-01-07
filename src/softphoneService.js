@@ -152,7 +152,7 @@ async function getCredentials() {
     return {
       ...creds,
       realm: FREESWITCH_IP, // SIP.js needs IP or domain for realm
-      wsUrl: `wss://${FREESWITCH_DOMAIN}:8082`,
+      wsUrl: `wss://${FREESWITCH_DOMAIN}:8084`,
     };
   } catch (error) {
     console.error('[Softphone] Failed to get credentials from API:', error);
@@ -161,7 +161,7 @@ async function getCredentials() {
       username: `agent_${Date.now()}`,
       password: 'ClueCon', // FreeSWITCH default
       realm: FREESWITCH_IP, 
-      wsUrl: `wss://${FREESWITCH_DOMAIN}:8082`,
+      wsUrl: `wss://${FREESWITCH_DOMAIN}:8084`,
     };
   }
 }
