@@ -182,9 +182,16 @@ export async function initializeSoftphone() {
     const credentials = await getCredentials();
     console.log('[Softphone] Got credentials, connecting to:', credentials.wsUrl);
     
-    const uri = UserAgent.makeURI(`sip:${credentials.username}@${credentials.realm}`);
+    // The API returns username in format "demo-agent@demo-tenant"
+    // SIP.js expects just the user part, and we use our own realm (IP)
+    // Extract just the user part before any @ symbol
+    const usernameForUri = credentials.username.split('@')[0];
+    const sipUri = `sip:${usernameForUri}@${credentials.realm}`;
+    console.log('[Softphone] Constructing SIP URI:', sipUri);
+    
+    const uri = UserAgent.makeURI(sipUri);
     if (!uri) {
-      throw new Error('Invalid SIP URI');
+      throw new Error('Invalid SIP URI: ' + sipUri);
     }
     
     // Create User Agent
