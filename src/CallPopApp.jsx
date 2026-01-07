@@ -6,7 +6,7 @@ import { POST_FIELD_DEFINITIONS } from './types';
 import { api } from './api';
 import IntegratedScriptPanel from './IntegratedScriptPanel';
 import hopwhistleService, { HOPWHISTLE_EVENTS, AGENT_STATUS } from './hopwhistleService';
-import softphone from './softphoneService';
+import softphone from './vertoSoftphone';
 
 // Health question tooltips - full question text for Q1-Q8
 const HEALTH_QUESTIONS = {
@@ -374,7 +374,7 @@ const CallPopApp = () => {
     });
     
     // Subscribe to Softphone events (WebRTC)
-    const unsubscribeSP = softphone.subscribeToPhoneEvents((event) => {
+    const unsubscribeSP = softphone.subscribeToEvents((event) => {
       console.log('[CallPopApp] Softphone event:', event.event);
       
       switch (event.event) {
@@ -383,17 +383,18 @@ const CallPopApp = () => {
           break;
           
         case 'unregistered':
+        case 'disconnected':
           setPhoneRegistered(false);
           break;
           
-        case 'incoming':
+        case 'incomingCall':
           // Incoming WebRTC call
           if (currentView === 'agentDashboard' && !isCallActive && !isIncomingCall) {
-            setCurrentCallId(event.data.callId);
+            setCurrentCallId(event.callId);
             setIncomingCallData({
-              first_name: event.data.callerName || 'Unknown',
+              first_name: event.callerName || 'Unknown',
               last_name: '',
-              caller_id: event.data.callerNumber,
+              caller_id: event.callerNumber,
             });
             setIsIncomingCall(true);
             setAgentStatus('on_call');
@@ -404,7 +405,7 @@ const CallPopApp = () => {
           console.log('[CallPopApp] WebRTC call connected');
           break;
           
-        case 'ended':
+        case 'callEnded':
           if (callTimerRef.current) {
             clearInterval(callTimerRef.current);
           }
@@ -414,7 +415,7 @@ const CallPopApp = () => {
           break;
           
         case 'error':
-          console.error('[CallPopApp] Softphone error:', event.data.message);
+          console.error('[CallPopApp] Softphone error:', event.message);
           break;
       }
     });
