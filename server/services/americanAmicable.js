@@ -1618,31 +1618,34 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       try {
         if (effectiveSSPaymentSchedule === true) {
           // User wants draft to coincide with Social Security payment
-          // CRITICAL: Use Puppeteer click for proper ASP.NET event handling, then verify with evaluate
+          // CRITICAL: Must trigger the ASP.NET postback that the form expects to clear SSPReq validation
           console.log(
             "[Automation] Clicking SS Payment Schedule: Yes (SSP_1)..."
           );
-          try {
-            await page.waitForSelector("#SSP_1", { timeout: 5000 });
-            await page.click("#SSP_1");
-          } catch (clickErr) {
-            // Fallback to evaluate if click fails
-            console.log(
-              "[Automation] SSP_1 click failed, using evaluate fallback..."
-            );
-            await page.evaluate(() => {
-              const radio = document.getElementById("SSP_1");
-              if (radio) {
-                radio.checked = true;
-                radio.click();
-                radio.dispatchEvent(new Event("change", { bubbles: true }));
-              }
-            });
-          }
-          console.log("[Automation] ✓ SS Payment Schedule: Yes");
+          
+          // First click the radio button
+          await page.waitForSelector("#SSP_1", { timeout: 5000 });
+          await page.click("#SSP_1");
+          
+          // CRITICAL: Trigger the onclick handler that fires __doPostBack
+          // The form expects: __doPostBack('ctl00$ContentPlaceHolderMain$SSP$0','')
+          await page.evaluate(() => {
+            // Make sure the radio is checked
+            const radio = document.getElementById("SSP_1");
+            if (radio) {
+              radio.checked = true;
+            }
+            
+            // Trigger the postback that clears SSPReq validation
+            if (typeof __doPostBack === 'function') {
+              __doPostBack('ctl00$ContentPlaceHolderMain$SSP$0', '');
+            }
+          });
+          
+          console.log("[Automation] ✓ SS Payment Schedule: Yes (with postback)");
 
-          // Wait LONGER for dropdown options to fully change (ASP.NET postback takes time)
-          await new Promise((r) => setTimeout(r, 3000));
+          // Wait for postback to complete and dropdown to update
+          await new Promise((r) => setTimeout(r, 4000));
 
           // Verify the dropdown now has SS week options and log available values
           const draftOptions = await page.evaluate(() => {
@@ -1711,26 +1714,28 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
           console.log(
             "[Automation] Clicking SS Payment Schedule: No (SSP_2)..."
           );
-          try {
-            await page.waitForSelector("#SSP_2", { timeout: 5000 });
-            await page.click("#SSP_2");
-          } catch (clickErr) {
-            console.log(
-              "[Automation] SSP_2 click failed, using evaluate fallback..."
-            );
-            await page.evaluate(() => {
-              const radio = document.getElementById("SSP_2");
-              if (radio) {
-                radio.checked = true;
-                radio.click();
-                radio.dispatchEvent(new Event("change", { bubbles: true }));
-              }
-            });
-          }
-          console.log("[Automation] ✓ SS Payment Schedule: No");
+          
+          // First click the radio button
+          await page.waitForSelector("#SSP_2", { timeout: 5000 });
+          await page.click("#SSP_2");
+          
+          // CRITICAL: Trigger the postback that clears SSPReq validation
+          await page.evaluate(() => {
+            const radio = document.getElementById("SSP_2");
+            if (radio) {
+              radio.checked = true;
+            }
+            
+            // Trigger the postback
+            if (typeof __doPostBack === 'function') {
+              __doPostBack('ctl00$ContentPlaceHolderMain$SSP$1', '');
+            }
+          });
+          
+          console.log("[Automation] ✓ SS Payment Schedule: No (with postback)");
 
-          // Wait LONGER for dropdown options to fully change
-          await new Promise((r) => setTimeout(r, 3000));
+          // Wait for postback to complete
+          await new Promise((r) => setTimeout(r, 4000));
 
           // Verify the dropdown now has day options and log available values
           const draftOptions = await page.evaluate(() => {
@@ -2730,49 +2735,16 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
           });
           console.log("[Automation] ✓ Cleared informational warnings and validators");
           
-          // STEP 2b: Try Puppeteer native click FIRST (better event handling)
-          console.log("[Automation] Trying Puppeteer native click on BtnContinue...");
-          try {
-            const btnSelector = 'input#BtnContinue[value="Continue to Agent Statement"]';
-            const altBtnSelector = '#BtnContinue';
-            
-            // Wait for button to be visible
-            await page.waitForSelector(altBtnSelector, { visible: true, timeout: 5000 });
-            
-            // Use Promise.race to avoid hanging on waitForNavigation
-            const navigationPromise = page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 15000 }).catch(() => null);
-            await page.click(altBtnSelector);
-            console.log("[Automation] ✓ Puppeteer native click executed");
-            
-            // Wait for navigation with timeout
-            await Promise.race([
-              navigationPromise,
-              new Promise(r => setTimeout(r, 8000))
-            ]);
-            
-            let urlAfter = page.url();
-            console.log("[Automation] URL after Puppeteer click:", urlAfter);
-            
-            if (!urlAfter.includes("personalinfo")) {
-              console.log("[Automation] ✓ Navigation successful via Puppeteer click!");
-              buttonClicked = true;
+          // STEP 2b: Click via JavaScript (Puppeteer click times out on this button)
+          console.log("[Automation] Clicking BtnContinue via JavaScript...");
+          await page.evaluate(() => {
+            // Click the button programmatically
+            const btn = document.getElementById("BtnContinue");
+            if (btn) {
+              btn.click();
             }
-          } catch (puppeteerClickErr) {
-            console.log("[Automation] Puppeteer click failed:", puppeteerClickErr.message);
-          }
-          
-          // STEP 2c: If Puppeteer click didn't work, try JS click
-          if (!buttonClicked) {
-            // Use evaluate to submit form directly - this avoids Puppeteer click timing out
-            await page.evaluate(() => {
-              // Click the button programmatically
-              const btn = document.getElementById("BtnContinue");
-              if (btn) {
-                btn.click();
-              }
-            });
-            console.log("[Automation] ✓ Button clicked via JavaScript");
-          } // Close the if (!buttonClicked) block
+          });
+          console.log("[Automation] ✓ Button clicked via JavaScript");
 
           // Wait for page to navigate (don't use waitForNavigation which can hang)
           await new Promise((r) => setTimeout(r, 5000));
