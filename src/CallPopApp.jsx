@@ -463,7 +463,7 @@ const CallPopApp = () => {
   }, [currentView]);
 
   // Start call with selected application
-  const startCallWithApplication = (app) => {
+  const startCallWithApplication = async (app) => {
     setSelectedApplication(app);
     setActiveCallData(app);
     setIsCallActive(true);
@@ -472,6 +472,24 @@ const CallPopApp = () => {
     callTimerRef.current = setInterval(() => {
       setCallTimer(prev => prev + 1);
     }, 1000);
+    
+    // Actually dial the phone number via Verto WebRTC
+    const phoneNumber = app.phone || app.caller_id;
+    if (phoneNumber && phoneRegistered) {
+      try {
+        // Strip non-digits for dialing
+        const dialNumber = phoneNumber.replace(/\D/g, '');
+        console.log('[CallPopApp] Dialing via Verto:', dialNumber);
+        await softphone.makeCall(dialNumber);
+      } catch (error) {
+        console.error('[CallPopApp] Failed to dial:', error);
+      }
+    } else if (!phoneRegistered) {
+      console.warn('[CallPopApp] Softphone not registered, cannot dial');
+    } else {
+      console.warn('[CallPopApp] No phone number available for:', app);
+    }
+    
     // Create notification for screen pop
     const notification = {
       id: `pop-${Date.now()}`,
