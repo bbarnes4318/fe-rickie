@@ -328,14 +328,17 @@ export async function initializeSoftphone() {
  */
 async function login() {
   // Use hardcoded credentials that match FreeSWITCH directory config
-  // The API returns base64-encoded passwords which don't work with Verto
+  // FreeSWITCH Verto requires login format: user@domain
+  // The domain must match FreeSWITCH's configured domain
   const username = 'demo-agent';
+  const domain = '172.18.0.9'; // FreeSWITCH internal domain
   const password = '1';
+  const loginId = `${username}@${domain}`;
 
   sessionId = `${username}-${Date.now()}`;
 
   const result = await sendRequest('login', {
-    login: username,
+    login: loginId,
     passwd: password,
     sessid: sessionId,
   });
