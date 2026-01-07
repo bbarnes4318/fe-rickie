@@ -48,6 +48,28 @@ app.use('/api/applications', applicationsRouter);
 app.use('/api/automation', automationRouter);
 app.use('/api/logs', logsRouter);
 
+// ============================================================================
+// PROXY: HopWhistle API (Fixes Mixed Content & CORS)
+// ============================================================================
+import proxy from 'express-http-proxy';
+
+// Proxy API requests
+app.use('/api/hopwhistle', proxy('http://107.170.36.116:3001', {
+  proxyReqPathResolver: (req) => {
+    // Forward path: /api/hopwhistle/v1/agent/... -> /v1/agent/...
+    // But HopWhistle API is mounted at root or /api depending on app.yaml?
+    // Based on previous findings API is at http://107.170.36.116:3001/api/v1/...
+    // So we want to forward /api/hopwhistle/api/v1/... -> /api/v1/...
+    // Let's assume frontend requests /api/hopwhistle/api/v1/...
+    return req.url.startsWith('/api') ? req.url : `/api${req.url}`;
+  },
+  userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+    // Add CORS headers just in case
+    userRes.header('Access-Control-Allow-Origin', '*');
+    return proxyResData;
+  }
+}));
+
 // Health check (keep this before the catch-all)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

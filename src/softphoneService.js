@@ -26,7 +26,10 @@ let eventCallbacks = [];
 // FreeSWITCH Verto WebSocket URL (from HopWhistle)
 const getWebSocketUrl = () => {
   // FreeSWITCH runs on port 8082 for WebSocket
-  const apiHost = HOPWHISTLE_CONFIG.apiUrl.replace('http://', '').replace('https://', '').split(':')[0];
+  // NOTE: If the API is proxied (starts with /), we can't extract host easily from it.
+  // And we can't proxy WSS easily without more work. 
+  // For now, hardcode the droplet IP but warn about SSL.
+  const apiHost = '107.170.36.116'; 
   return `wss://${apiHost}:8082`;
 };
 

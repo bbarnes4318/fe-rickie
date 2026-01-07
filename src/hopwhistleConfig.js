@@ -4,11 +4,14 @@
  */
 
 export const HOPWHISTLE_CONFIG = {
-  // API endpoint - HopWhistle API server
-  apiUrl: 'http://107.170.36.116:3001',
+// API endpoint - HopWhistle API server via local proxy
+  // Use relative path so it hits the same origin (HTTPS)
+  apiUrl: '/api/hopwhistle',
   
-  // WebSocket endpoint for real-time events
-  wsUrl: 'ws://107.170.36.116:3001',
+  // WebSocket endpoint - Needs to be WSS. 
+  // If droplet has no SSL, this will fail in mixed content.
+  // For now, let's try to keep it as is, or we'd need to proxy WS too.
+  wsUrl: 'wss://107.170.36.116:8082',
   
   // API Key for authentication
   apiKey: 'a1b2c3d4e5f67890',
