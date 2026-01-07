@@ -1,0 +1,15 @@
+<include>
+  <user id="demo-agent">
+    <params>
+      <param name="password" value="1"/>
+      <param name="vm-password" value="1"/>
+    </params>
+    <variables>
+      <variable name="toll_allow" value="domestic,international,local"/>
+      <variable name="accountcode" value="demo-agent"/>
+      <variable name="user_context" value="default"/>
+      <variable name="effective_caller_id_name" value="Demo Agent"/>
+      <variable name="effective_caller_id_number" value="1000"/>
+    </variables>
+  </user>
+</include>

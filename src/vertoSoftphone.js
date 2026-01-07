@@ -327,25 +327,10 @@ export async function initializeSoftphone() {
  * Login to FreeSWITCH Verto
  */
 async function login() {
-  // Get credentials from HopWhistle API
-  let username = 'demo-agent';
-  let password = 'ClueCon';
-
-  try {
-    const response = await fetch(`${HOPWHISTLE_CONFIG.apiUrl}/api/v1/agent/webrtc/credentials`, {
-      headers: {
-        'X-API-Key': HOPWHISTLE_CONFIG.apiKey,
-        'X-Demo-Tenant-Id': HOPWHISTLE_CONFIG.tenantId,
-      },
-    });
-    if (response.ok) {
-      const creds = await response.json();
-      username = creds.username?.split('@')[0] || username;
-      password = creds.password || password;
-    }
-  } catch (e) {
-    console.log('[Verto] Using default credentials');
-  }
+  // Use hardcoded credentials that match FreeSWITCH directory config
+  // The API returns base64-encoded passwords which don't work with Verto
+  const username = 'demo-agent';
+  const password = '1';
 
   sessionId = `${username}-${Date.now()}`;
 
