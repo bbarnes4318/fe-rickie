@@ -6,6 +6,7 @@ import { POST_FIELD_DEFINITIONS } from './types';
 import { api } from './api';
 import IntegratedScriptPanel from './IntegratedScriptPanel';
 import hopwhistleService, { HOPWHISTLE_EVENTS, AGENT_STATUS } from './hopwhistleService';
+import softphone from './softphoneService';
 
 // Health question tooltips - full question text for Q1-Q8
 const HEALTH_QUESTIONS = {
@@ -71,6 +72,7 @@ const CallPopApp = () => {
   const [agentStatus, setAgentStatus] = useState('available'); // 'available' | 'away' | 'on_call'
   const [hopwhistleConnected, setHopwhistleConnected] = useState(false);
   const [currentCallId, setCurrentCallId] = useState(null);
+  const [phoneRegistered, setPhoneRegistered] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isCallActive, setIsCallActive] = useState(false);
   const [isIncomingCall, setIsIncomingCall] = useState(false);
@@ -287,7 +289,7 @@ const CallPopApp = () => {
     console.log('Sample CRM data loaded:', sampleRecords);
   }, []);
 
-  // Initialize HopWhistle connection
+  // Initialize HopWhistle connection and Softphone
   useEffect(() => {
     const initHopwhistle = async () => {
       try {
@@ -304,10 +306,27 @@ const CallPopApp = () => {
       }
     };
     
+    // Initialize softphone (WebRTC)
+    const initSoftphone = async () => {
+      try {
+        console.log('[CallPopApp] Initializing Softphone...');
+        const result = await softphone.initializeSoftphone();
+        if (result.success) {
+          setPhoneRegistered(true);
+          console.log('[CallPopApp] Softphone registered successfully');
+        } else {
+          console.warn('[CallPopApp] Softphone not registered:', result.error);
+        }
+      } catch (error) {
+        console.error('[CallPopApp] Softphone initialization error:', error);
+      }
+    };
+    
     initHopwhistle();
+    initSoftphone();
     
     // Subscribe to HopWhistle events
-    const unsubscribe = hopwhistleService.subscribeToEvents((event) => {
+    const unsubscribeHW = hopwhistleService.subscribeToEvents((event) => {
       console.log('[CallPopApp] HopWhistle event:', event.event);
       
       switch (event.event) {
@@ -354,9 +373,57 @@ const CallPopApp = () => {
       }
     });
     
+    // Subscribe to Softphone events (WebRTC)
+    const unsubscribeSP = softphone.subscribeToPhoneEvents((event) => {
+      console.log('[CallPopApp] Softphone event:', event.event);
+      
+      switch (event.event) {
+        case 'registered':
+          setPhoneRegistered(true);
+          break;
+          
+        case 'unregistered':
+          setPhoneRegistered(false);
+          break;
+          
+        case 'incoming':
+          // Incoming WebRTC call
+          if (currentView === 'agentDashboard' && !isCallActive && !isIncomingCall) {
+            setCurrentCallId(event.data.callId);
+            setIncomingCallData({
+              first_name: event.data.callerName || 'Unknown',
+              last_name: '',
+              caller_id: event.data.callerNumber,
+            });
+            setIsIncomingCall(true);
+            setAgentStatus('on_call');
+          }
+          break;
+          
+        case 'connected':
+          console.log('[CallPopApp] WebRTC call connected');
+          break;
+          
+        case 'ended':
+          if (callTimerRef.current) {
+            clearInterval(callTimerRef.current);
+          }
+          setIsCallActive(false);
+          setShowDisposition(true);
+          setAgentStatus('available');
+          break;
+          
+        case 'error':
+          console.error('[CallPopApp] Softphone error:', event.data.message);
+          break;
+      }
+    });
+    
     return () => {
-      unsubscribe();
+      unsubscribeHW();
+      unsubscribeSP();
       hopwhistleService.disconnectWebSocket();
+      softphone.disconnect();
     };
   }, [currentView, isCallActive, isIncomingCall, currentCallId]);
 
@@ -546,6 +613,16 @@ const CallPopApp = () => {
       }
     }
     
+    // Answer via WebRTC softphone for actual audio
+    if (phoneRegistered) {
+      try {
+        await softphone.answerCall();
+        console.log('[CallPopApp] Answered call via WebRTC softphone');
+      } catch (error) {
+        console.error('[CallPopApp] Failed to answer via softphone:', error);
+      }
+    }
+    
     setIsIncomingCall(false);
     setIsCallActive(true);
     setActiveCallData(incomingCallData);
@@ -560,7 +637,7 @@ const CallPopApp = () => {
       id: `pop-${Date.now()}`,
       prospect: incomingCallData,
       timestamp: new Date().toISOString(),
-      source: hopwhistleConnected ? 'HopWhistle' : 'Agent Dashboard'
+      source: phoneRegistered ? 'WebRTC' : (hopwhistleConnected ? 'HopWhistle' : 'Agent Dashboard')
     };
     setScreenPopNotifications(prev => [...prev, notification]);
   };
@@ -573,6 +650,16 @@ const CallPopApp = () => {
         console.log('[CallPopApp] Declined call via HopWhistle:', currentCallId);
       } catch (error) {
         console.error('[CallPopApp] Failed to decline via HopWhistle:', error);
+      }
+    }
+    
+    // Reject via WebRTC softphone
+    if (phoneRegistered) {
+      try {
+        await softphone.rejectCall();
+        console.log('[CallPopApp] Rejected call via WebRTC softphone');
+      } catch (error) {
+        console.error('[CallPopApp] Failed to reject via softphone:', error);
       }
     }
     
@@ -590,6 +677,16 @@ const CallPopApp = () => {
         console.log('[CallPopApp] Hung up call via HopWhistle:', currentCallId);
       } catch (error) {
         console.error('[CallPopApp] Failed to hangup via HopWhistle:', error);
+      }
+    }
+    
+    // Hangup via WebRTC softphone
+    if (phoneRegistered) {
+      try {
+        await softphone.hangupCall();
+        console.log('[CallPopApp] Hung up call via WebRTC softphone');
+      } catch (error) {
+        console.error('[CallPopApp] Failed to hangup via softphone:', error);
       }
     }
     
@@ -683,7 +780,9 @@ const CallPopApp = () => {
   };
 
   // HopWhistle-integrated hold toggle
+  // HopWhistle-integrated hold toggle
   const handleToggleHold = async () => {
+    // Hold via HopWhistle API
     if (currentCallId && hopwhistleConnected) {
       try {
         const result = await hopwhistleService.holdCall(currentCallId);
@@ -692,22 +791,46 @@ const CallPopApp = () => {
         console.error('[CallPopApp] Failed to toggle hold via HopWhistle:', error);
         setIsOnHold(!isOnHold); // Fallback to local state
       }
-    } else {
+    } 
+    // Hold via WebRTC softphone
+    else if (phoneRegistered) {
+      try {
+        const result = await softphone.toggleHold(!isOnHold);
+        if (result.success) {
+          setIsOnHold(!isOnHold);
+        }
+      } catch (error) {
+        console.error('[CallPopApp] Failed to toggle hold via softphone:', error);
+      }
+    }
+    else {
       setIsOnHold(!isOnHold);
     }
   };
 
   // HopWhistle-integrated mute toggle (client-side for WebRTC)
-  const handleToggleMute = async () => {
-    if (currentCallId && hopwhistleConnected) {
-      try {
-        await hopwhistleService.muteCall(currentCallId);
-      } catch (error) {
-        console.error('[CallPopApp] Failed to mute via HopWhistle:', error);
-      }
+// HopWhistle-integrated mute toggle (client-side for WebRTC)
+const handleToggleMute = async () => {
+  // Mute via softphone (WebRTC) - Local stream mute
+  if (phoneRegistered) {
+    const success = softphone.toggleMute(!isMuted);
+    if (success) {
+      setIsMuted(!isMuted);
+    }
+  } 
+  // Mute via API (if supported)
+  else if (currentCallId && hopwhistleConnected) {
+    try {
+      await hopwhistleService.muteCall(currentCallId);
+    } catch (error) {
+      console.error('[CallPopApp] Failed to mute via HopWhistle:', error);
     }
     setIsMuted(!isMuted);
-  };
+  }
+  else {
+    setIsMuted(!isMuted);
+  }
+};
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -804,6 +927,22 @@ const CallPopApp = () => {
                   hopwhistleConnected ? 'text-green-400' : 'text-red-400'
                 }`}>
                   {hopwhistleConnected ? 'HopWhistle' : 'Offline'}
+                </span>
+              </div>
+
+              {/* WebRTC Softphone Status */}
+              <div className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg ${
+                phoneRegistered
+                  ? 'bg-blue-500/10 border border-blue-500/30' 
+                  : 'bg-gray-500/10 border border-gray-500/30'
+              }`}>
+                <div className={`w-2 h-2 rounded-full ${
+                  phoneRegistered ? 'bg-blue-500' : 'bg-gray-500'
+                }`} />
+                <span className={`text-xs font-medium ${
+                  phoneRegistered ? 'text-blue-400' : 'text-gray-400'
+                }`}>
+                  {phoneRegistered ? 'Softphone Ready' : 'Softphone Off'}
                 </span>
               </div>
             </div>
