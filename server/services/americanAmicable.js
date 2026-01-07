@@ -1618,34 +1618,17 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
       try {
         if (effectiveSSPaymentSchedule === true) {
           // User wants draft to coincide with Social Security payment
-          // CRITICAL: Must trigger the ASP.NET postback that the form expects to clear SSPReq validation
           console.log(
             "[Automation] Clicking SS Payment Schedule: Yes (SSP_1)..."
           );
           
-          // First click the radio button
+          // Click the radio button with Puppeteer
           await page.waitForSelector("#SSP_1", { timeout: 5000 });
           await page.click("#SSP_1");
+          console.log("[Automation] ✓ SS Payment Schedule clicked: Yes");
           
-          // CRITICAL: Trigger the onclick handler that fires __doPostBack
-          // The form expects: __doPostBack('ctl00$ContentPlaceHolderMain$SSP$0','')
-          await page.evaluate(() => {
-            // Make sure the radio is checked
-            const radio = document.getElementById("SSP_1");
-            if (radio) {
-              radio.checked = true;
-            }
-            
-            // Trigger the postback that clears SSPReq validation
-            if (typeof __doPostBack === 'function') {
-              __doPostBack('ctl00$ContentPlaceHolderMain$SSP$0', '');
-            }
-          });
-          
-          console.log("[Automation] ✓ SS Payment Schedule: Yes (with postback)");
-
-          // Wait for postback to complete and dropdown to update
-          await new Promise((r) => setTimeout(r, 4000));
+          // Wait for the page to react and update the dropdown options
+          await new Promise((r) => setTimeout(r, 3000));
 
           // Verify the dropdown now has SS week options and log available values
           const draftOptions = await page.evaluate(() => {
@@ -1715,27 +1698,13 @@ export const runAmericanAmicableAutomation = async (data, jobId = null) => {
             "[Automation] Clicking SS Payment Schedule: No (SSP_2)..."
           );
           
-          // First click the radio button
+          // Click the radio button with Puppeteer
           await page.waitForSelector("#SSP_2", { timeout: 5000 });
           await page.click("#SSP_2");
-          
-          // CRITICAL: Trigger the postback that clears SSPReq validation
-          await page.evaluate(() => {
-            const radio = document.getElementById("SSP_2");
-            if (radio) {
-              radio.checked = true;
-            }
-            
-            // Trigger the postback
-            if (typeof __doPostBack === 'function') {
-              __doPostBack('ctl00$ContentPlaceHolderMain$SSP$1', '');
-            }
-          });
-          
-          console.log("[Automation] ✓ SS Payment Schedule: No (with postback)");
+          console.log("[Automation] ✓ SS Payment Schedule clicked: No");
 
-          // Wait for postback to complete
-          await new Promise((r) => setTimeout(r, 4000));
+          // Wait for the page to react
+          await new Promise((r) => setTimeout(r, 3000));
 
           // Verify the dropdown now has day options and log available values
           const draftOptions = await page.evaluate(() => {
