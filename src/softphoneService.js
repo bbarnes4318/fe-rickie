@@ -130,6 +130,9 @@ function attachRemoteAudio(session) {
  * Get WebRTC credentials from HopWhistle API
  */
 async function getCredentials() {
+  const FREESWITCH_DOMAIN = '107-170-36-116.sslip.io';
+  const FREESWITCH_IP = '107.170.36.116';
+  
   try {
     const response = await fetch(`${HOPWHISTLE_CONFIG.apiUrl}/api/v1/agent/webrtc/credentials`, {
       headers: {
@@ -142,19 +145,23 @@ async function getCredentials() {
       throw new Error('Failed to get WebRTC credentials');
     }
     
-    return await response.json();
-    return await response.json();
+    const creds = await response.json();
+    console.log('[Softphone] API returned credentials:', creds);
+    
+    // CRITICAL: Override wsUrl and realm - API returns localhost which doesn't work
+    return {
+      ...creds,
+      realm: FREESWITCH_IP, // SIP.js needs IP or domain for realm
+      wsUrl: `wss://${FREESWITCH_DOMAIN}:8082`,
+    };
   } catch (error) {
     console.error('[Softphone] Failed to get credentials from API:', error);
     // Return default credentials for testing
-    // Realm must be a valid domain/IP. 'freeswitch' is likely invalid for SIP.js
-    const ip = '107.170.36.116';
-    const domain = '107-170-36-116.sslip.io'; // SSL Domain
     return {
       username: `agent_${Date.now()}`,
       password: 'ClueCon', // FreeSWITCH default
-      realm: ip, 
-      wsUrl: `wss://${domain}:8082`,
+      realm: FREESWITCH_IP, 
+      wsUrl: `wss://${FREESWITCH_DOMAIN}:8082`,
     };
   }
 }

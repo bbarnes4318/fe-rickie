@@ -272,8 +272,9 @@ export function connectWebSocket() {
     console.log('[HopWhistle] WebSocket already connected');
     return;
   }
-  
-  const wsUrl = `${HOPWHISTLE_CONFIG.wsUrl}/ws`;
+  // WebSocket endpoint is /ws/events with API key in query params
+  const apiKey = HOPWHISTLE_CONFIG.apiKey;
+  const wsUrl = `${HOPWHISTLE_CONFIG.wsUrl}/ws/events?apiKey=${encodeURIComponent(apiKey)}`;
   console.log('[HopWhistle] Connecting to WebSocket:', wsUrl);
   
   try {
