@@ -146,11 +146,13 @@ async function getCredentials() {
   } catch (error) {
     console.error('[Softphone] Failed to get credentials:', error);
     // Return default credentials for testing
+    // Realm must be a valid domain/IP. 'freeswitch' is likely invalid for SIP.js
+    const ip = '107.170.36.116';
     return {
       username: `agent_${Date.now()}`,
       password: 'ClueCon', // FreeSWITCH default
-      realm: 'freeswitch',
-      wsUrl: getWebSocketUrl(),
+      realm: ip, 
+      wsUrl: `wss://${ip}:8082`,
     };
   }
 }

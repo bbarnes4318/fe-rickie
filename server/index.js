@@ -56,14 +56,35 @@ import proxy from 'express-http-proxy';
 // Proxy API requests
 app.use('/api/hopwhistle', proxy('http://107.170.36.116:3001', {
   proxyReqPathResolver: (req) => {
-    // Forward path: /api/hopwhistle/v1/agent/... -> /v1/agent/...
-    // But HopWhistle API is mounted at root or /api depending on app.yaml?
-    // Based on previous findings API is at http://107.170.36.116:3001/api/v1/...
-    // So we want to forward /api/hopwhistle/api/v1/... -> /api/v1/...
-    // Let's assume frontend requests /api/hopwhistle/api/v1/...
-    return req.url.startsWith('/api') ? req.url : `/api${req.url}`;
+    // Frontend requests: /api/hopwhistle/api/v1/...
+    // Target: /api/v1/...
+    // req.url here IS the part after /api/hopwhistle, so it likely starts with /api/v1/... if the frontend sends that.
+    // Let's log it to be sure.
+    console.log(`[Proxy] Request: ${req.url}`);
+    
+    // If the frontend sends /api/hopwhistle/api/v1/..., req.url is /api/v1/...
+    // If frontend sends /api/hopwhistle/health, req.url is /health
+    // We want /health -> /api/health ?? No, usually health is at root or /health.
+    
+    // IMPORTANT: HopWhistle API structure:
+    // http://107.170.36.116:3001/api/v1/...
+    // http://107.170.36.116:3001/health (maybe?)
+    
+    // If request starts with /api, pass it through
+    if (req.url.startsWith('/api')) {
+       return req.url;
+    }
+    // If request is /health, it might need to go to /api/health or just /health
+    // Let's assume passed through as is for now, but prefix with /api if missing?
+    // Actually, let's just pass exact path.
+    return req.url;
+  },
+  proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+    console.log(`[Proxy] Forwarding to: http://107.170.36.116:3001${srcReq.url}`);
+    return proxyReqOpts;
   },
   userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+    console.log(`[Proxy] Response: ${proxyRes.statusCode} for ${userReq.url}`);
     // Add CORS headers just in case
     userRes.header('Access-Control-Allow-Origin', '*');
     return proxyResData;
