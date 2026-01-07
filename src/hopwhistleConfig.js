@@ -4,18 +4,13 @@
  */
 
 export const HOPWHISTLE_CONFIG = {
-// API endpoint - HopWhistle API server via local proxy
-  // Use relative path so it hits the same origin (HTTPS)
-  apiUrl: '/api/hopwhistle',
+  // API endpoint - HopWhistle API via Nginx SSL proxy on droplet
+  // Use HTTPS directly to the droplet (vs. local proxy) since Nginx now SSL terminates
+  apiUrl: 'https://107-170-36-116.sslip.io',
   
-  // WebSocket endpoint - Needs to be WSS. 
-  // FreeSWITCH Verto (Audio/Signaling) is on 8082
-  // API Events are on 3001 (but no SSL there yet). 
-  // If this config is for API events, it should be 3001.
-  // If it's for Softphone, softphoneService overrides it.
-  // We'll set it to the SSL domain on 8082 for now as a placeholder 
-  // or 3001 if we proxy it.
-  wsUrl: 'wss://107-170-36-116.sslip.io:8082',
+  // WebSocket endpoint for real-time API events (call notifications, etc.)
+  // Nginx on 443 proxies to HopWhistle API (port 3001) with WebSocket upgrade support
+  wsUrl: 'wss://107-170-36-116.sslip.io',
   
   // API Key for authentication
   apiKey: 'a1b2c3d4e5f67890',
