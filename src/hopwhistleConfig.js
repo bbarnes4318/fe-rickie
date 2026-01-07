@@ -5,16 +5,16 @@
 
 export const HOPWHISTLE_CONFIG = {
   // API endpoint - HopWhistle API server
-  apiUrl: import.meta.env.VITE_HOPWHISTLE_API_URL || 'https://api.hopwhistle.com',
+  apiUrl: 'http://107.170.36.116:3001',
   
   // WebSocket endpoint for real-time events
-  wsUrl: import.meta.env.VITE_HOPWHISTLE_WS_URL || 'wss://api.hopwhistle.com',
+  wsUrl: 'ws://107.170.36.116:3001',
   
-  // API Key for authentication (set in .env)
-  apiKey: import.meta.env.VITE_HOPWHISTLE_API_KEY || '',
+  // API Key for authentication
+  apiKey: 'a1b2c3d4e5f67890',
   
   // Tenant ID (multi-tenant support)
-  tenantId: import.meta.env.VITE_HOPWHISTLE_TENANT_ID || '',
+  tenantId: 'f8b6b7cb-a030-47eb-a0b0-6b578a9030c8',
 };
 
 // Event types emitted by HopWhistle
