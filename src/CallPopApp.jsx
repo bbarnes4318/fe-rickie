@@ -1158,16 +1158,18 @@ const handleToggleMute = async () => {
                     </div>
                   )}
 
-                  {/* Warm Transfer Panel */}
+                  {/* Transfer Panel - Warm & Cold */}
                   {showTransferPanel && (
                     <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-4">
-                      <p className="text-sm text-blue-300 mb-2 font-medium">Warm Transfer</p>
+                      <p className="text-sm text-blue-300 mb-2 font-medium">Transfer Call</p>
                       <input
                         type="text"
-                        placeholder="Transfer to..."
+                        value={thirdPartyNumber}
+                        onChange={(e) => setThirdPartyNumber(formatPhoneNumber(e.target.value.replace(/\D/g, '')))}
+                        placeholder="(555) 123-4567"
                         className="w-full bg-[#1e1e2e] border border-blue-500/50 rounded-lg px-3 py-2 text-white text-sm mb-2 focus:outline-none focus:border-blue-400"
                       />
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 mb-2">
                         <button
                           onClick={() => setShowTransferPanel(false)}
                           className="flex-1 py-2 text-sm text-gray-400 hover:text-white transition-colors"
@@ -1175,11 +1177,44 @@ const handleToggleMute = async () => {
                           Cancel
                         </button>
                         <button
+                          onClick={async () => {
+                            const cleanNumber = thirdPartyNumber.replace(/\D/g, '');
+                            if (cleanNumber.length === 10 && phoneRegistered) {
+                              try {
+                                console.log('[CallPopApp] Warm transfer to:', cleanNumber);
+                                await softphone.attendedTransfer(cleanNumber);
+                                setShowTransferPanel(false);
+                                setThirdPartyNumber('');
+                              } catch (error) {
+                                console.error('[CallPopApp] Warm transfer failed:', error);
+                              }
+                            }
+                          }}
                           className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
                         >
-                          Transfer
+                          Warm Transfer
                         </button>
                       </div>
+                      <button
+                        onClick={async () => {
+                          const cleanNumber = thirdPartyNumber.replace(/\D/g, '');
+                          if (cleanNumber.length === 10 && phoneRegistered) {
+                            try {
+                              console.log('[CallPopApp] Cold transfer to:', cleanNumber);
+                              await softphone.blindTransfer(cleanNumber);
+                              setShowTransferPanel(false);
+                              setThirdPartyNumber('');
+                              // Call will end on our side after blind transfer
+                              handleHangup();
+                            } catch (error) {
+                              console.error('[CallPopApp] Cold transfer failed:', error);
+                            }
+                          }
+                        }}
+                        className="w-full py-2 bg-orange-500/80 hover:bg-orange-600 text-white text-sm rounded-lg transition-colors"
+                      >
+                        Cold Transfer (Immediate)
+                      </button>
                     </div>
                   )}
 
