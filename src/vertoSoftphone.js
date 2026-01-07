@@ -513,6 +513,229 @@ export async function toggleHold(shouldHold) {
 export const rejectCall = declineCall;
 
 /**
+ * Blind Transfer (Cold Transfer) - immediately transfers call without introduction
+ */
+export async function blindTransfer(targetNumber) {
+  if (!currentCall) {
+    throw new Error('No active call to transfer');
+  }
+
+  console.log('[Verto] Blind transfer to:', targetNumber);
+
+  try {
+    await sendRequest('verto.modify', {
+      dialogParams: {
+        callID: currentCall.id,
+      },
+      action: 'transfer',
+      destination: targetNumber,
+    });
+    emit('transferInitiated', { type: 'blind', target: targetNumber });
+    console.log('[Verto] Blind transfer initiated');
+  } catch (e) {
+    console.error('[Verto] Blind transfer failed:', e);
+    throw e;
+  }
+}
+
+/**
+ * Attended Transfer (Warm Transfer) - puts call on hold, dials new party, then connects
+ * Step 1: Call this to initiate - puts current call on hold and dials target
+ * Step 2: Call completeAttendedTransfer() to connect the parties
+ */
+let consultCall = null;
+
+export async function attendedTransfer(targetNumber) {
+  if (!currentCall) {
+    throw new Error('No active call to transfer');
+  }
+
+  console.log('[Verto] Attended transfer to:', targetNumber);
+
+  try {
+    // Put current call on hold
+    await toggleHold(true);
+    
+    // Store original call reference
+    const originalCall = currentCall;
+    
+    // Create consult call to the target
+    // In Verto, we use verto.invite with a special flag
+    const consultCallId = `consult-${Date.now()}`;
+    
+    await sendRequest('verto.invite', {
+      sdp: await createOffer(),
+      dialogParams: {
+        callID: consultCallId,
+        destination_number: targetNumber,
+        caller_id_name: 'Agent',
+        caller_id_number: '1000',
+      },
+    });
+    
+    consultCall = {
+      id: consultCallId,
+      originalCallId: originalCall.id,
+      targetNumber,
+    };
+    
+    emit('consultCallInitiated', { target: targetNumber, consultCallId });
+    console.log('[Verto] Consult call initiated');
+    return { consultCallId, originalCallId: originalCall.id };
+  } catch (e) {
+    console.error('[Verto] Attended transfer failed:', e);
+    // Unhold original call on failure
+    await toggleHold(false);
+    throw e;
+  }
+}
+
+/**
+ * Complete an attended transfer - connects the two parties
+ */
+export async function completeAttendedTransfer() {
+  if (!consultCall) {
+    throw new Error('No consult call in progress');
+  }
+
+  console.log('[Verto] Completing attended transfer');
+
+  try {
+    // Send the transfer complete command
+    await sendRequest('verto.modify', {
+      dialogParams: {
+        callID: consultCall.originalCallId,
+      },
+      action: 'transfer',
+      destination: consultCall.targetNumber,
+      transferType: 'attended',
+    });
+    
+    emit('transferCompleted', { type: 'attended', target: consultCall.targetNumber });
+    consultCall = null;
+    console.log('[Verto] Attended transfer completed');
+  } catch (e) {
+    console.error('[Verto] Complete transfer failed:', e);
+    throw e;
+  }
+}
+
+/**
+ * Cancel attended transfer - hang up consult call and return to original
+ */
+export async function cancelAttendedTransfer() {
+  if (!consultCall) {
+    throw new Error('No consult call to cancel');
+  }
+
+  console.log('[Verto] Canceling attended transfer');
+
+  try {
+    // Hang up the consult call
+    await sendRequest('verto.bye', {
+      dialogParams: {
+        callID: consultCall.id,
+      },
+    });
+    
+    // Unhold the original call
+    currentCall = { id: consultCall.originalCallId };
+    await toggleHold(false);
+    
+    consultCall = null;
+    emit('transferCanceled', {});
+    console.log('[Verto] Attended transfer canceled');
+  } catch (e) {
+    console.error('[Verto] Cancel transfer failed:', e);
+    throw e;
+  }
+}
+
+/**
+ * Add third party to call (3-way conference)
+ * Bridges a new participant into the existing call
+ */
+export async function addToConference(phoneNumber) {
+  if (!currentCall) {
+    throw new Error('No active call for conference');
+  }
+
+  console.log('[Verto] Adding to conference:', phoneNumber);
+
+  try {
+    // In FreeSWITCH, we use verto.modify with 'conference' action
+    // This creates a 3-way call by bridging in a third party
+    const conferenceId = `conf-${Date.now()}`;
+    
+    await sendRequest('verto.modify', {
+      dialogParams: {
+        callID: currentCall.id,
+      },
+      action: 'conference',
+      destination: phoneNumber,
+      conferenceId: conferenceId,
+    });
+    
+    emit('conferenceStarted', { conferenceId, thirdParty: phoneNumber });
+    console.log('[Verto] Third party added to conference');
+    return { conferenceId };
+  } catch (e) {
+    console.error('[Verto] Add to conference failed:', e);
+    throw e;
+  }
+}
+
+/**
+ * Remove third party from conference (drop to 2-party call)
+ */
+export async function removeFromConference() {
+  if (!currentCall) {
+    throw new Error('No active call');
+  }
+
+  console.log('[Verto] Removing third party from conference');
+
+  try {
+    await sendRequest('verto.modify', {
+      dialogParams: {
+        callID: currentCall.id,
+      },
+      action: 'unConference',
+    });
+    
+    emit('conferenceEnded', {});
+    console.log('[Verto] Third party removed');
+  } catch (e) {
+    console.error('[Verto] Remove from conference failed:', e);
+    throw e;
+  }
+}
+
+/**
+ * Send DTMF tones during a call
+ */
+export async function sendDTMF(digits) {
+  if (!currentCall) {
+    throw new Error('No active call');
+  }
+
+  console.log('[Verto] Sending DTMF:', digits);
+
+  try {
+    await sendRequest('verto.info', {
+      dialogParams: {
+        callID: currentCall.id,
+      },
+      dtmf: digits,
+    });
+    emit('dtmfSent', { digits });
+  } catch (e) {
+    console.error('[Verto] DTMF failed:', e);
+    throw e;
+  }
+}
+
+/**
  * Disconnect and cleanup
  */
 export function disconnect() {
@@ -535,6 +758,7 @@ export function disconnect() {
 
   isLoggedIn = false;
   currentCall = null;
+  consultCall = null;
   emit('disconnected', {});
 }
 
@@ -562,6 +786,13 @@ export default {
   rejectCall,
   toggleMute,
   toggleHold,
+  blindTransfer,
+  attendedTransfer,
+  completeAttendedTransfer,
+  cancelAttendedTransfer,
+  addToConference,
+  removeFromConference,
+  sendDTMF,
   disconnect,
   isRegistered,
   getCurrentCall,

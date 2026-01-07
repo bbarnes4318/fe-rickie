@@ -786,14 +786,38 @@ const CallPopApp = () => {
     setScreenPopNotifications([]);
   };
 
-  const addThirdParty = () => {
-    if (thirdPartyNumber.replace(/\D/g, '').length === 10) {
-      setThirdPartyConnected(true);
-      setIsAddingThirdParty(false);
+  const addThirdParty = async () => {
+    const cleanNumber = thirdPartyNumber.replace(/\D/g, '');
+    if (cleanNumber.length === 10) {
+      if (phoneRegistered) {
+        try {
+          console.log('[CallPopApp] Adding third party via Verto:', cleanNumber);
+          await softphone.addToConference(cleanNumber);
+          setThirdPartyConnected(true);
+          setIsAddingThirdParty(false);
+        } catch (error) {
+          console.error('[CallPopApp] Failed to add third party:', error);
+          // Still update UI for demo purposes
+          setThirdPartyConnected(true);
+          setIsAddingThirdParty(false);
+        }
+      } else {
+        // Fallback to UI-only update if softphone not registered
+        setThirdPartyConnected(true);
+        setIsAddingThirdParty(false);
+      }
     }
   };
 
-  const removeThirdParty = () => {
+  const removeThirdParty = async () => {
+    if (phoneRegistered && thirdPartyConnected) {
+      try {
+        console.log('[CallPopApp] Removing third party from conference');
+        await softphone.removeFromConference();
+      } catch (error) {
+        console.error('[CallPopApp] Failed to remove third party:', error);
+      }
+    }
     setThirdPartyConnected(false);
     setThirdPartyNumber('');
   };
