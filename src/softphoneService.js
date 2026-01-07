@@ -143,8 +143,9 @@ async function getCredentials() {
     }
     
     return await response.json();
+    return await response.json();
   } catch (error) {
-    console.error('[Softphone] Failed to get credentials:', error);
+    console.error('[Softphone] Failed to get credentials from API:', error);
     // Return default credentials for testing
     // Realm must be a valid domain/IP. 'freeswitch' is likely invalid for SIP.js
     const ip = '107.170.36.116';
