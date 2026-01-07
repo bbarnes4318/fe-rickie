@@ -5,6 +5,7 @@ import WebhookHandler from './WebhookHandler';
 import { POST_FIELD_DEFINITIONS } from './types';
 import { api } from './api';
 import IntegratedScriptPanel from './IntegratedScriptPanel';
+import hopwhistleService, { HOPWHISTLE_EVENTS, AGENT_STATUS } from './hopwhistleService';
 
 // Health question tooltips - full question text for Q1-Q8
 const HEALTH_QUESTIONS = {
@@ -68,6 +69,8 @@ const CallPopApp = () => {
 
   // Agent Dashboard State
   const [agentStatus, setAgentStatus] = useState('available'); // 'available' | 'away' | 'on_call'
+  const [hopwhistleConnected, setHopwhistleConnected] = useState(false);
+  const [currentCallId, setCurrentCallId] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isCallActive, setIsCallActive] = useState(false);
   const [isIncomingCall, setIsIncomingCall] = useState(false);
@@ -284,7 +287,80 @@ const CallPopApp = () => {
     console.log('Sample CRM data loaded:', sampleRecords);
   }, []);
 
-  // Listen for incoming calls from webhook in Agent Dashboard
+  // Initialize HopWhistle connection
+  useEffect(() => {
+    const initHopwhistle = async () => {
+      try {
+        console.log('[CallPopApp] Initializing HopWhistle...');
+        const result = await hopwhistleService.initializeHopwhistle();
+        if (result.success) {
+          setHopwhistleConnected(true);
+          console.log('[CallPopApp] HopWhistle connected successfully');
+        } else {
+          console.warn('[CallPopApp] HopWhistle not connected:', result.reason);
+        }
+      } catch (error) {
+        console.error('[CallPopApp] HopWhistle initialization error:', error);
+      }
+    };
+    
+    initHopwhistle();
+    
+    // Subscribe to HopWhistle events
+    const unsubscribe = hopwhistleService.subscribeToEvents((event) => {
+      console.log('[CallPopApp] HopWhistle event:', event.event);
+      
+      switch (event.event) {
+        case HOPWHISTLE_EVENTS.AGENT_CALL_INCOMING:
+          // Incoming call from HopWhistle
+          if (currentView === 'agentDashboard' && !isCallActive && !isIncomingCall) {
+            const data = event.data;
+            setCurrentCallId(data.callId);
+            setIncomingCallData({
+              first_name: data.screenPopData?.first_name || data.callerName || 'Unknown',
+              last_name: data.screenPopData?.last_name || '',
+              caller_id: data.callerNumber,
+              ...data.screenPopData,
+              ...data.prospectData,
+            });
+            setIsIncomingCall(true);
+            setAgentStatus('on_call');
+          }
+          break;
+          
+        case HOPWHISTLE_EVENTS.CALL_ANSWERED:
+          console.log('[CallPopApp] Call answered:', event.data.callId);
+          break;
+          
+        case HOPWHISTLE_EVENTS.CALL_ENDED:
+          // Call ended from HopWhistle side
+          if (event.data.callId === currentCallId) {
+            if (callTimerRef.current) {
+              clearInterval(callTimerRef.current);
+            }
+            setIsCallActive(false);
+            setShowDisposition(true);
+            setAgentStatus('available');
+          }
+          break;
+          
+        case 'websocket.connected':
+          setHopwhistleConnected(true);
+          break;
+          
+        case 'websocket.disconnected':
+          setHopwhistleConnected(false);
+          break;
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+      hopwhistleService.disconnectWebSocket();
+    };
+  }, [currentView, isCallActive, isIncomingCall, currentCallId]);
+
+  // Listen for incoming calls from webhook in Agent Dashboard (fallback for non-HopWhistle)
   useEffect(() => {
     const handleIncomingWebhook = (event) => {
       if (currentView === 'agentDashboard' && !isCallActive && !isIncomingCall) {
@@ -459,7 +535,17 @@ const CallPopApp = () => {
     }
   };
 
-  const handleAnswerCall = () => {
+  const handleAnswerCall = async () => {
+    // Answer call via HopWhistle API if available
+    if (currentCallId && hopwhistleConnected) {
+      try {
+        await hopwhistleService.answerCall(currentCallId);
+        console.log('[CallPopApp] Answered call via HopWhistle:', currentCallId);
+      } catch (error) {
+        console.error('[CallPopApp] Failed to answer via HopWhistle:', error);
+      }
+    }
+    
     setIsIncomingCall(false);
     setIsCallActive(true);
     setActiveCallData(incomingCallData);
@@ -474,18 +560,39 @@ const CallPopApp = () => {
       id: `pop-${Date.now()}`,
       prospect: incomingCallData,
       timestamp: new Date().toISOString(),
-      source: 'Agent Dashboard'
+      source: hopwhistleConnected ? 'HopWhistle' : 'Agent Dashboard'
     };
     setScreenPopNotifications(prev => [...prev, notification]);
   };
 
-  const handleDeclineCall = () => {
+  const handleDeclineCall = async () => {
+    // Decline/hangup incoming call via HopWhistle if available
+    if (currentCallId && hopwhistleConnected) {
+      try {
+        await hopwhistleService.hangupCall(currentCallId);
+        console.log('[CallPopApp] Declined call via HopWhistle:', currentCallId);
+      } catch (error) {
+        console.error('[CallPopApp] Failed to decline via HopWhistle:', error);
+      }
+    }
+    
     setIsIncomingCall(false);
     setIncomingCallData(null);
+    setCurrentCallId(null);
     setAgentStatus('available');
   };
 
-  const handleHangup = () => {
+  const handleHangup = async () => {
+    // Hangup call via HopWhistle API if available
+    if (currentCallId && hopwhistleConnected) {
+      try {
+        await hopwhistleService.hangupCall(currentCallId);
+        console.log('[CallPopApp] Hung up call via HopWhistle:', currentCallId);
+      } catch (error) {
+        console.error('[CallPopApp] Failed to hangup via HopWhistle:', error);
+      }
+    }
+    
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
     }
@@ -498,6 +605,7 @@ const CallPopApp = () => {
     setThirdPartyConnected(false);
     setIsAddingThirdParty(false);
     setThirdPartyNumber('');
+    setCurrentCallId(null);
   };
 
   const handleSaveDisposition = async () => {
@@ -572,6 +680,33 @@ const CallPopApp = () => {
   const removeThirdParty = () => {
     setThirdPartyConnected(false);
     setThirdPartyNumber('');
+  };
+
+  // HopWhistle-integrated hold toggle
+  const handleToggleHold = async () => {
+    if (currentCallId && hopwhistleConnected) {
+      try {
+        const result = await hopwhistleService.holdCall(currentCallId);
+        setIsOnHold(result.isOnHold);
+      } catch (error) {
+        console.error('[CallPopApp] Failed to toggle hold via HopWhistle:', error);
+        setIsOnHold(!isOnHold); // Fallback to local state
+      }
+    } else {
+      setIsOnHold(!isOnHold);
+    }
+  };
+
+  // HopWhistle-integrated mute toggle (client-side for WebRTC)
+  const handleToggleMute = async () => {
+    if (currentCallId && hopwhistleConnected) {
+      try {
+        await hopwhistleService.muteCall(currentCallId);
+      } catch (error) {
+        console.error('[CallPopApp] Failed to mute via HopWhistle:', error);
+      }
+    }
+    setIsMuted(!isMuted);
   };
 
   const formatTime = (seconds) => {
@@ -654,6 +789,22 @@ const CallPopApp = () => {
                   agentStatus === 'away' ? 'bg-yellow-500' :
                   'bg-red-500 pulse-glow text-red-500'
                 }`} />
+              </div>
+              
+              {/* HopWhistle Connection Status */}
+              <div className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg ${
+                hopwhistleConnected 
+                  ? 'bg-green-500/10 border border-green-500/30' 
+                  : 'bg-red-500/10 border border-red-500/30'
+              }`}>
+                <div className={`w-2 h-2 rounded-full ${
+                  hopwhistleConnected ? 'bg-green-500' : 'bg-red-500'
+                }`} />
+                <span className={`text-xs font-medium ${
+                  hopwhistleConnected ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {hopwhistleConnected ? 'HopWhistle' : 'Offline'}
+                </span>
               </div>
             </div>
             
@@ -749,7 +900,7 @@ const CallPopApp = () => {
                   {/* Call Controls */}
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <button
-                      onClick={() => setIsMuted(!isMuted)}
+                      onClick={handleToggleMute}
                       className={`p-3 rounded-xl flex flex-col items-center transition-all ${
                         isMuted ? 'bg-red-500/30 border border-red-500' : 'bg-[#1e1e2e] hover:bg-[#2e2e3e] border border-[#2e2e3e]'
                       }`}
@@ -758,7 +909,7 @@ const CallPopApp = () => {
                       <span className="text-xs text-gray-400 mt-1">Mute</span>
                     </button>
                     <button
-                      onClick={() => setIsOnHold(!isOnHold)}
+                      onClick={handleToggleHold}
                       className={`p-3 rounded-xl flex flex-col items-center transition-all ${
                         isOnHold ? 'bg-yellow-500/30 border border-yellow-500' : 'bg-[#1e1e2e] hover:bg-[#2e2e3e] border border-[#2e2e3e]'
                       }`}
