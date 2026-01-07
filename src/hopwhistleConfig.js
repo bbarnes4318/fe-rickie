@@ -9,9 +9,13 @@ export const HOPWHISTLE_CONFIG = {
   apiUrl: '/api/hopwhistle',
   
   // WebSocket endpoint - Needs to be WSS. 
-  // If droplet has no SSL, this will fail in mixed content.
-  // For now, let's try to keep it as is, or we'd need to proxy WS too.
-  wsUrl: 'wss://107.170.36.116:8082',
+  // FreeSWITCH Verto (Audio/Signaling) is on 8082
+  // API Events are on 3001 (but no SSL there yet). 
+  // If this config is for API events, it should be 3001.
+  // If it's for Softphone, softphoneService overrides it.
+  // We'll set it to the SSL domain on 8082 for now as a placeholder 
+  // or 3001 if we proxy it.
+  wsUrl: 'wss://107-170-36-116.sslip.io:8082',
   
   // API Key for authentication
   apiKey: 'a1b2c3d4e5f67890',

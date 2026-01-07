@@ -149,11 +149,12 @@ async function getCredentials() {
     // Return default credentials for testing
     // Realm must be a valid domain/IP. 'freeswitch' is likely invalid for SIP.js
     const ip = '107.170.36.116';
+    const domain = '107-170-36-116.sslip.io'; // SSL Domain
     return {
       username: `agent_${Date.now()}`,
       password: 'ClueCon', // FreeSWITCH default
       realm: ip, 
-      wsUrl: `wss://${ip}:8082`,
+      wsUrl: `wss://${domain}:8082`,
     };
   }
 }
