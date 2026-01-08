@@ -241,9 +241,12 @@
     <extension name="test-call-debug">
       <condition field="destination_number" expression="^8653969104$">
         <action application="log" data="CRIT DEBUG MATCHED TEST CALL"/>
+        <action application="answer"/>
         <action application="set" data="e164_dest=+18653969104"/>
-        <action application="set" data="effective_caller_id_number=17866929905"/>
-        <action application="set" data="effective_caller_id_name=17866929905"/>
+        <action application="set" data="effective_caller_id_number=+17866929905"/>
+        <action application="set" data="effective_caller_id_name=HopWhistle"/>
+        <action application="set" data="hangup_after_bridge=true"/>
+        <action application="set" data="ignore_early_media=true"/>
         <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17866929905@pvn-shanevici.sip.signalwire.com>"/>
         <action application="bridge" data="sofia/gateway/signalwire/${e164_dest}"/>
       </condition>
