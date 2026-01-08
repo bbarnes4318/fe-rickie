@@ -1380,12 +1380,28 @@ const handleToggleMute = async () => {
                         if (dialNumber.length === 10 && phoneRegistered) {
                           try {
                             console.log('[CallPopApp] Dialing from keypad:', dialNumber);
+                            // Set call data so UI renders properly
+                            const callData = {
+                              caller_id: dialNumber,
+                              first_name: 'Outbound',
+                              last_name: 'Call',
+                              phone: dialNumber,
+                            };
+                            setActiveCallData(callData);
                             setIsCallActive(true);
                             setAgentStatus('on_call');
                             setCallTimer(0);
                             callTimerRef.current = setInterval(() => {
                               setCallTimer(prev => prev + 1);
                             }, 1000);
+                            // Create a screen pop notification for the outbound call
+                            const notification = {
+                              id: `pop-${Date.now()}`,
+                              prospect: callData,
+                              timestamp: new Date().toISOString(),
+                              source: 'Outbound Dial'
+                            };
+                            setScreenPopNotifications(prev => [...prev, notification]);
                             await softphone.makeCall(dialNumber);
                           } catch (error) {
                             console.error('[CallPopApp] Dial failed:', error);
