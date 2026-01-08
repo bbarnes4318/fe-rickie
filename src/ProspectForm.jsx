@@ -18,8 +18,7 @@ export default function ProspectForm() {
     dob: '',
     age: '',
     state: '',
-    zip: '',
-    beneficiary: ''
+    zip: ''
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +74,6 @@ export default function ProspectForm() {
     }
     if (!formData.state) newErrors.state = 'State is required';
     if (!formData.zip || formData.zip.length !== 5) newErrors.zip = 'Valid 5-digit zip code is required';
-    if (!formData.beneficiary.trim()) newErrors.beneficiary = 'Beneficiary is required';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -102,7 +100,6 @@ export default function ProspectForm() {
         age: parseInt(formData.age),
         state: formData.state,
         zip: formData.zip,
-        primaryBenName: formData.beneficiary,
         leadType: 'prospect',
         status: 'New Lead'
       });
@@ -116,8 +113,7 @@ export default function ProspectForm() {
         dob: '',
         age: '',
         state: '',
-        zip: '',
-        beneficiary: ''
+        zip: ''
       });
     } catch (error) {
       setSubmitError(error.message || 'Failed to submit. Please try again.');
@@ -226,8 +222,8 @@ export default function ProspectForm() {
             </div>
           </div>
 
-          {/* Row 2: Age, State, Zip, Beneficiary */}
-          <div className="grid grid-cols-4 gap-3 mb-4">
+          {/* Row 2: Age, State, Zip */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <div>
               <label className="block text-xs font-medium text-gray-400 mb-1">
                 Age <span className="text-red-400">*</span>
@@ -274,21 +270,6 @@ export default function ProspectForm() {
                 placeholder="12345"
               />
               {errors.zip && <p className="text-red-400 text-[10px] mt-0.5">{errors.zip}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">
-                Beneficiary <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                name="beneficiary"
-                value={formData.beneficiary}
-                onChange={handleChange}
-                className={`w-full bg-[#1e1e2e] border ${errors.beneficiary ? 'border-red-500' : 'border-[#2e2e3e]'} rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500`}
-                placeholder="Name"
-              />
-              {errors.beneficiary && <p className="text-red-400 text-[10px] mt-0.5">{errors.beneficiary}</p>}
             </div>
           </div>
 
