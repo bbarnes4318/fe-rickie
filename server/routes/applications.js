@@ -81,7 +81,8 @@ router.get('/', authenticateToken, async (req, res) => {
       lastDisposition: row.last_disposition,
       callNotes: row.call_notes,
       // Meta
-      riskScore: row.risk_score || 0
+      riskScore: row.risk_score || 0,
+      leadType: row.lead_type || 'application'
     }));
     
     res.json(applications);
@@ -100,38 +101,38 @@ router.post('/', async (req, res) => {
       INSERT INTO applications (
         app_id, status, date, carrier, plan_type, monthly_premium, face_amount, willing_to_accept,
         first_name, middle_name, last_name, address, city, state, zip, state_of_birth,
-        dob, age, ssn, gender, height, weight, tobacco,
+        dob, age, ssn, gender, height, weight, tobacco, phone,
         owner_name, owner_rel, owner_ssn, owner_address,
         primary_ben_name, primary_ben_rel, contingent_ben_name, contingent_ben_rel,
         grandchild_rider, grandchild_count, grandchild_units,
         has_existing, will_replace, physician_name,
         q1, q2, q3, q4, q5, q6, q7a, q7b, q7c, q7d, q8a, q8b, q8c,
         account_name, account_type, bank_name, bank_address, routing, account_num,
-        draft_schedule, draft_date, risk_score
+        draft_schedule, draft_date, risk_score, lead_type
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
         $9, $10, $11, $12, $13, $14, $15, $16,
-        $17, $18, $19, $20, $21, $22, $23,
-        $24, $25, $26, $27,
-        $28, $29, $30, $31,
-        $32, $33, $34,
-        $35, $36, $37,
-        $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50,
-        $51, $52, $53, $54, $55, $56,
-        $57, $58, $59
+        $17, $18, $19, $20, $21, $22, $23, $24,
+        $25, $26, $27, $28,
+        $29, $30, $31, $32,
+        $33, $34, $35,
+        $36, $37, $38,
+        $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51,
+        $52, $53, $54, $55, $56, $57,
+        $58, $59, $60, $61
       ) RETURNING *
     `, [
       data.id, data.status || 'Submitted', data.date || new Date().toISOString().split('T')[0],
       data.carrier, data.planType, data.monthlyPremium || data.premium, data.faceAmount, data.willingToAccept || false,
       data.firstName, data.middleName, data.lastName, data.address, data.city, data.state, data.zip, data.stateOfBirth,
-      data.dob || null, data.age || null, data.ssn, data.gender, data.height, data.weight, data.tobacco,
+      data.dob || null, data.age || null, data.ssn, data.gender, data.height, data.weight, data.tobacco, data.phone,
       data.ownerName, data.ownerRel, data.ownerSsn, data.ownerAddress,
       data.primaryBenName, data.primaryBenRel, data.contingentBenName, data.contingentBenRel,
       data.grandchildRider || false, data.grandchildCount || 0, data.grandchildUnits || 0,
       data.hasExisting, data.willReplace, data.physicianName,
       data.q1, data.q2, data.q3, data.q4, data.q5, data.q6, data.q7a, data.q7b, data.q7c, data.q7d, data.q8a, data.q8b, data.q8c,
       data.accountName, data.accountType || 'checking', data.bankName, data.bankAddress, data.routing, data.accountNum,
-      data.draftSchedule, data.draftDate, data.riskScore || Math.floor(Math.random() * 100)
+      data.draftSchedule, data.draftDate, data.riskScore || Math.floor(Math.random() * 100), data.leadType || 'application'
     ]);
     
     res.status(201).json({ success: true, id: data.id });
