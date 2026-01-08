@@ -1359,7 +1359,29 @@ const handleToggleMute = async () => {
                       Clear
                     </button>
                     <button
-                      disabled={phoneNumber.replace(/\D/g, '').length !== 10}
+                      disabled={phoneNumber.replace(/\D/g, '').length !== 10 || !phoneRegistered}
+                      onClick={async () => {
+                        const dialNumber = phoneNumber.replace(/\D/g, '');
+                        if (dialNumber.length === 10 && phoneRegistered) {
+                          try {
+                            console.log('[CallPopApp] Dialing from keypad:', dialNumber);
+                            setIsCallActive(true);
+                            setAgentStatus('on_call');
+                            setCallTimer(0);
+                            callTimerRef.current = setInterval(() => {
+                              setCallTimer(prev => prev + 1);
+                            }, 1000);
+                            await softphone.makeCall(dialNumber);
+                          } catch (error) {
+                            console.error('[CallPopApp] Dial failed:', error);
+                            setIsCallActive(false);
+                            setAgentStatus('available');
+                            if (callTimerRef.current) {
+                              clearInterval(callTimerRef.current);
+                            }
+                          }
+                        }
+                      }}
                       className="flex-1 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex items-center justify-center space-x-2"
                     >
                       <Phone className="w-5 h-5" />
