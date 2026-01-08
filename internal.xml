@@ -56,8 +56,7 @@
   <gateways>
     <gateway name="signalwire">
       <param name="username" value="fe"/>
-      <!-- WARNING: Password redacted for git security. Set this manually on server or use env vars -->
-      <param name="password" value="YOUR_SIGNALWIRE_PASSWORD"/> 
+      <param name="password" value="Thunder3560@Thunder"/> 
       <param name="realm" value="pvn-shanevici.sip.signalwire.com"/>
       <param name="proxy" value="pvn-shanevici.sip.signalwire.com"/>
       <param name="register" value="true"/>
