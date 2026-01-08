@@ -73,17 +73,28 @@ function sendRequest(method, params) {
       id,
     };
 
-    pendingRequests.set(id, { resolve, reject });
-    console.log('[Verto] Sending:', method, params);
-    ws.send(JSON.stringify(request));
-
-    // Timeout after 30 seconds
-    setTimeout(() => {
+    // Store timeout ID so we can clear it
+    const timeoutId = setTimeout(() => {
       if (pendingRequests.has(id)) {
         pendingRequests.delete(id);
         reject(new Error(`Request ${method} timed out`));
       }
     }, 30000);
+
+    // Store both callbacks AND the timeout ID
+    pendingRequests.set(id, { 
+      resolve: (result) => {
+        clearTimeout(timeoutId);
+        resolve(result);
+      }, 
+      reject: (err) => {
+        clearTimeout(timeoutId);
+        reject(err);
+      }
+    });
+    
+    console.log('[Verto] Sending:', method, params);
+    ws.send(JSON.stringify(request));
   });
 }
 
