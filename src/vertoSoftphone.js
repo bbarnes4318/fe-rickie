@@ -380,13 +380,30 @@ export async function makeCall(phoneNumber) {
     direction: 'outbound',
   };
 
+  // Verto requires specific dialogParams for the invite to work
+  const username = 'demo-agent';
+  const domain = '172.18.0.9';
+  const loginId = `${username}@${domain}`;
+  
   const result = await sendRequest('verto.invite', {
     sdp,
     dialogParams: {
       callID: callId,
+      login: loginId,
+      sessid: sessionId,
       destination_number: phoneNumber,
       caller_id_name: 'Agent',
       caller_id_number: '1000',
+      useVideo: false,
+      useStereo: false,
+      screenShare: false,
+      useCamera: false,
+      useMic: true,
+      useSpeak: true,
+      dedEnc: false,
+      mirrorInput: false,
+      audioParams: {},
+      videoParams: {},
     },
   });
 
