@@ -99,6 +99,18 @@ const CallPopApp = () => {
   const [activeCallView, setActiveCallView] = useState('script'); // 'script' | 'data'
   const callTimerRef = useRef(null);
   const notesAutoSaveRef = useRef(null);
+  
+  // Refs to track state for event handlers (avoids stale closures in mount-only useEffect)
+  const currentViewRef = useRef(currentView);
+  const isCallActiveRef = useRef(isCallActive);
+  const isIncomingCallRef = useRef(isIncomingCall);
+  const currentCallIdRef = useRef(currentCallId);
+  
+  // Keep refs in sync with state
+  useEffect(() => { currentViewRef.current = currentView; }, [currentView]);
+  useEffect(() => { isCallActiveRef.current = isCallActive; }, [isCallActive]);
+  useEffect(() => { isIncomingCallRef.current = isIncomingCall; }, [isIncomingCall]);
+  useEffect(() => { currentCallIdRef.current = currentCallId; }, [currentCallId]);
 
   const platformPostUrl = `https://api.ppcio-platform.com/v1/post/${Math.random().toString(36).substr(2, 9)}`;
 
@@ -331,8 +343,8 @@ const CallPopApp = () => {
       
       switch (event.event) {
         case HOPWHISTLE_EVENTS.AGENT_CALL_INCOMING:
-          // Incoming call from HopWhistle
-          if (currentView === 'agentDashboard' && !isCallActive && !isIncomingCall) {
+          // Incoming call from HopWhistle - use refs to get current values
+          if (currentViewRef.current === 'agentDashboard' && !isCallActiveRef.current && !isIncomingCallRef.current) {
             const data = event.data;
             setCurrentCallId(data.callId);
             setIncomingCallData({
@@ -352,8 +364,8 @@ const CallPopApp = () => {
           break;
           
         case HOPWHISTLE_EVENTS.CALL_ENDED:
-          // Call ended from HopWhistle side
-          if (event.data.callId === currentCallId) {
+          // Call ended from HopWhistle side - use ref to compare callId
+          if (event.data.callId === currentCallIdRef.current) {
             if (callTimerRef.current) {
               clearInterval(callTimerRef.current);
             }
@@ -426,12 +438,14 @@ const CallPopApp = () => {
       hopwhistleService.disconnectWebSocket();
       softphone.disconnect();
     };
-  }, [currentView, isCallActive, isIncomingCall, currentCallId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount - DO NOT add dependencies here or connections will restart on every state change
 
   // Listen for incoming calls from webhook in Agent Dashboard (fallback for non-HopWhistle)
   useEffect(() => {
     const handleIncomingWebhook = (event) => {
-      if (currentView === 'agentDashboard' && !isCallActive && !isIncomingCall) {
+      // Use refs to access current state values
+      if (currentViewRef.current === 'agentDashboard' && !isCallActiveRef.current && !isIncomingCallRef.current) {
         const notification = event.detail;
         setIncomingCallData(notification.prospect);
         setIsIncomingCall(true);
@@ -440,7 +454,8 @@ const CallPopApp = () => {
     };
     window.addEventListener('webhookReceived', handleIncomingWebhook);
     return () => window.removeEventListener('webhookReceived', handleIncomingWebhook);
-  }, [currentView, isCallActive, isIncomingCall]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only on mount - refs handle current state access
 
   // Fetch applications when entering Agent Dashboard
   const fetchApplications = async () => {
