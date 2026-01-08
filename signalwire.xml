@@ -1,7 +1,7 @@
 <include>
   <gateway name="signalwire">
     <param name="username" value="fe"/>
-    <param name="password" value="Thunder3560@Thunder"/>
+    <param name="password" value="Thunder3560Thunder"/>
     <param name="realm" value="pvn-shanevici.sip.signalwire.com"/>
     <param name="proxy" value="pvn-shanevici.sip.signalwire.com"/>
     <param name="register" value="true"/>

@@ -51,10 +51,10 @@
     <extension name="send-to-signalwire">
       <condition field="destination_number" expression="^.+$">
         <action application="log" data="INFO Outbound call to ${e164_dest} via SignalWire"/>
-        <action application="set" data="effective_caller_id_number=+17866929905"/>
-        <action application="set" data="effective_caller_id_name=+17866929905"/>
+        <action application="set" data="effective_caller_id_number=+17253022220"/>
+        <action application="set" data="effective_caller_id_name=+17253022220"/>
         <!-- SignalWire often requires P-Asserted-Identity with the correct domain -->
-        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17866929905@pvn-shanevici.sip.signalwire.com>"/>
+        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17253022220@pvn-shanevici.sip.signalwire.com>"/>
         <action application="bridge" data="sofia/gateway/signalwire/${e164_dest}"/>
       </condition>
     </extension>
@@ -243,11 +243,11 @@
         <action application="log" data="CRIT DEBUG MATCHED TEST CALL"/>
         <action application="answer"/>
         <action application="set" data="e164_dest=+18653969104"/>
-        <action application="set" data="effective_caller_id_number=+17866929905"/>
+        <action application="set" data="effective_caller_id_number=+17253022220"/>
         <action application="set" data="effective_caller_id_name=HopWhistle"/>
         <action application="set" data="hangup_after_bridge=true"/>
         <action application="set" data="ignore_early_media=true"/>
-        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17866929905@pvn-shanevici.sip.signalwire.com>"/>
+        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17253022220@pvn-shanevici.sip.signalwire.com>"/>
         <action application="bridge" data="sofia/gateway/signalwire/${e164_dest}"/>
       </condition>
     </extension>
@@ -260,14 +260,14 @@
         <action application="set" data="effective_caller_id_number=${caller_id_number}"/>
         <action application="set" data="effective_caller_id_name=${caller_id_name}"/>
         <!-- SignalWire often requires P-Asserted-Identity -->
-        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17866929905@pvn-shanevici.sip.signalwire.com>"/> 
+        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17253022220@pvn-shanevici.sip.signalwire.com>"/> 
         <action application="bridge" data="sofia/gateway/signalwire/${e164_dest}"/>
       </condition>
       <!-- Catch already normalized or other formats -->
       <condition field="destination_number" expression="^(\+\d+)$" break="on-true">
         <action application="log" data="INFO External call to E164 number ${destination_number}"/>
         <action application="set" data="e164_dest=${destination_number}"/>
-        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17866929905@pvn-shanevici.sip.signalwire.com>"/>
+        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17253022220@pvn-shanevici.sip.signalwire.com>"/>
         <action application="bridge" data="sofia/gateway/signalwire/${e164_dest}"/>
       </condition>
     </extension>

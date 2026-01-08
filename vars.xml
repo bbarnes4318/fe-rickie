@@ -22,11 +22,11 @@
   <X-PRE-PROCESS cmd="set" data="recordings_path=/recordings"/>
   <X-PRE-PROCESS cmd="set" data="recordings_format=$${env(RECORDINGS_FORMAT)}"/>
 
-  <!-- SignalWire Configuration -->
+  <!-- SignalWire Configuration - ACTUAL CREDENTIALS -->
   <X-PRE-PROCESS cmd="set" data="signalwire_sip_username=fe"/>
-  <X-PRE-PROCESS cmd="set" data="signalwire_sip_password=Thunder3560@Thunder"/>
+  <X-PRE-PROCESS cmd="set" data="signalwire_sip_password=Thunder3560Thunder"/>
   <X-PRE-PROCESS cmd="set" data="signalwire_sip_domain=pvn-shanevici.sip.signalwire.com"/>
-  <X-PRE-PROCESS cmd="set" data="signalwire_outbound_proxy="/>
+  <X-PRE-PROCESS cmd="set" data="signalwire_outbound_proxy=pvn-shanevici.sip.signalwire.com"/>
 
   <!-- Default values if env vars not set -->
   <X-PRE-PROCESS cmd="set" data="api_url=$${api_url:http://api:3001}"/>
