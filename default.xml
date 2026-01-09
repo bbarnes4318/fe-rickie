@@ -1,0 +1,67 @@
+<!-- Default Dialplan -->
+<include>
+  <!-- Default Context - Used by Verto and internal users -->
+  <context name="default">
+    
+    <!-- Outbound PSTN calls - 10 or 11 digit numbers via SignalWire -->
+    <extension name="outbound-pstn">
+      <condition field="destination_number" expression="^1?([2-9]\d{9})$">
+        <action application="log" data="INFO Outbound PSTN call to ${destination_number} via SignalWire"/>
+        <action application="set" data="effective_caller_id_number=+17253022220"/>
+        <action application="set" data="effective_caller_id_name=Agent"/>
+        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17253022220@pvn-shanevici.sip.signalwire.com>"/>
+        <action application="bridge" data="sofia/gateway/signalwire/+1${1}"/>
+      </condition>
+    </extension>
+
+    <!-- E164 format calls (+1XXXXXXXXXX) -->
+    <extension name="outbound-e164">
+      <condition field="destination_number" expression="^(\+1[2-9]\d{9})$">
+        <action application="log" data="INFO Outbound E164 call to ${destination_number} via SignalWire"/>
+        <action application="set" data="effective_caller_id_number=+17253022220"/>
+        <action application="set" data="effective_caller_id_name=Agent"/>
+        <action application="export" data="sip_h_P-Asserted-Identity=<sip:+17253022220@pvn-shanevici.sip.signalwire.com>"/>
+        <action application="bridge" data="sofia/gateway/signalwire/${destination_number}"/>
+      </condition>
+    </extension>
+
+    <!-- Internal extension calls (4 digits or less) -->
+    <extension name="internal-calls">
+      <condition field="destination_number" expression="^(\d{1,4})$">
+        <action application="log" data="INFO Internal call to ${destination_number}"/>
+        <action application="answer"/>
+        <action application="bridge" data="user/${destination_number}@${domain_name}"/>
+      </condition>
+    </extension>
+
+    <!-- Echo test -->
+    <extension name="echo">
+      <condition field="destination_number" expression="^9196$">
+        <action application="answer"/>
+        <action application="echo"/>
+      </condition>
+    </extension>
+
+  </context>
+
+  <!-- Internal Context (alias for default) -->
+  <context name="internal">
+    <extension name="route-to-default">
+      <condition field="destination_number" expression="^(.*)$">
+        <action application="transfer" data="$1 XML default"/>
+      </condition>
+    </extension>
+  </context>
+
+  <!-- Trunk Context - For inbound calls from SignalWire -->
+  <context name="trunk">
+    <extension name="inbound-signalwire">
+      <condition field="destination_number" expression="^(.+)$">
+        <action application="log" data="INFO Inbound call from ${caller_id_number} to ${destination_number}"/>
+        <action application="answer"/>
+        <action application="playback" data="ivr/ivr-welcome.wav"/>
+        <action application="hangup"/>
+      </condition>
+    </extension>
+  </context>
+</include>
