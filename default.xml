@@ -1,7 +1,7 @@
 <!-- Default Dialplan -->
 <include>
-  <!-- Default Context - Used by Verto and internal users -->
-  <context name="default">
+  <!-- Internal Context - Used by Verto users (context="internal" in verto.conf) -->
+  <context name="internal">
     
     <!-- Outbound PSTN calls - 10 or 11 digit numbers via SignalWire -->
     <extension name="outbound-pstn">
@@ -26,7 +26,7 @@
     </extension>
 
     <!-- Internal extension calls (4 digits or less) -->
-    <extension name="internal-calls">
+    <extension name="internal-extensions">
       <condition field="destination_number" expression="^(\d{1,4})$">
         <action application="log" data="INFO Internal call to ${destination_number}"/>
         <action application="answer"/>
@@ -44,11 +44,11 @@
 
   </context>
 
-  <!-- Internal Context (alias for default) -->
-  <context name="internal">
-    <extension name="route-to-default">
+  <!-- Default Context (alias for internal) -->
+  <context name="default">
+    <extension name="route-to-internal">
       <condition field="destination_number" expression="^(.*)$">
-        <action application="transfer" data="$1 XML default"/>
+        <action application="transfer" data="$1 XML internal"/>
       </condition>
     </extension>
   </context>
