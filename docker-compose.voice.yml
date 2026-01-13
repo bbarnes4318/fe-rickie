@@ -1,0 +1,94 @@
+services:
+  rtpengine:
+    build:
+      context: ../../
+      dockerfile: apps/rtpengine/Dockerfile
+    container_name: hopwhistle-rtpengine
+    restart: unless-stopped
+    privileged: true
+    environment:
+      - PUBLIC_IP=${PUBLIC_IP}
+      - TABLE=0
+      - INTERFACE=eth0
+      - LISTEN_NG=22222
+      - RTP_START=${RTP_START:-10000}
+      - RTP_END=${RTP_END:-10100}
+    ports:
+      - '10000-10100:10000-10100/udp'
+    networks:
+      - voice_net
+
+  freeswitch:
+    build:
+      context: ../../
+      dockerfile: apps/freeswitch/Dockerfile
+      args:
+        SIGNALWIRE_TOKEN: ${SIGNALWIRE_TOKEN}
+    container_name: hopwhistle-freeswitch
+    restart: unless-stopped
+    environment:
+      - PUBLIC_IP=${PUBLIC_IP}
+      - SOUND_RATES=8000:16000
+      - MEDIA_DOMAIN=${MEDIA_DOMAIN}
+      - API_BASE_URL=${API_URL}
+      - API_ADMIN_TOKEN=${API_ADMIN_TOKEN}
+      - FS_ESL_PASSWORD=${FS_ESL_PASSWORD}
+      - API_KEY=${API_KEY}
+      - SIGNALWIRE_SIP_DOMAIN=${SIGNALWIRE_SIP_DOMAIN}
+      - SIGNALWIRE_SIP_USERNAME=${SIGNALWIRE_SIP_USERNAME}
+      - SIGNALWIRE_SIP_PASSWORD=${SIGNALWIRE_SIP_PASSWORD}
+      - SIGNALWIRE_OUTBOUND_PROXY=${SIGNALWIRE_OUTBOUND_PROXY}
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "8084:8082"
+      - "5080:5080/tcp"
+      - "5080:5080/udp"
+    volumes:
+      - ./fs_recordings:/usr/share/freeswitch/recordings
+      - ../../freeswitch/scripts:/usr/local/bin/scripts:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /opt/hopwhistle/infra/docker/wss.pem:/etc/freeswitch/tls/tls.pem:ro
+      - /etc/letsencrypt/live/107-170-36-116.sslip.io/chain.pem:/etc/freeswitch/tls/chain.pem:ro
+    networks:
+      - voice_net
+      - data_net
+    cap_add:
+      - SYS_NICE
+      - IPC_LOCK
+    # FreeSWITCH starts independently to avoid loops
+
+  kamailio:
+    build:
+      context: ../../
+      dockerfile: apps/kamailio/Dockerfile
+    container_name: hopwhistle-kamailio
+    restart: unless-stopped
+    environment:
+      - PUBLIC_IP=${PUBLIC_IP}
+      - DATABASE_URL=${DATABASE_URL}
+      - SBC_DOMAIN=${SBC_DOMAIN}
+      - TLS_ENABLE=${TLS_ENABLE}
+      - SIGNALWIRE_SIP_DOMAIN=${SIGNALWIRE_SIP_DOMAIN}
+      - SIGNALWIRE_SIP_USERNAME=${SIGNALWIRE_SIP_USERNAME}
+      - SIGNALWIRE_SIP_PASSWORD=${SIGNALWIRE_SIP_PASSWORD}
+      - SIGNALWIRE_OUTBOUND_PROXY=${SIGNALWIRE_OUTBOUND_PROXY}
+    ports:
+      - '5060:5060/udp'
+      - '5060:5060/tcp'
+      - '5061:5061/tcp'
+    volumes:
+      - ../../kamailio/tls:/etc/kamailio/tls:ro
+    networks:
+      - voice_net
+      - data_net
+    depends_on:
+      - rtpengine
+      - freeswitch
+      # Kamailio waits for both to be ready
+
+networks:
+  voice_net:
+    driver: bridge
+  data_net:
+    external: true

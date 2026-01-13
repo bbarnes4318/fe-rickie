@@ -10,6 +10,7 @@ CREATE TABLE applications (
   -- Carrier & Policy
   carrier VARCHAR(100),
   plan_type VARCHAR(100),
+  lead_type VARCHAR(20) DEFAULT 'application',
   monthly_premium DECIMAL(10,2),
   face_amount INTEGER,
   willing_to_accept BOOLEAN DEFAULT FALSE,

@@ -102,6 +102,32 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Auto-run migrations on startup
+import pool from './db.js';
+
+const runMigrations = async () => {
+  try {
+    console.log('[Migration] Checking database schema...');
+    // Add lead_type column if missing
+    await pool.query(`
+      ALTER TABLE applications 
+      ADD COLUMN IF NOT EXISTS lead_type VARCHAR(20) DEFAULT 'application';
+    `);
+    
+    // Add phone column if missing (legacy support)
+    await pool.query(`
+      ALTER TABLE applications 
+      ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
+    `);
+    
+    console.log('[Migration] Database schema verification complete');
+  } catch (error) {
+    console.error('[Migration] Warning: Schema verification failed:', error.message);
+  }
+};
+
+runMigrations().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
