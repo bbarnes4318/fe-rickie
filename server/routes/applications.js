@@ -122,7 +122,9 @@ router.post('/', async (req, res) => {
         $58, $59, $60, $61
       ) RETURNING *
     `, [
-      data.id, data.status || 'Submitted', data.date || new Date().toISOString().split('T')[0],
+      data.id || `APP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      data.status || 'Submitted', 
+      data.date || new Date().toISOString().split('T')[0],
       data.carrier, data.planType, data.monthlyPremium || data.premium, data.faceAmount, data.willingToAccept || false,
       data.firstName, data.middleName, data.lastName, data.address, data.city, data.state, data.zip, data.stateOfBirth,
       data.dob || null, data.age || null, data.ssn, data.gender, data.height, data.weight, data.tobacco, data.phone,
