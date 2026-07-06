@@ -3344,10 +3344,25 @@ const CustomerForm = ({ onComplete }) => {
       
       let eventSource = null;
       let currentJobId = null;
+      let pollInterval = null;
+      let isPolling = false;
       
+      const cleanUpConnections = () => {
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+        isPolling = false;
+      };
+
       try {
         // Prepare form data for automation
         const formData = {
+          id: data.id || null, // Pass app ID
           state: data.state,
           firstName: data.firstName,
           middleName: data.middleName,
@@ -3357,7 +3372,7 @@ const CustomerForm = ({ onComplete }) => {
           gender: data.gender,
           tobacco: data.tobacco,
           selectedCoverage: data.faceAmount,
-          selectedPlanType: data.planType === "Immediate" ? "I" : data.planType === "Graded" ? "G" : "L",
+          selectedPlanType: data.planType, // Send plan type directly
           address: data.address,
           city: data.city,
           zip: data.zip,
@@ -3396,7 +3411,16 @@ const CustomerForm = ({ onComplete }) => {
           ilDesigneeChoice: data.ilDesigneeChoice,
         };
         
-        // Start automation - returns jobId IMMEDIATELY (automation runs in background)
+        // Log safe version of formData without sensitive PII details
+        const safeFormData = {
+          ...formData,
+          ssn: formData.ssn ? `***-**-${formData.ssn.slice(-4)}` : '',
+          accountNumber: formData.accountNumber ? `******${formData.accountNumber.slice(-4)}` : '',
+          routingNumber: formData.routingNumber ? `*****${formData.routingNumber.slice(-4)}` : '',
+        };
+        console.log('Sending safe automation payload:', safeFormData);
+
+        // Start automation - returns jobId IMMEDIATELY
         const startResult = await api.runAutomation(formData);
         
         if (!startResult.jobId) {
@@ -3404,10 +3428,43 @@ const CustomerForm = ({ onComplete }) => {
         }
         
         currentJobId = startResult.jobId;
-        console.log('Automation started, subscribing to SSE for job:', currentJobId);
+        console.log('Automation started, job ID:', currentJobId);
+
+        // Fallback polling loop if SSE fails
+        const startPollingFallback = () => {
+          if (isPolling) return;
+          isPolling = true;
+          console.log('SSE connection unavailable. Starting polling fallback...');
+          
+          pollInterval = setInterval(async () => {
+            try {
+              const pollResult = await api.getAutomationResult(currentJobId);
+              
+              if (pollResult.steps && pollResult.steps.length > 0) {
+                setAutomationSteps(pollResult.steps);
+              }
+
+              if (pollResult.status === 'completed') {
+                cleanUpConnections();
+                if (pollResult.applicationNumber) {
+                  update("applicationNumber", pollResult.applicationNumber);
+                  setStep(9);
+                } else {
+                  setAutomationError('Automation completed but no application number was captured');
+                }
+                setAutomationLoading(false);
+              } else if (pollResult.status === 'failed') {
+                cleanUpConnections();
+                setAutomationError(pollResult.error || 'Automation failed');
+                setAutomationLoading(false);
+              }
+            } catch (e) {
+              console.error('Error in polling loop:', e);
+            }
+          }, 3000);
+        };
         
         // Subscribe to SSE for live status updates
-        // This runs while automation is in progress on the server
         eventSource = api.subscribeToAutomationStatus(
           currentJobId,
           async (statusUpdate) => {
@@ -3416,7 +3473,6 @@ const CustomerForm = ({ onComplete }) => {
             // Add status update to the steps array
             if (statusUpdate.step !== undefined && statusUpdate.message) {
               setAutomationSteps((prev) => {
-                // Avoid duplicates based on message
                 const exists = prev.some(s => s.message === statusUpdate.message);
                 if (exists) return prev;
                 return [...prev, statusUpdate];
@@ -3425,12 +3481,9 @@ const CustomerForm = ({ onComplete }) => {
             
             // Handle completion
             if (statusUpdate.status === 'completed') {
-              console.log('Automation completed! Fetching result...');
+              cleanUpConnections();
               try {
-                // Fetch the final result to get application number
                 const finalResult = await api.getAutomationResult(currentJobId);
-                console.log('Final result:', finalResult);
-                
                 if (finalResult.applicationNumber) {
                   update("applicationNumber", finalResult.applicationNumber);
                   setStep(9); // Move to Voice Recording step
@@ -3442,21 +3495,19 @@ const CustomerForm = ({ onComplete }) => {
                 setAutomationError(e.message);
               }
               setAutomationLoading(false);
-              if (eventSource) eventSource.close();
             }
             
             // Handle failure
             if (statusUpdate.status === 'failed') {
-              console.log('Automation failed:', statusUpdate.message);
+              cleanUpConnections();
               setAutomationError(statusUpdate.message || 'Automation failed');
               setAutomationLoading(false);
-              if (eventSource) eventSource.close();
             }
           },
           (error) => {
-            console.error('SSE connection error:', error);
-            setAutomationError('Lost connection to automation service');
-            setAutomationLoading(false);
+            console.warn('SSE connection error, attempting polling fallback:', error);
+            if (eventSource) eventSource.close();
+            startPollingFallback();
           }
         );
         
@@ -3464,9 +3515,7 @@ const CustomerForm = ({ onComplete }) => {
         console.error("Automation error:", error);
         setAutomationError(error.message);
         setAutomationLoading(false);
-        if (eventSource) {
-          eventSource.close();
-        }
+        cleanUpConnections();
       }
     };
     
