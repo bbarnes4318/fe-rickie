@@ -119,6 +119,24 @@ const runMigrations = async () => {
       ALTER TABLE applications 
       ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
     `);
+
+    // Add automation columns
+    await pool.query(`
+      ALTER TABLE applications 
+      ADD COLUMN IF NOT EXISTS carrier_application_number VARCHAR(100);
+    `);
+    await pool.query(`
+      ALTER TABLE applications 
+      ADD COLUMN IF NOT EXISTS automation_status VARCHAR(50);
+    `);
+    await pool.query(`
+      ALTER TABLE applications 
+      ADD COLUMN IF NOT EXISTS automation_error TEXT;
+    `);
+    await pool.query(`
+      ALTER TABLE applications 
+      ADD COLUMN IF NOT EXISTS automation_completed_at TIMESTAMP;
+    `);
     
     console.log('[Migration] Database schema verification complete');
   } catch (error) {

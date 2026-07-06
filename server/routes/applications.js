@@ -82,7 +82,12 @@ router.get('/', authenticateToken, async (req, res) => {
       callNotes: row.call_notes,
       // Meta
       riskScore: row.risk_score || 0,
-      leadType: row.lead_type || 'application'
+      leadType: row.lead_type || 'application',
+      // Automation
+      carrierApplicationNumber: row.carrier_application_number,
+      automationStatus: row.automation_status,
+      automationError: row.automation_error,
+      automationCompletedAt: row.automation_completed_at
     }));
     
     res.json(applications);
@@ -108,7 +113,8 @@ router.post('/', async (req, res) => {
         has_existing, will_replace, physician_name,
         q1, q2, q3, q4, q5, q6, q7a, q7b, q7c, q7d, q8a, q8b, q8c,
         account_name, account_type, bank_name, bank_address, routing, account_num,
-        draft_schedule, draft_date, risk_score, lead_type
+        draft_schedule, draft_date, risk_score, lead_type,
+        carrier_application_number, automation_status, automation_error, automation_completed_at
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
         $9, $10, $11, $12, $13, $14, $15, $16,
@@ -119,7 +125,8 @@ router.post('/', async (req, res) => {
         $36, $37, $38,
         $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51,
         $52, $53, $54, $55, $56, $57,
-        $58, $59, $60, $61
+        $58, $59, $60, $61,
+        $62, $63, $64, $65
       ) RETURNING *
     `, [
       data.id || `APP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -134,7 +141,11 @@ router.post('/', async (req, res) => {
       data.hasExisting, data.willReplace, data.physicianName,
       data.q1, data.q2, data.q3, data.q4, data.q5, data.q6, data.q7a, data.q7b, data.q7c, data.q7d, data.q8a, data.q8b, data.q8c,
       data.accountName, data.accountType || 'checking', data.bankName, data.bankAddress, data.routing, data.accountNum,
-      data.draftSchedule, data.draftDate, data.riskScore || Math.floor(Math.random() * 100), data.leadType || 'application'
+      data.draftSchedule, data.draftDate, data.riskScore || Math.floor(Math.random() * 100), data.leadType || 'application',
+      data.carrierApplicationNumber || data.applicationNumber || null,
+      data.automationStatus || null,
+      data.automationError || null,
+      data.automationCompletedAt || null
     ]);
     
     res.status(201).json({ success: true, id: data.id });
@@ -156,7 +167,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
     annualPremium,
     lastCallDate,
     lastDisposition,
-    callNotes
+    callNotes,
+    carrierApplicationNumber,
+    applicationNumber,
+    automationStatus,
+    automationError,
+    automationCompletedAt
   } = req.body;
   
   try {
@@ -170,9 +186,17 @@ router.put('/:id', authenticateToken, async (req, res) => {
           last_call_date = COALESCE($7, last_call_date),
           last_disposition = COALESCE($8, last_disposition),
           call_notes = COALESCE($9, call_notes),
+          carrier_application_number = COALESCE($10, COALESCE($11, carrier_application_number)),
+          automation_status = COALESCE($12, automation_status),
+          automation_error = COALESCE($13, automation_error),
+          automation_completed_at = COALESCE($14, automation_completed_at),
           updated_at = NOW()
-      WHERE app_id = $10
-    `, [status, plan, planType, premium, carrier, annualPremium, lastCallDate, lastDisposition, callNotes, id]);
+      WHERE app_id = $15
+    `, [
+      status, plan, planType, premium, carrier, annualPremium, lastCallDate, lastDisposition, callNotes,
+      carrierApplicationNumber, applicationNumber, automationStatus, automationError, automationCompletedAt,
+      id
+    ]);
     
     res.json({ success: true });
   } catch (error) {
